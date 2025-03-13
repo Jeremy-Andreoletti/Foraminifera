@@ -1,0 +1,59 @@
+# ssu-align :: align SSU rRNA sequences
+# SSU-ALIGN 0.1.1 (Feb 2016)
+# Copyright (C) 2016 Howard Hughes Medical Institute
+# Freely distributed under the BSD open source license.
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# command: ssu-align Data/Sequences_Morard/Basetypes_NonSpinose.fasta Data_processing/Aligned_sequences/SSU-align_NonSpinose
+# date:    Tue Feb 14 15:44:23 2023
+#
+# Validating input sequence file ... done.
+#
+# Stage 1: Determining SSU start/end positions and best-matching models...
+#
+# output file name                       description                                
+# -------------------------------------  -------------------------------------------
+  SSU-align_NonSpinose.tab               locations/scores of hits defined by HMM(s)
+  SSU-align_NonSpinose.eukarya.hitlist   list of sequences to align with eukarya CM
+  SSU-align_NonSpinose.eukarya.fa            206 sequences to align with eukarya CM
+#
+# Stage 2: Aligning each sequence to its best-matching model...
+#
+# output file name                       description
+# -------------------------------------  ---------------------------------------
+  SSU-align_NonSpinose.eukarya.stk       eukarya alignment
+  SSU-align_NonSpinose.eukarya.cmalign   eukarya cmalign output
+  SSU-align_NonSpinose.eukarya.ifile     eukarya insert info
+  SSU-align_NonSpinose.scores            list of CM/HMM scores for each sequence
+#
+# Summary statistics:
+#
+# model or       number  fraction        average   average               
+# category      of seqs  of total         length  coverage    nucleotides
+# ------------  -------  --------  -------------  --------  -------------
+  *input*           206    1.0000         937.83    1.0000         193192
+#
+  archaea             0    0.0000              -         -              0
+  bacteria            0    0.0000              -         -              0
+  eukarya           206    1.0000         790.89    0.8433         162923
+#
+  *all-models*      206    1.0000         790.89    0.8433         162923
+  *no-models*         0    0.0000              -         -              0
+#
+# Speed statistics:
+#
+# stage      num seqs  seq/sec  seq/sec/model    nucleotides    nt/sec
+# ---------  --------  -------  -------------  -------------  --------
+  search          206   12.951          4.317         193192   12145.4
+  alignment       206   13.430         13.430         162923   10621.2
+#
+#
+# List of executed commands saved in:     SSU-align_NonSpinose.ssu-align.log.
+# Output printed to the screen saved in:  SSU-align_NonSpinose.ssu-align.sum.
+#
+# All output files created in directory ./Data_processing/Aligned_sequences/SSU-align_NonSpinose/
+#
+# CPU time (search):     00:00:15.91  (hh:mm:ss)
+# CPU time (alignment):  00:00:15.34  (hh:mm:ss)
+# CPU time (total):      00:00:31.41  (hh:mm:ss)
+#
+# SSU-ALIGN-SUCCESS

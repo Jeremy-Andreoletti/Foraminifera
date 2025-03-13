@@ -1,0 +1,23 @@
+#NEXUS
+
+	Begin taxa;
+	Dimensions ntax=12;
+	Taxlabels
+		Candeina_nitida_IIa
+		Candeina_nitida_Ia
+		Globigerinita_glutinata_IIIa
+		Globigerinita_glutinata_IIIb
+		Globigerinita_glutinata_IIa
+		Globigerinita_glutinata_Ia
+		Globigerinita_minuta_IIa
+		Globigerinita_minuta_Ia
+		Globigerinita_uvula_Ia
+		Tenuitellita_fleisheri_Ia
+		Tenuitellita_iota_Ia
+		Tenuitellita_parkerae_Ia
+		;
+End;
+
+Begin trees;
+tree TREE1 = [&R](((((((Candeina_nitida_Ia[&index=6]:0.339070,Globigerinita_glutinata_IIIb[&index=4]:0.339070)[&index=13,posterior=0.124031,age_95%_HPD={0.016351,0.832456}]:0.628782,Candeina_nitida_IIa[&index=11]:0.967852)[&index=14,posterior=0.040698,age_95%_HPD={0.031967,1.9353}]:-0.131580,Globigerinita_glutinata_Ia[&index=5]:0.836272)[&index=15,posterior=0.040698,age_95%_HPD={0.159543,1.62754}]:0.810101,(Globigerinita_glutinata_IIIa[&index=7]:0.332274,Globigerinita_glutinata_IIa[&index=10]:0.332274)[&index=16,posterior=0.168605,age_95%_HPD={0.001526,1.03832}]:1.314099)[&index=17,posterior=0.633721,age_95%_HPD={0.189988,3.9041}]:1.786567,Tenuitellita_fleisheri_Ia[&index=12]:3.432939)[&index=18,posterior=0.306202,age_95%_HPD={0.623996,7.0961}]:3.449076,((Tenuitellita_iota_Ia[&index=3]:1.105778,Tenuitellita_parkerae_Ia[&index=9]:1.105778)[&index=19,posterior=0.112403,age_95%_HPD={0.000574,4.25547}]:1.887032,Globigerinita_uvula_Ia[&index=8]:2.992810)[&index=20,posterior=0.174419,age_95%_HPD={0.623755,5.4715}]:3.889205)[&index=21,posterior=0.637597,age_95%_HPD={2.15189,11.0375}]:20.494309,(Globigerinita_minuta_IIa[&index=1]:4.864303,Globigerinita_minuta_Ia[&index=2]:4.864303)[&index=22,posterior=0.693798,age_95%_HPD={0.858815,9.17219}]:22.512021)[&index=23,posterior=1.000000,age_95%_HPD={11.2808,39.224}]:0.000000;
+End;

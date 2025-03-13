@@ -1,0 +1,87 @@
+# ssu-cmalign :: align sequences to an RNA CM
+# INFERNAL s0.1.1 (Feb 2016)
+# Copyright (C) 2016 Howard Hughes Medical Institute.
+# Freely distributed under the BSD open source license.
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# command: ssu-cmalign --cm-name eukarya --mxsize 4096 --no-null3 --sub --ifile Data_processing/Aligned_sequences/SSU-align_Microperforates/SSU-align_Microperforates.eukarya.ifile -o Data_processing/Aligned_sequences/SSU-align_Microperforates/SSU-align_Microperforates.eukarya.stk /usr/local/share/ssu-align-0.1.1/ssu-align-0p1.cm Data_processing/Aligned_sequences/SSU-align_Microperforates/SSU-align_Microperforates.eukarya.fa
+# date:    Fri Feb 17 14:27:28 2023
+#
+# cm name                    algorithm  config  sub  bands     tau
+# -------------------------  ---------  ------  ---  -----  ------
+# eukarya                      opt acc  global  yes    hmm   1e-07
+#
+#                                                                              bit scores                            
+#                                                                           ------------------                       
+#   seq idx  seq name                                                  len     total    struct  avg prob      elapsed
+# ---------  ------------------------------------------------------  -----  --------  --------  --------  -----------
+          1  Basetype_8|basegroup_64|Globigerinita|glutinata           744    170.84     42.74     0.947  00:00:00.06
+          2  Basetype_119|basegroup_180|Globigerinita|minuta           649    147.16     44.69     0.914  00:00:00.07
+          3  Basetype_120|basegroup_192|Candeina|nitida                741    169.39     44.18     0.919  00:00:00.07
+          4  Basetype_121|basegroup_163|Dentigloborotalia|anfracta     744    179.88     38.21     0.932  00:00:00.07
+          5  Basetype_122|basegroup_164|Tenuitellita|iota              794    173.78     52.22     0.940  00:00:00.07
+          6  Basetype_123|basegroup_164|Tenuitellita|iota              793    173.29     52.22     0.939  00:00:00.08
+          7  Basetype_124|basegroup_164|Tenuitellita|iota              794    173.78     52.22     0.940  00:00:00.07
+          8  Basetype_125|basegroup_164|Tenuitellita|iota              793    173.29     52.22     0.939  00:00:00.07
+          9  Basetype_126|basegroup_164|Tenuitellita|iota              793    175.08     52.22     0.940  00:00:00.07
+         10  Basetype_127|basegroup_164|Tenuitellita|iota              793    173.29     52.22     0.939  00:00:00.08
+         11  Basetype_128|basegroup_165|Dentigloborotalia|anfracta     747    179.77     38.21     0.933  00:00:00.07
+         12  Basetype_129|basegroup_165|Dentigloborotalia|anfracta     746    179.81     38.21     0.933  00:00:00.07
+         13  Basetype_130|basegroup_165|Dentigloborotalia|anfracta     746    179.81     38.21     0.933  00:00:00.07
+         14  Basetype_131|basegroup_165|Dentigloborotalia|anfracta     745    179.84     38.21     0.933  00:00:00.07
+         15  Basetype_132|basegroup_166|Dentigloborotalia|anfracta     747    179.77     38.21     0.933  00:00:00.07
+         16  Basetype_133|basegroup_166|Dentigloborotalia|anfracta     744    179.88     38.21     0.932  00:00:00.08
+         17  Basetype_134|basegroup_167|Tenuitellita|iota              793    173.29     52.22     0.939  00:00:00.07
+         18  Basetype_135|basegroup_167|Tenuitellita|iota              793    173.29     52.22     0.939  00:00:00.07
+         19  Basetype_136|basegroup_167|Tenuitellita|iota              794    173.78     52.22     0.940  00:00:00.08
+         20  Basetype_137|basegroup_167|Tenuitellita|iota              793    173.29     52.22     0.939  00:00:00.07
+         21  Basetype_138|basegroup_167|Tenuitellita|iota              793    173.29     52.22     0.939  00:00:00.07
+         22  Basetype_139|basegroup_167|Tenuitellita|iota              794    173.78     52.22     0.940  00:00:00.07
+         23  Basetype_140|basegroup_167|Tenuitellita|iota              794    173.25     56.92     0.949  00:00:00.07
+         24  Basetype_141|basegroup_167|Tenuitellita|iota              794    173.78     52.22     0.940  00:00:00.07
+         25  Basetype_142|basegroup_167|Tenuitellita|iota              794    173.78     52.22     0.940  00:00:00.07
+         26  Basetype_143|basegroup_168|Tenuitellita|fleisheri         791    179.29     55.18     0.944  00:00:00.07
+         27  Basetype_144|basegroup_168|Tenuitellita|fleisheri         789    179.37     55.18     0.943  00:00:00.07
+         28  Basetype_145|basegroup_168|Tenuitellita|fleisheri         781    180.22     55.18     0.943  00:00:00.07
+         29  Basetype_146|basegroup_168|Tenuitellita|fleisheri         790    179.39     55.18     0.944  00:00:00.07
+         30  Basetype_147|basegroup_168|Tenuitellita|fleisheri         791    179.29     55.18     0.944  00:00:00.07
+         31  Basetype_148|basegroup_168|Tenuitellita|fleisheri         788    179.46     55.18     0.943  00:00:00.06
+         32  Basetype_149|basegroup_168|Tenuitellita|fleisheri         789    179.37     55.18     0.943  00:00:00.07
+         33  Basetype_180|basegroup_91|Globigerinita|glutinata         734    170.87     37.66     0.943  00:00:00.07
+         34  Basetype_181|basegroup_91|Globigerinita|glutinata         734    170.87     37.66     0.943  00:00:00.07
+         35  Basetype_182|basegroup_92|Globigerinita|glutinata         734    170.87     37.66     0.943  00:00:00.06
+         36  Basetype_183|basegroup_86|Tenuitellita|fleisheri          788    179.46     55.18     0.943  00:00:00.07
+         37  Basetype_184|basegroup_86|Tenuitellita|fleisheri          779    180.29     55.18     0.943  00:00:00.07
+         38  Basetype_209|basegroup_181|Globigerinita|glutinata        730    170.61     37.66     0.946  00:00:00.07
+         39  Basetype_210|basegroup_86|Tenuitellita|fleisheri          779    180.28     56.99     0.943  00:00:00.07
+         40  Basetype_211|basegroup_182|Candeina|nitida                742    167.01     41.11     0.946  00:00:00.06
+         41  Basetype_212|basegroup_183|Globigerinita|glutinata        731    171.34     39.89     0.946  00:00:00.07
+         42  Basetype_213|basegroup_184|Globigerinita|glutinata        735    169.89     37.66     0.941  00:00:00.07
+         43  Basetype_214|basegroup_185|Globigerinita|glutinata        736    169.85     37.66     0.941  00:00:00.07
+         44  Basetype_215|basegroup_173|Globigerinita|glutinata        728    171.14     37.66     0.944  00:00:00.07
+         45  Basetype_216|basegroup_173|Globigerinita|glutinata        730    171.01     37.66     0.944  00:00:00.06
+         46  Basetype_217|basegroup_125|Globigerinita|minuta           665    146.91     37.86     0.938  00:00:00.07
+         47  Basetype_218|basegroup_175|Globigerinita|glutinata        730    170.61     37.66     0.946  00:00:00.06
+         48  Basetype_219|basegroup_192|Candeina|nitida                741    169.39     44.18     0.919  00:00:00.07
+         49  Basetype_220|basegroup_192|Candeina|nitida                746    169.21     44.18     0.920  00:00:00.07
+         50  Basetype_221|basegroup_191|Globigerinita|glutinata        732    175.03     37.66     0.937  00:00:00.07
+         51  Basetype_222|basegroup_193|Candeina|nitida                742    169.30     44.18     0.919  00:00:00.07
+         52  Basetype_223|basegroup_193|Candeina|nitida                741    169.39     44.18     0.919  00:00:00.07
+         53  Basetype_224|basegroup_190|Globigerinita|glutinata        735    169.89     37.66     0.941  00:00:00.07
+         54  Basetype_225|basegroup_194|Globigerinita|glutinata        735    169.89     37.66     0.941  00:00:00.07
+         55  Basetype_265|basegroup_143|Globigerinita|uvula            791    163.89     31.26     0.950  00:00:00.07
+         56  Basetype_267|basegroup_142|Globigerinita|uvula            791    164.00     31.26     0.950  00:00:00.07
+         57  Basetype_268|basegroup_141|Globigerinita|uvula            789    164.07     31.26     0.950  00:00:00.07
+         58  Basetype_269|basegroup_141|Globigerinita|uvula            787    164.15     31.26     0.949  00:00:00.07
+         59  Basetype_270|basegroup_141|Globigerinita|uvula            789    163.96     31.26     0.949  00:00:00.07
+         60  Basetype_271|basegroup_141|Globigerinita|uvula            789    164.07     31.26     0.950  00:00:00.08
+         61  Basetype_272|basegroup_144|Globigerinita|uvula            789    163.96     31.26     0.949  00:00:00.07
+         62  Basetype_273|basegroup_124|Globigerinita|glutinata        738    171.05     42.74     0.947  00:00:00.06
+         63  Basetype_274|basegroup_123|Globigerinita|glutinata        740    170.98     42.74     0.947  00:00:00.07
+         64  Basetype_276|basegroup_141|Globigerinita|uvula            787    164.15     31.26     0.949  00:00:00.07
+         65  Basetype_334|basegroup_209|Globigerinita|uvula            788    165.30     31.26     0.952  00:00:00.08
+         66  Representative_2|basegroup_199|Neogallitellia|vivans      750    184.11     38.44     0.951  00:00:00.06
+         67  Representative_10|basegroup_77|Globigerinita|glutinata    742    174.13     37.66     0.939  00:00:00.07
+# Alignment saved in file Data_processing/Aligned_sequences/SSU-align_Microperforates/SSU-align_Microperforates.eukarya.stk.
+# Per-sequence insert information saved in file Data_processing/Aligned_sequences/SSU-align_Microperforates/SSU-align_Microperforates.eukarya.ifile.
+#
+# CPU time: 4.69u 0.10s 00:00:04.79 Elapsed: 00:00:04.83

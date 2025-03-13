@@ -1,0 +1,41 @@
+mkdir ../../3-Data_processed/Sequence_alignments/SSU-align/Mask_pf0.95_pt0.95
+mkdir ../../3-Data_processed/Sequence_alignments/SSU-align/Mask_pf0.5_pt0.5
+
+ssu-align ../../1-Data_raw/Data_Morard/Basetypes_Microperforates.fasta ../../3-Data_processed/Sequence_alignments/SSU-align/SSU-align_Microperforates
+cp -R ../../3-Data_processed/Sequence_alignments/SSU-align/SSU-align_Microperforates ../../3-Data_processed/Sequence_alignments/SSU-align/Mask_pf0.95_pt0.95/SSU-align_Microperforates
+ssu-mask ../../3-Data_processed/Sequence_alignments/SSU-align/Mask_pf0.95_pt0.95/SSU-align_Microperforates
+ssu-mask -a --stk2afa ../../3-Data_processed/Sequence_alignments/SSU-align/Mask_pf0.95_pt0.95/SSU-align_Microperforates/SSU-align_Microperforates.eukarya.mask.stk
+ssu-mask -a --stk2afa ../../3-Data_processed/Sequence_alignments/SSU-align/Mask_pf0.95_pt0.95/SSU-align_Microperforates/SSU-align_Microperforates.eukarya.stk
+mv SSU-align_Microperforates* ../../3-Data_processed/Sequence_alignments/SSU-align/Mask_pf0.95_pt0.95/SSU-align_Microperforates/
+ssu-draw ../../3-Data_processed/Sequence_alignments/SSU-align/Mask_pf0.95_pt0.95/SSU-align_Microperforates
+cp -R ../../3-Data_processed/Sequence_alignments/SSU-align/SSU-align_Microperforates ../../3-Data_processed/Sequence_alignments/SSU-align/Mask_pf0.5_pt0.5/SSU-align_Microperforates
+ssu-mask ../../3-Data_processed/Sequence_alignments/SSU-align/Mask_pf0.5_pt0.5/SSU-align_Microperforates --pf 0.5 --pt 0.5
+ssu-mask -a --stk2afa ../../3-Data_processed/Sequence_alignments/SSU-align/Mask_pf0.5_pt0.5/SSU-align_Microperforates/SSU-align_Microperforates.eukarya.mask.stk
+mv SSU-align_Microperforates* ../../3-Data_processed/Sequence_alignments/SSU-align/Mask_pf0.5_pt0.5/SSU-align_Microperforates/
+ssu-draw ../../3-Data_processed/Sequence_alignments/SSU-align/Mask_pf0.5_pt0.5/SSU-align_Microperforates
+
+ssu-align ../../1-Data_raw/Data_Morard/Basetypes_Spinose.fasta ../../3-Data_processed/Sequence_alignments/SSU-align/SSU-align_Spinose
+cp -R ../../3-Data_processed/Sequence_alignments/SSU-align/SSU-align_Spinose ../../3-Data_processed/Sequence_alignments/SSU-align/Mask_pf0.95_pt0.95/SSU-align_Spinose
+ssu-mask ../../3-Data_processed/Sequence_alignments/SSU-align/Mask_pf0.95_pt0.95/SSU-align_Spinose
+ssu-mask -a --stk2afa ../../3-Data_processed/Sequence_alignments/SSU-align/Mask_pf0.95_pt0.95/SSU-align_Spinose/SSU-align_Spinose.eukarya.mask.stk
+ssu-mask -a --stk2afa ../../3-Data_processed/Sequence_alignments/SSU-align/Mask_pf0.95_pt0.95/SSU-align_Spinose/SSU-align_Spinose.eukarya.stk
+mv SSU-align_Spinose* ../../3-Data_processed/Sequence_alignments/SSU-align/Mask_pf0.95_pt0.95/SSU-align_Spinose/
+ssu-draw ../../3-Data_processed/Sequence_alignments/SSU-align/Mask_pf0.95_pt0.95/SSU-align_Spinose
+cp -R ../../3-Data_processed/Sequence_alignments/SSU-align/SSU-align_Spinose ../../3-Data_processed/Sequence_alignments/SSU-align/Mask_pf0.5_pt0.5/SSU-align_Spinose
+ssu-mask ../../3-Data_processed/Sequence_alignments/SSU-align/Mask_pf0.5_pt0.5/SSU-align_Spinose --pf 0.5 --pt 0.5
+ssu-mask -a --stk2afa ../../3-Data_processed/Sequence_alignments/SSU-align/Mask_pf0.5_pt0.5/SSU-align_Spinose/SSU-align_Spinose.eukarya.mask.stk
+mv SSU-align_Spinose* ../../3-Data_processed/Sequence_alignments/SSU-align/Mask_pf0.5_pt0.5/SSU-align_Spinose/
+ssu-draw ../../3-Data_processed/Sequence_alignments/SSU-align/Mask_pf0.5_pt0.5/SSU-align_Spinose
+
+ssu-align ../../1-Data_raw/Data_Morard/Basetypes_NonSpinose.fasta ../../3-Data_processed/Sequence_alignments/SSU-align/SSU-align_NonSpinose
+cp -R ../../3-Data_processed/Sequence_alignments/SSU-align/SSU-align_NonSpinose ../../3-Data_processed/Sequence_alignments/SSU-align/Mask_pf0.95_pt0.95/SSU-align_NonSpinose
+ssu-mask ../../3-Data_processed/Sequence_alignments/SSU-align/Mask_pf0.95_pt0.95/SSU-align_NonSpinose
+ssu-mask -a --stk2afa ../../3-Data_processed/Sequence_alignments/SSU-align/Mask_pf0.95_pt0.95/SSU-align_NonSpinose/SSU-align_NonSpinose.eukarya.mask.stk
+ssu-mask -a --stk2afa ../../3-Data_processed/Sequence_alignments/SSU-align/Mask_pf0.95_pt0.95/SSU-align_NonSpinose/SSU-align_NonSpinose.eukarya.stk
+mv SSU-align_NonSpinose* ../../3-Data_processed/Sequence_alignments/SSU-align/Mask_pf0.95_pt0.95/SSU-align_NonSpinose/
+ssu-draw ../../3-Data_processed/Sequence_alignments/SSU-align/Mask_pf0.95_pt0.95/SSU-align_NonSpinose
+cp -R ../../3-Data_processed/Sequence_alignments/SSU-align/SSU-align_NonSpinose ../../3-Data_processed/Sequence_alignments/SSU-align/Mask_pf0.5_pt0.5/SSU-align_NonSpinose
+ssu-mask ../../3-Data_processed/Sequence_alignments/SSU-align/Mask_pf0.5_pt0.5/SSU-align_NonSpinose --pf 0.5 --pt 0.5
+ssu-mask -a --stk2afa ../../3-Data_processed/Sequence_alignments/SSU-align/Mask_pf0.5_pt0.5/SSU-align_NonSpinose/SSU-align_NonSpinose.eukarya.mask.stk
+mv SSU-align_NonSpinose* ../../3-Data_processed/Sequence_alignments/SSU-align/Mask_pf0.5_pt0.5/SSU-align_NonSpinose/
+ssu-draw ../../3-Data_processed/Sequence_alignments/SSU-align/Mask_pf0.5_pt0.5/SSU-align_NonSpinose

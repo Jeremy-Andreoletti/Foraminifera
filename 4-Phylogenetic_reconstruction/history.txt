@@ -1,0 +1,13 @@
+seq <- readDiscreteCharacterData("../3-Data_processed/Sequence_alignments/SSU-align/Mask_pf0.5_pt0.5/SSU-align_Microperforates/SSU-align_Microperforates.eukarya.mask.afa")
+seq
+seq2 <- readDiscreteCharacterData("../3-Data_processed/Sequence_alignments/SSU-align/Microperforate_SSU-align_alignment_species_pf5_pt5.fasta")
+seq2
+seq.taxa
+()
+seq <- readDiscreteCharacterData("../3-Data_processed/Sequence_alignments/SSU-align/Mask_pf0.5_pt0.5/SSU-align_Microperforates/SSU-align_Microperforates.eukarya.mask.afa")
+seq2 <- readDiscreteCharacterData("../3-Data_processed/Sequence_alignments/SSU-align/Microperforate_SSU-align_alignment_species_pf5_pt5.fasta")
+seq
+seq2
+seq2 <- readDiscreteCharacterData("../3-Data_processed/Sequence_alignments/SSU-align/Microperforate_SSU-align_alignment_species.fasta")
+seq2
+seq

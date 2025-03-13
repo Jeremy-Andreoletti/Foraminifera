@@ -1,0 +1,22 @@
+# ssu-draw :: draw SSU rRNA secondary structure diagrams
+# SSU-ALIGN 0.1.1 (Feb 2016)
+# Copyright (C) 2016 Howard Hughes Medical Institute
+# Freely distributed under the BSD open source license.
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# command: ssu-draw ../../3-Data_processed/Sequence_alignments/SSU-align/Mask_pf0.5_pt0.5/SSU-align_Spinose
+# date:    Wed Oct 30 17:50:27 2024
+#
+# Drawing secondary structure diagrams...
+#
+# alignment file name            structure diagram file              # pages  tabular data file                     
+# -----------------------------  ----------------------------------  -------  --------------------------------------
+  SSU-align_Spinose.eukarya.stk  SSU-align_Spinose.eukarya.pdf             9  SSU-align_Spinose.eukarya.drawtab     
+#
+# List of executed commands saved in:     SSU-align_Spinose.ssu-draw.log.
+# Output printed to the screen saved in:  SSU-align_Spinose.ssu-draw.sum.
+#
+# All output files created in directory ./../../3-Data_processed/Sequence_alignments/SSU-align/Mask_pf0.5_pt0.5/SSU-align_Spinose/
+#
+# CPU time:  00:00:00.86  (hh:mm:ss)
+# 
+# SSU-ALIGN-SUCCESS

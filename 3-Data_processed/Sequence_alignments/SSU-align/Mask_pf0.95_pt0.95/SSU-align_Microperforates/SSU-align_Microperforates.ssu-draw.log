@@ -1,0 +1,73 @@
+# ssu-draw :: draw SSU rRNA secondary structure diagrams
+# SSU-ALIGN 0.1.1 (Feb 2016)
+# Copyright (C) 2016 Howard Hughes Medical Institute
+# Freely distributed under the BSD open source license.
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# command: ssu-draw ../../3-Data_processed/Sequence_alignments/SSU-align/Mask_pf0.95_pt0.95/SSU-align_Microperforates
+# date:    Wed Oct 30 17:28:11 2024
+
+Printing global hask key as read from ssu.pm:
+
+Global hash key: DF_ALIMASK_PFRACT    value: 0.95
+Global hash key: DF_ALIMASK_PTHRESH   value: 0.95
+Global hash key: DF_CMALIGN_OPTS      value:  --no-null3 --sub 
+Global hash key: DF_CMBUILD_GAPTHRESH value: 0.8
+Global hash key: DF_CMSEARCH_ALG_FLAG value:  --viterbi
+Global hash key: DF_CMSEARCH_OPTS     value:  --hmm-cW 1.5 --no-null3 --noalign 
+Global hash key: DF_CMSEARCH_T        value: -1
+Global hash key: DF_CM_FILE           value: /usr/local/share/ssu-align-0.1.1/ssu-align-0p1.cm
+Global hash key: DF_MASK_FILE         value: /usr/local/share/ssu-align-0.1.1/ssu-align-0p1.mask
+Global hash key: DF_MERGE_INIT_WAIT_SECS value: 3
+Global hash key: DF_MINBIT            value: 50
+Global hash key: DF_MINLEN            value: 1
+Global hash key: DF_MXSIZE            value: 4096
+Global hash key: DF_NO_NAME           value: <NONE>
+Global hash key: DF_TEMPLATE_FILE     value: /usr/local/share/ssu-align-0.1.1/ssu-align-0p1.ps
+Global hash key: VERSION              value: 0.1
+Global hash key: VERSION_PSTR         value: 0p1
+Global hash key: cmalign              value: ssu-cmalign
+Global hash key: cmbuild              value: ssu-cmbuild
+Global hash key: cmsearch             value: ssu-cmsearch
+Global hash key: esl-alimanip         value: ssu-esl-alimanip
+Global hash key: esl-alimask          value: ssu-esl-alimask
+Global hash key: esl-alimerge         value: ssu-esl-alimerge
+Global hash key: esl-alistat          value: ssu-esl-alistat
+Global hash key: esl-reformat         value: ssu-esl-reformat
+Global hash key: esl-seqstat          value: ssu-esl-seqstat
+Global hash key: esl-sfetch           value: ssu-esl-sfetch
+Global hash key: esl-ssdraw           value: ssu-esl-ssdraw
+Global hash key: esl-weight           value: ssu-esl-weight
+Global hash key: ps2pdf               value: ps2pdf
+Global hash key: ssu-align            value: ssu-align
+Global hash key: ssu-merge            value: ssu-merge
+
+Executing:      ssu-esl-ssdraw -h > /dev/null  2> ../ssutmp0erraa55619
+Returned:       0
+Output (STDOUT) sent to /dev/null.
+Output (STDERR): ***NONE***
+
+About to remove file (../ssutmp0erraa55619) with perl's unlink function ... done.
+
+Executing:      ssu-esl-ssdraw -d --dint --span --mask ../../3-Data_processed/Sequence_alignments/SSU-align/Mask_pf0.95_pt0.95/SSU-align_Microperforates/SSU-align_Microperforates.eukarya.mask --ifile ../../3-Data_processed/Sequence_alignments/SSU-align/Mask_pf0.95_pt0.95/SSU-align_Microperforates/SSU-align_Microperforates.eukarya.ifile --no-cnt --small --tabfile ../../3-Data_processed/Sequence_alignments/SSU-align/Mask_pf0.95_pt0.95/SSU-align_Microperforates/SSU-align_Microperforates.eukarya.drawtab ../../3-Data_processed/Sequence_alignments/SSU-align/Mask_pf0.95_pt0.95/SSU-align_Microperforates/SSU-align_Microperforates.eukarya.stk /usr/local/share/ssu-align-0.1.1/ssu-align-0p1.ps ../../3-Data_processed/Sequence_alignments/SSU-align/Mask_pf0.95_pt0.95/SSU-align_Microperforates/SSU-align_Microperforates.eukarya.ps > SSU-align_Microperforates.eukarya.ssdraw  2> ../ssutmp1erraa55619
+Returned:       0
+Output (STDOUT) saved in file SSU-align_Microperforates.eukarya.ssdraw.
+Output (STDERR): ***NONE***
+
+About to remove file (../ssutmp1erraa55619) with perl's unlink function ... done.
+
+About to remove file (SSU-align_Microperforates.eukarya.ssdraw) with perl's unlink function ... done.
+
+Executing:      ps2pdf ../../3-Data_processed/Sequence_alignments/SSU-align/Mask_pf0.95_pt0.95/SSU-align_Microperforates/SSU-align_Microperforates.eukarya.ps ../../3-Data_processed/Sequence_alignments/SSU-align/Mask_pf0.95_pt0.95/SSU-align_Microperforates/SSU-align_Microperforates.eukarya.pdf > ../ssutmp2outaa55619  2> ../ssutmp2erraa55619
+Returned:       0
+Output (STDOUT): ***NONE***
+Output (STDERR): ***NONE***
+
+About to remove file (../ssutmp2outaa55619) with perl's unlink function ... done.
+
+About to remove file (../ssutmp2erraa55619) with perl's unlink function ... done.
+
+About to remove file (../../3-Data_processed/Sequence_alignments/SSU-align/Mask_pf0.95_pt0.95/SSU-align_Microperforates/SSU-align_Microperforates.eukarya.ps) with perl's unlink function ... done.
+
+Mer 30 oct 2024 17:28:12 CET
+Darwin bdmac19.ens.fr 23.6.0 Darwin Kernel Version 23.6.0: Mon Jul 29 21:14:30 PDT 2024; root:xnu-10063.141.2~1/RELEASE_ARM64_T6000 arm64
+# SSU-ALIGN-SUCCESS

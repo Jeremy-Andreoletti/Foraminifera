@@ -1,0 +1,5 @@
+5-Analyses/
+6-Articles/
+.DS_Store # Ignore macOS system files
+1-Data_raw/TritonDB/triton.RData
+3-Data_processed/Triton_occurrences/TritonDB_trimmed_runif.csv

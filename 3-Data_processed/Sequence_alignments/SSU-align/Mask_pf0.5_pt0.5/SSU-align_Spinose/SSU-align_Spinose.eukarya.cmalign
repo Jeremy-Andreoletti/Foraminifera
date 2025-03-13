@@ -1,0 +1,100 @@
+# ssu-cmalign :: align sequences to an RNA CM
+# INFERNAL s0.1.1 (Feb 2016)
+# Copyright (C) 2016 Howard Hughes Medical Institute.
+# Freely distributed under the BSD open source license.
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# command: ssu-cmalign --cm-name eukarya --mxsize 4096 --no-null3 --sub --ifile Data_processing/Aligned_sequences/SSU-align_Spinose/SSU-align_Spinose.eukarya.ifile -o Data_processing/Aligned_sequences/SSU-align_Spinose/SSU-align_Spinose.eukarya.stk /usr/local/share/ssu-align-0.1.1/ssu-align-0p1.cm Data_processing/Aligned_sequences/SSU-align_Spinose/SSU-align_Spinose.eukarya.fa
+# date:    Tue Feb 14 15:43:51 2023
+#
+# cm name                    algorithm  config  sub  bands     tau
+# -------------------------  ---------  ------  ---  -----  ------
+# eukarya                      opt acc  global  yes    hmm   1e-07
+#
+#                                                                                   bit scores                            
+#                                                                                ------------------                       
+#   seq idx  seq name                                                       len     total    struct  avg prob      elapsed
+# ---------  -----------------------------------------------------------  -----  --------  --------  --------  -----------
+          1  Basetype_3|basegroup_70|Globigerinella|siphonifera             795    134.83     59.07     0.944  00:00:00.09
+          2  Basetype_4|basegroup_65|Globigerinella|siphonifera             795    134.83     59.07     0.944  00:00:00.08
+          3  Basetype_5|basegroup_66|Orbulina|universa                      734    168.69     44.11     0.946  00:00:00.07
+          4  Basetype_6|basegroup_11|Orbulina|universa                      734    180.64     47.52     0.946  00:00:00.07
+          5  Basetype_7|basegroup_52|Globigerinoides|ruber-albus            765    148.22     52.04     0.938  00:00:00.08
+          6  Basetype_11|basegroup_5|Trilobatus|sacculifer                  807    106.04     36.60     0.900  00:00:00.08
+          7  Basetype_12|basegroup_51|Globigerinoides|ruber-albus           764    135.79     20.91     0.894  00:00:00.08
+          8  Basetype_64|basegroup_9|Globigerinella|siphonifera             797    134.85     59.07     0.943  00:00:00.09
+          9  Basetype_65|basegroup_10|Globigerinella|siphonifera            790    127.81     56.09     0.931  00:00:00.08
+         10  Basetype_66|basegroup_8|Globigerinoides|elongatus              795    146.91     41.85     0.936  00:00:00.08
+         11  Basetype_67|basegroup_7|Globigerina|bulloides                  753     97.36     62.58     0.941  00:00:00.08
+         12  Basetype_68|basegroup_15|Globigerina|bulloides                 748     97.70     61.36     0.941  00:00:00.08
+         13  Basetype_69|basegroup_17|Globigerina|bulloides                 753     95.83     62.58     0.938  00:00:00.08
+         14  Basetype_70|basegroup_16|Turborotalita|quinqueloba             904     90.31     19.37     0.954  00:00:00.09
+         15  Basetype_71|basegroup_81|Turborotalita|quinqueloba             917     88.82     32.55     0.942  00:00:00.08
+         16  Basetype_72|basegroup_20|Turborotalita|quinqueloba             749    100.33     35.72     0.944  00:00:00.09
+         17  Basetype_74|basegroup_29|Globigerinella|calida                 804    144.43     59.07     0.932  00:00:00.09
+         18  Basetype_76|basegroup_31|Turborotalita|quinqueloba             915     88.89     32.55     0.942  00:00:00.09
+         19  Basetype_77|basegroup_38|Turborotalita|quinqueloba             919     87.68     19.49     0.942  00:00:00.08
+         20  Basetype_83|basegroup_39|Globigerina|bulloides                 748     97.06     61.36     0.946  00:00:00.08
+         21  Basetype_162|basegroup_186|Globigerinoides|elongatus           795    149.19     44.44     0.930  00:00:00.08
+         22  Basetype_163|basegroup_187|Globoturborotalita|rubescens        784    114.87     34.63     0.934  00:00:00.07
+         23  Basetype_164|basegroup_187|Globoturborotalita|rubescens        784    114.87     34.63     0.934  00:00:00.08
+         24  Basetype_166|basegroup_187|Globoturborotalita|rubescens        784    115.26     34.63     0.934  00:00:00.07
+         25  Basetype_167|basegroup_7|Globigerina|bulloides                 753     97.36     62.58     0.941  00:00:00.09
+         26  Basetype_172|basegroup_176|Turborotalita|humilis               901    110.81     30.19     0.957  00:00:00.07
+         27  Basetype_173|basegroup_115|Globigerina|bulloides               745     76.73     66.29     0.942  00:00:00.08
+         28  Basetype_175|basegroup_19|Globigerina|bulloides                748     97.70     61.36     0.941  00:00:00.08
+         29  Basetype_176|basegroup_24|Globigerina|bulloides                748     97.70     61.36     0.941  00:00:00.08
+         30  Basetype_177|basegroup_25|Globigerina|bulloides                748     97.70     61.36     0.941  00:00:00.08
+         31  Basetype_179|basegroup_18|Globigerinoides|ruber-albus          764    135.79     20.91     0.894  00:00:00.07
+         32  Basetype_197|basegroup_84|Hastigerina|pelagica                 795    174.05     43.04     0.927  00:00:00.08
+         33  Basetype_198|basegroup_84|Hastigerina|pelagica                 793    174.17     43.04     0.926  00:00:00.09
+         34  Basetype_199|basegroup_85|Hastigerina|pelagica                 784    182.67     49.60     0.932  00:00:00.07
+         35  Basetype_200|basegroup_56|Hastigerina|pelagica                 874    148.34     57.13     0.943  00:00:00.10
+         36  Basetype_201|basegroup_56|Hastigerina|pelagica                 872    148.41     57.13     0.943  00:00:00.09
+         37  Basetype_202|basegroup_57|Hastigerina|pelagica                 798    173.99     43.04     0.926  00:00:00.08
+         38  Basetype_204|basegroup_30|Globigerinella|siphonifera           798    134.81     59.07     0.943  00:00:00.09
+         39  Basetype_205|basegroup_27|Globigerina|falconensis              776    113.80     23.08     0.960  00:00:00.09
+         40  Basetype_206|basegroup_4|Globigerinoides|ruber-ruber           777    145.52     48.56     0.906  00:00:00.08
+         41  Basetype_238|basegroup_60|Globigerina|bulloides                747    103.16     61.77     0.936  00:00:00.07
+         42  Basetype_239|basegroup_21|Globigerinella|siphonifera           809    126.21     62.63     0.902  00:00:00.09
+         43  Basetype_240|basegroup_76|Globigerinella|siphonifera           795    134.83     59.07     0.944  00:00:00.09
+         44  Basetype_241|basegroup_74|Turborotalita|quinqueloba            698    101.29     34.39     0.930  00:00:00.08
+         45  Basetype_244|basegroup_21|Globigerinella|siphonifera           809    126.21     62.63     0.902  00:00:00.10
+         46  Basetype_245|basegroup_2|Globigerinella|radians                809    126.51     62.63     0.909  00:00:00.09
+         47  Basetype_246|basegroup_12|Globigerinella|siphonifera           790    127.81     56.09     0.931  00:00:00.08
+         48  Basetype_247|basegroup_111|Beella|digitata                     752    144.66     24.65     0.929  00:00:00.07
+         49  Basetype_248|basegroup_42|Beella|digitata                      752    144.66     24.65     0.929  00:00:00.07
+         50  Basetype_259|basegroup_35|Globigerina|bulloides                747     97.83     61.36     0.940  00:00:00.08
+         51  Basetype_260|basegroup_34|Globigerina|bulloides                748     90.81     61.36     0.946  00:00:00.08
+         52  Basetype_261|basegroup_3|Orbulina|universa                     742    163.83     34.36     0.955  00:00:00.07
+         53  Basetype_262|basegroup_22|Globigerinella|siphonifera           803    135.37     59.07     0.945  00:00:00.09
+         54  Basetype_266|basegroup_115|Globigerina|bulloides               745     76.73     66.29     0.942  00:00:00.08
+         55  Basetype_302|basegroup_127|Globigerina|bulloides               754     93.84     62.58     0.940  00:00:00.08
+         56  Basetype_303|basegroup_126|Globigerina|bulloides               754     93.84     62.58     0.940  00:00:00.08
+         57  Basetype_304|basegroup_128|Turborotalita|quinqueloba           926     87.99     37.43     0.959  00:00:00.09
+         58  Basetype_305|basegroup_79|Globigerina|bulloides                748     97.70     61.36     0.941  00:00:00.07
+         59  Basetype_306|basegroup_80|Turborotalita|quinqueloba            918     88.79     32.55     0.943  00:00:00.09
+         60  Basetype_307|basegroup_32|Globigerina|bulloides                748     97.73     61.36     0.940  00:00:00.08
+         61  Basetype_308|basegroup_63|Turborotalita|quinqueloba            925     89.28     32.55     0.950  00:00:00.09
+         62  Basetype_309|basegroup_63|Turborotalita|quinqueloba            924     89.32     32.55     0.950  00:00:00.09
+         63  Basetype_325|basegroup_172|Globigerinoides|conglobatus         807    138.16     20.81     0.921  00:00:00.07
+         64  Basetype_326|basegroup_13|Globigerinoides|elongatus            795    148.67     44.44     0.926  00:00:00.08
+         65  Basetype_327|basegroup_140|Globigerinoides|ruber-albus         765    144.50     39.06     0.908  00:00:00.07
+         66  Basetype_328|basegroup_135|Globigerinoides|ruber-albus         765    144.50     39.06     0.908  00:00:00.08
+         67  Basetype_329|basegroup_118|Globigerinoides|tenellus            796    155.46     45.95     0.926  00:00:00.08
+         68  Basetype_330|basegroup_177|Globigerinoides|tenellus            796    155.46     45.95     0.926  00:00:00.08
+         69  Basetype_331|basegroup_109|Globigerina|bulloides               746    103.25     61.77     0.936  00:00:00.08
+         70  Basetype_332|basegroup_116|Globigerina|bulloides               747    102.67     61.77     0.934  00:00:00.07
+         71  Basetype_333|basegroup_206|Sphaeroidinella|dehiscens           784    183.86     37.87     0.946  00:00:00.08
+         72  Representative_1|basegroup_67|Globigerinoides|conglobatus      819    136.85     33.83     0.939  00:00:00.08
+         73  Representative_8|basegroup_201|Globigerina|bulloides           748     60.15     51.56     0.928  00:00:00.09
+         74  Representative_9|basegroup_28|Globigerina|bulloides            749     71.41     60.36     0.918  00:00:00.08
+         75  Representative_11|basegroup_117|Globigerinella|siphonifera     795    134.83     59.07     0.944  00:00:00.09
+         76  Representative_13|basegroup_112|Hastigerinella|digitata        460    139.00     36.82     0.960  00:00:00.04
+         77  Representative_14|basegroup_203|Globigerinella|siphonifera     785    135.39     59.07     0.943  00:00:00.08
+         78  Representative_15|basegroup_204|Globigerinoides|conglobatus    818    148.56     32.43     0.928  00:00:00.08
+         79  Representative_16|basegroup_114|Globigerina|bulloides          741     71.57     51.56     0.924  00:00:00.08
+         80  Representative_17|basegroup_198|Globigerina|bulloides          746     71.84     51.56     0.930  00:00:00.08
+# Alignment saved in file Data_processing/Aligned_sequences/SSU-align_Spinose/SSU-align_Spinose.eukarya.stk.
+# Per-sequence insert information saved in file Data_processing/Aligned_sequences/SSU-align_Spinose/SSU-align_Spinose.eukarya.ifile.
+#
+# CPU time: 6.48u 0.13s 00:00:06.61 Elapsed: 00:00:06.66

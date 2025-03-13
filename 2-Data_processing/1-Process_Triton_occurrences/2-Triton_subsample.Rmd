@@ -1,0 +1,680 @@
+---
+title: "Subsampling the Triton datase - Temporal rarefaction"
+output: html_notebook
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+```{r include=FALSE}
+library("ggplot2")
+library("raster")
+library("terra")
+```
+
+# Load occurrence dataset
+
+```{r}
+triton <- read.csv("../../3-Data_processed/Triton_occurrences/TritonDB_trimmed_runif.csv", row.names=1)
+```
+
+# Occurrences and lineages through time
+## Raw data
+
+`OTT` measures the number of occurrences at each time point directly from their ages. `expertLTT` and `empiricalLTT` capture lineage counts, with the former based on speciation and extinction dates, while the latter depends on observations (first and last appearances).
+
+```{r}
+time_points <- 0:330/5
+#time_points <- 0:66
+OTT <- sapply(time_points, function(ti)sum(abs(triton$age_runif - ti) <= diff(time_points)[1]/2))
+expertLTT <- sapply(time_points, function(ti)length(unique(triton[triton$Speciation >= ti & ti >= triton$Extinction,]$species)))
+empiricalLTT <- sapply(time_points, function(ti)length(unique(triton[abs(triton$age_runif - ti) <= diff(time_points)[1]/2,]$species)))
+```
+
+Plot the number of occurrences and lineages through time
+
+```{r fig.asp=0.3, fig.width=12}
+par(mfrow=c(1,3))
+plot(time_points, OTT, type="l", main="Distribution of occurrences through time", col="dodgerblue4")
+points(time_points, OTT, pch=19, cex=0.5, col="dodgerblue4")
+plot(time_points, expertLTT, type="l", ylim=c(0,120), col="orchid4", main="Number of lineages through time")
+points(time_points, expertLTT, pch=19, cex=0.5, col="orchid4")
+plot(time_points, empiricalLTT, type="l", ylim=c(0,120), main="Number of observed lineages through time", col="plum3")
+points(time_points, empiricalLTT, pch=19, cex=0.5, col="plum3")
+lines(time_points, expertLTT, col="orchid4", lwd=2)
+```
+
+## Standardized counts and subsampling
+
+Standardize the number of occurrences by the number of lineages, and subsample to erase the sampling bias. Subsampling is done by calculating the probability for each row, interpolating for time points between values, and subsampling accordingly.
+
+```{r fig.asp=0.3, fig.width=5}
+sOTT <- OTT/empiricalLTT                         # LTT-standardized occurrences through time
+names(sOTT) <- time_points
+interpolate_curve <- function(x_grid, x, y){
+  closest_x <- x_grid[order(abs(x_grid-x))][1:2]
+  x1 <- closest_x[1]
+  x2 <- closest_x[2]
+  y1 <- y[x_grid==x1]
+  y2 <- y[x_grid==x2]
+  return (y1 + (y2-y1)*(x-x1)/(x2-x1))    # linear interpolation
+  # return (y1 * (y2/y1)**((x-x1)/(x2-x1)))    # exponential interpolation
+  # return (ifelse(y1<y2, y1 + (1+y2-y1)**((x-x1)/(x2-x1)) - 1,
+  #                               y2 + (1+y1-y2)**((x-x2)/(x1-x2)) - 1))    # alternative exponential interpolation
+}
+sOTT_ref <- round(quantile(sOTT, 0.5, na.rm=T))  # the reference nb of occurrences per lineage used for subsampling
+
+sampling_proba <- function(triton_row){
+  age_ratio <- interpolate_curve(x_grid=time_points, x=as.numeric(triton_row[["age_runif"]]), y=sOTT_ref/sOTT)
+  return(min(age_ratio, 1))
+}
+
+triton.ss <- triton[as.logical(rbinom(n=nrow(triton), size=1, prob=apply(triton, 1, sampling_proba))),]
+
+rbind(triton =    signif(table(as.factor(round(triton$age_runif/10)*10)), 2), 
+      triton.ss = signif(table(as.factor(round(triton.ss$age_runif/10)*10)), 2))
+```
+
+```{r fig.asp=0.4, fig.width=12}
+OTT.ss <- sapply(time_points, function(ti)sum(abs(triton.ss$age_runif - ti) <= diff(time_points)[1]/2))
+#OTT <- sapply(time_points, function(ti)sum((triton.ss$Speciation >= ti & ti >= triton.ss$Extinction)/(triton.ss$Speciation-triton.ss$Extinction)))
+expertLTT.ss <- sapply(time_points, function(ti)length(unique(triton.ss[triton.ss$Speciation >= ti & ti >= triton.ss$Extinction,]$species)))
+empiricalLTT.ss <- sapply(time_points, function(ti)length(unique(triton.ss[abs(triton.ss$age_runif - ti) <= diff(time_points)[1]/2,]$species)))
+```
+
+
+```{r fig.asp=0.4, fig.width=12}
+par(mfrow=c(1,2))
+plot(time_points, OTT/empiricalLTT, log="y", ylim=c(1,1000), type="l", col="dodgerblue4", main="Number of occurrences per lineage through time")
+points(time_points, OTT/empiricalLTT, pch=19, cex=0.5, col="dodgerblue4")
+lines(time_points, rep(sOTT_ref, length(time_points)))
+plot(time_points, OTT.ss/empiricalLTT, log="y", ylim=c(1,1000), type="l", col="palegreen4", main="Number of occurrences per lineage through time")
+points(time_points, OTT.ss/empiricalLTT, pch=19, cex=0.5, col="palegreen4")
+lines(time_points, rep(sOTT_ref, length(time_points)))
+```
+
+One problem with this method is that it requires having a comprehensive and reliable estimate of the number of lineages through time from experts, which is not available for most clades.
+
+# Geographic subsampling
+## Null model of fossil sampling based on plate technotics
+
+This part processes plate tectonic data to model water depths over the Cenozoic.
+
+```{r fig.asp=0.4, fig.width=12}
+ages <- gsub(".*_|.tif", "", list.files("../../1-Data_raw/Cenozoic_depth_rasters/"))
+# code for extracting water depths
+for (age in ages[1+0:floor(length(ages)/5-1)*5]){
+  cutoff.rs <- brick(paste0("../../1-Data_raw/Cenozoic_depth_rasters/scot_extrap_Ceno_", age, ".tif"))
+  cutoff.rs[cutoff.rs < 200] <- NA # exclude those shallower than 200m
+  png(paste0("../../3-Data_processed/Cenozoic_depth_rasters_plots/scot_extrap_Ceno_", age, ".png"))
+  plot(cutoff.rs, main=paste(age, "millions years ago"), zlim=c(0,9000))
+  dev.off()
+}
+
+library(magick)
+## list file names and read in
+imgs <- list.files("../../3-Data_processed/Cenozoic_depth_rasters_plots/", full.names = TRUE)
+img_list <- lapply(rev(imgs), image_read)
+
+## join the images together
+img_joined <- image_join(img_list)
+
+## animate at 2 frames per second
+img_animated <- image_animate(img_joined, fps = 10)
+
+## view animated image
+plot(img_animated)
+
+## save to disk
+image_write(image = img_animated, 
+            path = "../../3-Data_processed/Cenozoic_depth_rasters_plots/Cenozoic_depth_rasters_animation.gif")
+```
+
+**Geographic null model**: Uniform sampling of marine points from each depth raster in cells deeper than 200m, drawing in each bin the same number of occurrences as in Triton, to simulate random sampling of fossils across the Cenozoic.
+
+```{r fig.asp=0.4, fig.width=12, warning=FALSE}
+triton_age_table_1My <- table(round(triton$age_runif))
+
+uniform_samples <- c()
+for (age in ages[1 + 0:floor(length(ages)/2) * 2]) {
+  # Load the depth raster for the given age
+  cutoff.rs <- brick(paste0("../../1-Data_raw/Cenozoic_depth_rasters/scot_extrap_Ceno_", age, ".tif"))
+  
+  # Exclude areas shallower than 200m
+  cutoff.rs[cutoff.rs < 200] <- NA
+
+  # Compute the area of each cell using terra::cellSize
+  cutoff.rs_spat <- rast(cutoff.rs)  # Convert raster to SpatRaster
+  cell_areas <- cellSize(cutoff.rs_spat, unit = "km")  # Area in square kilometers
+  
+  # Mask the cell areas to match the depth raster (excluding NAs)
+  cell_areas <- mask(cell_areas, cutoff.rs_spat)
+  
+  # Convert the raster to points
+  marine_points <- as.data.frame(rasterToPoints(cutoff.rs, spatial = TRUE))
+  
+  # Extract cell areas corresponding to the marine points
+  marine_points$cell_area <- extract(cell_areas, marine_points[c("x","y")])$area
+  
+  # Remove points with NA area (if any)
+  #marine_points <- marine_points[!is.na(marine_points$cell_area), ]
+  
+  # Sample points with probability proportional to cell area
+  sampled_indices <- sample(
+    1:nrow(marine_points),
+    size = triton_age_table_1My[paste0(as.integer(age))],
+    replace = TRUE,
+    prob = marine_points$cell_area
+  )
+  
+  # Collect the sampled points
+  sampled_points <- marine_points[sampled_indices, c("x", "y")]
+  sampled_points$age <- as.numeric(age)
+  
+  uniform_samples <- rbind(uniform_samples, sampled_points)
+}
+uniform_samples <- data.frame(uniform_samples)
+names(uniform_samples) <-c("long", "lat", "age")
+
+par(mfrow=c(1,2))
+hist(uniform_samples$lat, breaks=50, prob=T, xlab="Latitude", main="Latitudinal null distribution of fossil samples")
+hist(uniform_samples$long, breaks=50, prob=T, xlab="Longitude", main="Longitudinal null distribution of fossil samples")
+```
+
+Null distributions of latitude and longitude for the uniformly sampled fossils, allowing a comparison of uniform fossil sampling with actual fossil occurrences.
+
+```{r fig.asp=0.4, fig.width=12, warning=FALSE}
+dty_lat_ref <- density(uniform_samples$lat, from=-90, to=90, cut=T)
+dty_lat_obs <- density(triton$pal.lat, adjust=0.5, from=-90, to=90, cut=T)
+dty_long_ref <- density(uniform_samples$long, from=-180, to=180, cut=T)
+dty_long_obs <- density(triton$pal.long, adjust=0.5, from=-180, to=180, cut=T)
+
+par(mfrow=c(1,2))
+hist(uniform_samples$lat, breaks=100, prob=T, xlim=c(-90,90), ylim=c(0,0.02), xlab="Latitude", 
+     main="Latitudinal distribution of fossil samples\n(null model vs. observations)")
+lines(dty_lat_ref, lwd=2)
+hist(triton$pal.lat, breaks=100, prob=T, add=T, col=alpha("red", 0.3))
+lines(dty_lat_obs, lwd=2, col="red")
+hist(uniform_samples$long, breaks=100, prob=T, xlim=c(-180,180), ylim=c(0,0.01), xlab="Longitude", 
+     main="Longitudinal distribution of fossil samples\n(null model vs. observations)")
+lines(dty_long_ref, lwd=2)
+hist(triton$pal.long, breaks=100, prob=T, add=T, col=alpha("red", 0.3))
+lines(dty_long_obs, lwd=2, col="red")
+```
+
+Let's subsample by optimizing the sampling probability based on deviations from the expected distributions over time, latitude and longitude.
+
+```{r}
+# Harmonic mean
+harm_mean <- function(x) return (1 / mean(1 / x, na.rm = TRUE))
+
+# Function to compute sampling probabilities
+compute_sampling_probability <- function(dataset, sOTT_ref, dty_lat_ref, dty_long_ref, time_points) {
+  # Calculate the number of occurrences per time point (OTT)
+  OTT <- sapply(time_points, function(ti)
+    sum(abs(dataset$age_runif - ti) <= diff(time_points)[1] / 2, na.rm = TRUE))
+  
+  # Calculate the number of unique species per time point (empiricalLTT)
+  empiricalLTT <- sapply(time_points, function(ti)
+    length(unique(dataset[abs(dataset$age_runif - ti) <= diff(time_points)[1] / 2, ]$species)))
+  
+  # Calculate the sampling rate (occurrences per lineage) for each time point
+  sOTT <- OTT / empiricalLTT
+  
+  # Compute the density of fossil occurrences for latitude and longitude
+  dty_lat_obs <- density(dataset$pal.lat, adjust = 0.5, from = -90, to = 90, cut = TRUE, na.rm = TRUE)
+  dty_long_obs <- density(dataset$pal.long, adjust = 0.5, from = -180, to = 180, cut = TRUE, na.rm = TRUE)
+  
+  # Interpolate subsampling scores based on age, latitude, and longitude
+  dataset$ss_score_age <- sapply(dataset$age_runif, interpolate_curve,
+                                 x_grid = time_points, y = sOTT_ref / sOTT)
+  dataset$ss_score_lat <- sapply(dataset$pal.lat, interpolate_curve,
+                                 x_grid = dty_lat_ref$x, y = dty_lat_ref$y / dty_lat_obs$y)
+  dataset$ss_score_long <- sapply(dataset$pal.long, interpolate_curve,
+                                  x_grid = dty_long_ref$x, y = dty_long_ref$y / dty_long_obs$y)
+  
+  # Calculate the harmonic mean of the subsampling scores
+  dataset$ss_score_LMH <- apply(dataset[, c("ss_score_age", "ss_score_lat", "ss_score_long")], 1, harm_mean)
+  
+  return(dataset)
+}
+
+# Function to perform subsampling
+subsample_dataset <- function(dataset, sOTT_ref, dty_lat_ref, dty_long_ref, time_points, iterations) {
+  for (i in 1:iterations) {
+    print(paste("Iteration:", i))
+    dataset <- compute_sampling_probability(dataset, sOTT_ref, dty_lat_ref, dty_long_ref, time_points)
+    # Subsample by removing the bottom 20% based on ss_score_LMH
+    threshold <- quantile(dataset$ss_score_LMH, 0.2, na.rm = TRUE)
+    dataset <- dataset[dataset$ss_score_LMH > threshold, ]
+  }
+  return(dataset)
+}
+
+# Assume sOTT_ref, dty_lat_ref, dty_long_ref, and time_points are already defined
+# Also, ensure 'interpolate_curve' function is defined
+
+# Original dataset
+triton.ss <- triton  # If you have an initial subsampled dataset, otherwise use 'triton'
+
+# Subsample with 6 iterations
+triton.ss6 <- subsample_dataset(triton.ss, sOTT_ref, dty_lat_ref, dty_long_ref, time_points, iterations = 6)
+
+# Subsample with additional iterations to reach 15 total
+triton.ss15 <- subsample_dataset(triton.ss6, sOTT_ref, dty_lat_ref, dty_long_ref, time_points, iterations = 9)
+
+# Continue subsampling to reach 20 total iterations
+triton.ss20 <- subsample_dataset(triton.ss15, sOTT_ref, dty_lat_ref, dty_long_ref, time_points, iterations = 5)
+```
+
+```{r}
+# Comparing the age distributions after subsampling
+rbind(
+  triton     = signif(table(as.factor(round(triton$age_runif / 10) * 10)), 2),
+  triton.ss6 = signif(table(as.factor(round(triton.ss6$age_runif / 10) * 10)), 2),
+  triton.ss15 = signif(table(as.factor(round(triton.ss15$age_runif / 10) * 10)), 2),
+  triton.ss20 = signif(table(as.factor(round(triton.ss20$age_runif / 10) * 10)), 2)
+)
+```
+```{r fig.asp=0.5, fig.width=9}
+OTT.ss6 <- sapply(time_points, function(ti)sum(abs(triton.ss6$age_runif - ti) <= diff(time_points)[1]/2, na.rm=T))
+empiricalLTT.ss6 <- sapply(time_points, function(ti)length(unique(triton.ss6[abs(triton.ss6$age_runif - ti) <= diff(time_points)[1]/2,]$species)))
+dty_lat_obs.ss6 <- density(triton.ss6$pal.lat, adjust=0.5, from=-90, to=90, cut=T, na.rm=T)
+dty_long_obs.ss6 <- density(triton.ss6$pal.long, adjust=0.5, from=-180, to=180, cut=T, na.rm=T)
+OTT.ss15 <- sapply(time_points, function(ti)sum(abs(triton.ss15$age_runif - ti) <= diff(time_points)[1]/2, na.rm=T))
+empiricalLTT.ss15 <- sapply(time_points, function(ti)length(unique(triton.ss15[abs(triton.ss15$age_runif - ti) <= diff(time_points)[1]/2,]$species)))
+dty_lat_obs.ss15 <- density(triton.ss15$pal.lat, adjust=0.5, from=-90, to=90, cut=T, na.rm=T)
+dty_long_obs.ss15 <- density(triton.ss15$pal.long, adjust=0.5, from=-180, to=180, cut=T, na.rm=T)
+OTT.ss20 <- sapply(time_points, function(ti)sum(abs(triton.ss20$age_runif - ti) <= diff(time_points)[1]/2, na.rm=T))
+empiricalLTT.ss20 <- sapply(time_points, function(ti)length(unique(triton.ss20[abs(triton.ss20$age_runif - ti) <= diff(time_points)[1]/2,]$species)))
+dty_lat_obs.ss20 <- density(triton.ss20$pal.lat, adjust=0.5, from=-90, to=90, cut=T, na.rm=T)
+dty_long_obs.ss20 <- density(triton.ss20$pal.long, adjust=0.5, from=-180, to=180, cut=T, na.rm=T)
+```
+
+```{r fig.asp=0.5, fig.width=15}
+# Time
+par(mfrow=c(3,4))
+plot(time_points, OTT/empiricalLTT, ylim=c(1,1000), log="y", type="l", col="brown", main="Sampling rate through time", xlab="Age (Myrs)", ylab="Occurrences per lineage")
+points(time_points, OTT/empiricalLTT, pch=19, cex=0.5, col="brown")
+lines(range(time_points), c(sOTT_ref, sOTT_ref), lwd=2)
+plot(time_points, OTT.ss6/empiricalLTT.ss6, ylim=c(1,1000), log="y", type="l", col="coral4", main=paste0("Sampling rate through time with ", nrow(triton.ss6) ," fossils"), xlab="Age (Myrs)", ylab="Occurrences per lineage")
+points(time_points, OTT.ss6/empiricalLTT.ss6, pch=19, cex=0.5, col="coral4")
+lines(range(time_points), c(median(OTT.ss6/empiricalLTT.ss6, na.rm=T), median(OTT.ss6/empiricalLTT.ss6, na.rm=T)), lwd=2)
+plot(time_points, OTT.ss15/empiricalLTT.ss15, ylim=c(1,1000), log="y", type="l", col="coral3", main=paste0("Sampling rate through time with ", nrow(triton.ss15) ," fossils"), xlab="Age (Myrs)", ylab="Occurrences per lineage")
+points(time_points, OTT.ss15/empiricalLTT.ss15, pch=19, cex=0.5, col="coral3")
+lines(range(time_points), c(median(OTT.ss15/empiricalLTT.ss15, na.rm=T), median(OTT.ss15/empiricalLTT.ss15, na.rm=T)), lwd=2)
+plot(time_points, OTT.ss20/empiricalLTT.ss20, ylim=c(1,1000), log="y", type="l", col="coral1", main=paste0("Sampling rate through time with ", nrow(triton.ss20) ," fossils"), xlab="Age (Myrs)", ylab="Occurrences per lineage")
+points(time_points, OTT.ss20/empiricalLTT.ss20, pch=19, cex=0.5, col="coral1")
+lines(range(time_points), c(median(OTT.ss20/empiricalLTT.ss20, na.rm=T), median(OTT.ss20/empiricalLTT.ss20, na.rm=T)), lwd=2)
+
+# Latitude
+hist(uniform_samples$lat, breaks=50, prob=T, ylim=c(0,0.02), main="Raw latitudinal distribution", xlab="Latitude", ylab="Fossil sampling density")
+lines(dty_lat_ref, lwd=2)
+hist(triton$pal.lat, breaks=50, prob=T, add=T, col=alpha("red", 0.1))
+lines(dty_lat_obs, lwd=2, col="red")
+plot(dty_lat_ref, type="l", lwd=2, ylim=c(0,0.02), main=paste0("Latitudinal distribution with ", nrow(triton.ss6) ," fossils"), xlab="Latitude", ylab="Fossil sampling density")
+lines(dty_lat_obs.ss6, lwd=2, col="coral4")
+plot(dty_lat_ref, type="l", lwd=2, ylim=c(0,0.02), main=paste0("Latitudinal distribution with ", nrow(triton.ss15) ," fossils"), xlab="Latitude", ylab="Fossil sampling density")
+lines(dty_lat_obs.ss15, lwd=2, col="coral3")
+plot(dty_lat_ref, type="l", lwd=2, ylim=c(0,0.02), main=paste0("Latitudinal distribution with ", nrow(triton.ss20) ," fossils"), xlab="Latitude", ylab="Fossil sampling density")
+lines(dty_lat_obs.ss20, lwd=2, col="coral1")
+
+# Longitude
+hist(uniform_samples$long, breaks=50, prob=T, ylim=c(0,0.01), main="Raw longitudinal distribution", xlab="Longitude", ylab="Fossil sampling density")
+lines(dty_long_ref, lwd=2)
+hist(triton$pal.long, breaks=50, prob=T, add=T, col=alpha("red", 0.1))
+lines(dty_long_obs, lwd=2, col="red")
+plot(dty_long_ref, type="l", lwd=2, ylim=c(0,0.01), main=paste0("Longitudinal distribution with ", nrow(triton.ss6) ," fossils"), xlab="Longitude", ylab="Fossil sampling density")
+lines(dty_long_obs.ss6, lwd=2, col="coral4")
+plot(dty_long_ref, type="l", lwd=2, ylim=c(0,0.01), main=paste0("Longitudinal distribution with ", nrow(triton.ss15) ," fossils"), xlab="Longitude", ylab="Fossil sampling density")
+lines(dty_long_obs.ss15, lwd=2, col="coral3")
+plot(dty_long_ref, type="l", lwd=2, ylim=c(0,0.01), main=paste0("Longitudinal distribution with ", nrow(triton.ss20) ," fossils"), xlab="Longitude", ylab="Fossil sampling density")
+lines(dty_long_obs.ss20, lwd=2, col="coral1")
+```
+
+This method reduces the temporal and geographical biases, but requires again to know the expected temporal richness trajectory. Let's try a subsampling method that does not use this information.
+
+# Hole-based subsampling
+
+In this section, we aim to reduce sampling biases in our dataset by performing subsampling based on drilling holes (locations where fossils were collected). The goal is to achieve a more uniform sampling effort across different holes and through time.
+
+## Calculating Occurrence Density per Hole
+
+```{r fig.asp=0.4, fig.width=12}
+# Number of occurrences, minimum and maximum ages for each hole
+HoleNbOcc <- table(triton$holeID)
+HoleMinAge <- round(sapply(names(HoleNbOcc), function(holeID)min(triton[triton$holeID == holeID, "age_runif"])), 3)
+HoleMaxAge <- round(sapply(names(HoleNbOcc), function(holeID)max(triton[triton$holeID == holeID, "age_runif"])), 3)
+
+# Compute the occurrence density of each hole (avoid division by zero by setting a minimum duration)
+HoleDuration <- sapply(HoleMaxAge - HoleMinAge, max, a = 0.001)
+HoleDtyOcc <- HoleNbOcc/sapply(HoleMaxAge-HoleMinAge, max, a=0.001)
+
+# Compute the number of active holes through time (HTT)
+HTT <- sapply(time_points, function(ti)length(which(round(HoleMinAge, 2)<=ti & ti<=round(HoleMaxAge, 2))))
+
+# Create a data frame for plotting
+hole_data <- data.frame(
+  HoleMinAge = HoleMinAge,
+  HoleMaxAge = HoleMaxAge,
+  HoleDtyOcc = as.vector(HoleDtyOcc)
+)
+
+# Plot occurrence density per hole over time
+ggplot(hole_data) +
+  geom_linerange(aes(y = HoleDtyOcc, xmin = HoleMinAge, xmax = HoleMaxAge,
+                     color = HoleDtyOcc), linewidth = 0.3) +
+  #scale_color_continuous("Occurrence Density", trans = "log10") +
+  scale_color_gradient(low = "lightblue", high = "dodgerblue4", name = "Occurrence Density", trans = "log10") +
+  scale_y_log10("Occurrence Density", breaks = c(1, 100, 10000)) +
+  labs(title = "Drilling Holes Over Time and their Density of Occurrences")
+```
+
+This plot highlights holes with unusually high densities that may introduce sampling bias.
+
+## Subsample at the Sediment Sample level
+
+In this section, we focus on subsampling at the sample level to reduce sampling biases by homogenizing the number of sediment samples per hole through time. This method aims to create a more balanced dataset by adjusting for overrepresented holes and time periods.
+
+### Visualizing the Occurrence Density per Sample and the Sample Density per Hole
+
+- `HoleNbSample`: Number of unique samples collected from each hole.
+- `HoleDtySample`: Density of samples per hole, adjusted for the duration of sampling at each hole.
+- `STT`: Number of samples collected at each time point.
+
+```{r fig.asp=0.4, fig.width=12}
+# Create a data frame of sample counts per sampleID
+samples <- data.frame(nb = as.matrix(table(triton$sampleID)))
+samples$age <- triton[sapply(rownames(samples), match, table = triton$sampleID), ]$age
+
+# Calculate the number of unique samples per hole
+HoleNbSample <- sapply(names(HoleNbOcc), function(holeID)
+  length(unique(triton[triton$holeID == holeID, "sampleID"])))
+
+# Calculate the density of samples per hole (number of samples per unit time)
+HoleDtySample <- HoleNbSample / sapply(HoleMaxAge - HoleMinAge, max, a = 0.001)
+
+# Compute the number of samples through time (STT)
+STT <- hist(samples$age, breaks = seq(min(time_points), max(time_points), length = length(time_points) + 1), plot = FALSE)$count
+
+# Avoid division by zero
+STT[STT == 0] <- 1
+
+ggplot(samples, aes(x = age, y = nb)) + 
+  geom_point(alpha = 0.1, size = 0.5) +
+  scale_x_continuous(name = "Age of the Sample (Ma)") +
+  scale_y_continuous(name = "Number of Occurrences per Sample") +
+  stat_smooth(formula = y ~ s(x), method = "gam", method.args = list(family = "nb")) +
+  labs(title = "Occurrences per Sample Over Time")
+```
+
+The mean number of occurrences per sample looks much more like the distribution of species over time. Let's look at this quantity directly.
+
+- `SpHTT` = Samples per hole through time
+- `OpSTT` = Occurrences per sample through time
+
+```{r fig.asp=0.3, fig.width=12}
+par(mfrow = c(1, 3))
+
+# Plot the number of holes through time
+plot(time_points, HTT, type = "l", main = "Number of Holes Through Time", xlab = "Time (Ma)", ylab = "Number of Holes", col="dodgerblue4")
+points(time_points, HTT, pch = 19, cex = 0.5, col="dodgerblue4")
+
+# Calculate the number of samples per hole and number of occurrences per sample through time
+OpSTT <- OTT / STT
+
+# Plot the number of samples per hole through time
+plot(loess.smooth(time_points, STT, span = 0.1), type = "l", lwd = 3, col="dodgerblue4",
+     main = "Number of Sediment Samples Through Time", xlab = "Time (Ma)", ylab = "Number of Samples")
+points(time_points, STT, pch = 19, cex = 0.5, col = alpha("dodgerblue4", 0.3))
+
+# Plot the standardized distribution of occurrences through time
+plot(loess.smooth(time_points, OpSTT * 6, span = 0.1), type = "l", lwd = 3, col="palegreen4", ylim = c(0, 100),
+     main = "Occurrences per Sample Through Time", xlab = "Time (Ma)", ylab = "Occurrences per Sample (x6)")
+points(time_points, OpSTT * 6, pch = 19, cex = 0.5, col = alpha("palegreen4", 0.3))
+lines(time_points, expertLTT, col = "orchid4", lwd=2)
+```
+
+### Subsampling - Homogenize the Number of Samples Through Time (ss.STT)
+
+```{r}
+# Define the reference number of samples per time bin (e.g., 25th percentile)
+STT_ref <- quantile(STT, 0.25)
+
+# Function to calculate sampling probability for each sample based on its age
+sampling_proba_sample <- function(sample_age) {
+  # Interpolate the ratio of desired to actual number of samples at the sample's age
+  ratio <- interpolate_curve(x_grid = time_points, x = sample_age, y = STT_ref / STT)
+  # Ensure the probability does not exceed 1
+  return(min(ratio, 1))
+}
+
+# Calculate sampling probabilities for all samples
+samples$proba <- sapply(samples$age, sampling_proba_sample)
+
+# Subsample the samples based on calculated probabilities
+set.seed(123)  # For reproducibility
+sampled_sampleIDs <- rownames(samples)[as.logical(rbinom(n = nrow(samples), size = 1, prob = samples$proba))]
+
+# Create the subsampled dataset
+triton.ss.STT <- triton[triton$sampleID %in% sampled_sampleIDs, ]
+```
+
+```{r}
+# Recalculate STT and OTT after subsampling
+samples.ss.STT <- data.frame(
+  nb = sapply(unique(triton.ss.STT$sampleID), function(sid) nrow(triton.ss.STT[triton.ss.STT$sampleID == sid, ])),
+  age = sapply(unique(triton.ss.STT$sampleID), function(sid) triton.ss.STT[triton.ss.STT$sampleID == sid, ]$age[1])
+)
+
+STT.ss.STT <- hist(samples.ss.STT$age, breaks = seq(min(time_points), max(time_points), length = length(time_points) + 1), plot = FALSE)$count
+STT.ss.STT[STT.ss.STT == 0] <- 1  # Avoid division by zero
+
+OTT.ss.STT <- sapply(time_points, function(ti)
+  sum(abs(triton.ss.STT$age_runif - ti) <= diff(time_points)[1] / 2, na.rm = TRUE))
+
+# Recalculate the number of holes through time (HTT) after subsampling
+HoleMinAge.ss.STT <- sapply(unique(triton.ss.STT$holeID), function(holeID)
+  min(triton.ss.STT[triton.ss.STT$holeID == holeID, "age_runif"]))
+HoleMaxAge.ss.STT <- sapply(unique(triton.ss.STT$holeID), function(holeID)
+  max(triton.ss.STT[triton.ss.STT$holeID == holeID, "age_runif"]))
+HTT.ss.STT <- sapply(time_points, function(ti)
+  length(which(round(HoleMinAge.ss.STT, 2) <= ti & round(HoleMaxAge.ss.STT, 2) >= ti)))
+```
+
+```{r fig.asp=0.4, fig.width=12}
+par(mfrow = c(1, 2))
+
+# Plot samples per hole through time before and after subsampling
+plot(loess.smooth(time_points, STT / HTT, span = 0.05), type = "l", lwd = 2, col = "dodgerblue4",
+     ylim = c(0.01, 2.5), main = "Samples per Hole Through Time",
+     xlab = "Time (Ma)", ylab = "Samples per Hole")
+points(time_points, STT / HTT, pch = 19, cex = 0.5, col = alpha("dodgerblue4", 0.3))
+lines(loess.smooth(time_points, STT.ss.STT / HTT.ss.STT, span = 0.05), lwd = 2, col = "palegreen4")
+points(time_points, STT.ss.STT / HTT.ss.STT, pch = 19, cex = 0.5, col = alpha("palegreen4", 0.3))
+
+# Plot number of holes through time before and after subsampling
+plot(time_points, HTT, type = "l", col = "dodgerblue4", main = "Number of Holes Through Time",
+     xlab = "Time (Ma)", ylab = "Number of Holes")
+points(time_points, HTT, pch = 19, col = "dodgerblue4", cex = 0.5)
+lines(time_points, HTT.ss.STT, col = "palegreen4")
+points(time_points, HTT.ss.STT, pch = 19, cex = 0.5, col = "palegreen4")
+```
+
+
+```{r fig.asp=0.5, fig.width=12}
+par(mfrow = c(1, 2), mar = c(4, 4, 3, 4) + 0.1)
+
+# Plot samples through time before and after subsampling
+plot(loess.smooth(time_points, STT, span = 0.2), type = "l", lwd = 1, col = "dodgerblue4", log="y", ylim=c(10,1000),
+     main = "Samples Through Time after Subsampling", xlim = rev(range(range(time_points))), xlab = "Time (Ma)", ylab = "Number of Sediment Samples")
+points(time_points, STT, pch = 19, cex = 0.5, col = alpha("dodgerblue4", 0.3))
+lines(loess.smooth(time_points, STT.ss.STT, span = 0.2), lwd = 3, col = "palegreen4")
+points(time_points, STT.ss.STT, pch = 19, cex = 0.5, col = alpha("palegreen4", 0.3))
+
+# Plot occurrences through time before and after subsampling
+plot(loess.smooth(time_points, OTT, span = 0.2), type = "l", lwd = 1, col = "dodgerblue4", log = "y",
+     main = "Occurrences Through Time after Subsampling", xlim = rev(range(range(time_points))), xlab = "Time (Ma)", ylab = paste0("Number of occurrences"))
+points(time_points, OTT, pch = 19, cex = 0.5, col = alpha("dodgerblue4", 0.3))
+lines(loess.smooth(time_points, OTT.ss.STT, span = 0.1), lwd = 3, col = "palegreen4")
+points(time_points, OTT.ss.STT, pch = 19, cex = 0.5, col = alpha("palegreen4", 0.3))
+par(new = TRUE)
+plot(time_points, expertLTT, type = "l", col = "orchid4", lwd = 3, xlim = rev(range(range(time_points))),
+     axes = FALSE, ylim=c(10,10000), xlab = "", ylab = "", log = "y")
+axis(4, col = "orchid4", col.axis = "orchid4", las = 1, labels = c("10","20","50","100"), at = c(10,20,50,100))
+mtext("Number of lineages", side = 4, line = 3, adj = 0.02, col = "orchid4")
+
+pdf("Images/STT_subsampling.pdf", width = 2.8, height = 2.8)
+par(mar = c(3, 3, 0.5, 0.5) + 0.1, mgp = c(2.1, 0.7, 0))
+# Plot samples through time before and after subsampling
+plot(loess.smooth(time_points, STT, span = 0.2), type = "l", lwd = 1, col = "dodgerblue4", log="y", ylim=c(10,1000),
+     main = "", xaxt = "n", yaxt = "n", xlim = rev(range(range(time_points))), xlab = "Time (Ma)", ylab = "Number of Sediment Samples")
+points(time_points, STT, pch = 19, cex = 0.3, col = alpha("dodgerblue4", 0.3))
+lines(loess.smooth(time_points, STT.ss.STT, span = 0.2), lwd = 2, col = "palegreen4")
+points(time_points, STT.ss.STT, pch = 19, cex = 0.3, col = alpha("palegreen4", 0.3))
+axis(1, at = pretty(range(time_points), n = 4))
+axis(2, at = c(10, 50, 200, 1000))
+dev.off()
+
+pdf("Images/OTT_subsampling.pdf", width = 3.2, height = 2.7)
+par(mar = c(3, 3, 0.5, 3.5) + 0.1, mgp = c(2.1, 0.7, 0))
+# Plot occurrences through time before and after subsampling
+plot(loess.smooth(time_points, OTT, span = 0.2), type = "l", lwd = 1, col = "dodgerblue4", log = "y",
+     main = "", xaxt = "n", yaxt = "n", xlim = rev(range(range(time_points))), xlab = "Time (Ma)", ylab = paste0("Number of occurrences"))
+points(time_points, OTT, pch = 19, cex = 0.3, col = alpha("dodgerblue4", 0.3))
+lines(loess.smooth(time_points, OTT.ss.STT, span = 0.1), lwd = 2, col = "palegreen4")
+points(time_points, OTT.ss.STT, pch = 19, cex = 0.3, col = alpha("palegreen4", 0.3))
+axis(1, at = pretty(range(time_points), n = 4))
+axis(2, at = c(100, 300, 1000, 5000))
+par(new = TRUE)
+plot(time_points, expertLTT, type = "l", col = "orchid4", lwd = 2, xlim = rev(range(range(time_points))),
+     axes = FALSE, ylim=c(10,10000), xlab = "", ylab = "", log = "y")
+axis(4, col = "orchid4", col.axis = "orchid4", las = 1, labels = c("10","20","50","100"), at = c(10,20,50,100))
+mtext("Number of lineages", side = 4, line = 2.3, adj = 0, col = "orchid4")
+dev.off()
+```
+
+The number of occurrences after subsampling reflects very well the number of lineages designed by experts.
+
+```{r fig.asp=0.4, fig.width=12}
+HoleNbSample.ss.STT <- sapply(names(HoleMaxAge.ss.STT), function(holeID)length(unique(triton.ss.STT[triton.ss.STT$holeID == holeID, "sampleID"])))
+HoleDtySample.ss.STT <- HoleNbSample.ss.STT/sapply(HoleMaxAge.ss.STT-HoleMinAge.ss.STT, max, a=0.001)
+
+ggplot(data.frame(HoleMinAge=HoleMinAge, HoleMaxAge=HoleMaxAge, HoleDtySample=as.vector(HoleDtySample))) +
+  geom_linerange(aes(y=HoleDtySample, xmin=HoleMinAge, xmax=HoleMaxAge, col=HoleDtySample), lwd=0.3) +
+  scale_color_gradient(low = "lightblue", high = "dodgerblue4", name = "Sample density", trans = "log10") +
+  scale_y_log10("Sample density", breaks=c(1,100,10000), lim=c(1e-2, 25000))
+
+ggplot(data.frame(HoleMinAge=HoleMinAge.ss.STT, HoleMaxAge=HoleMaxAge.ss.STT, HoleDtySample=as.vector(HoleDtySample.ss.STT))) +
+  geom_linerange(aes(y=HoleDtySample, xmin=HoleMinAge, xmax=HoleMaxAge, col=HoleDtySample), lwd=0.3) +
+  scale_color_gradient(low = "darkolivegreen3", high = "palegreen4", name = "Sample density", trans = "log10") +
+  scale_y_log10("Sample density", breaks=c(1,100,10000), lim=c(1e-2, 25000))
+```
+
+## Check spatial biases
+
+```{r fig.asp=0.5, fig.width=12}
+empiricalLTT.ss.STT <- sapply(time_points, function(ti)length(unique(triton.ss.STT[abs(triton.ss.STT$age_runif - ti) <= diff(time_points)[1]/2,]$species)))
+dty_lat_obs.ss.STT <- density(triton.ss.STT$pal.lat, adjust=0.5, from=-90, to=90, cut=T, na.rm=T)
+dty_long_obs.ss.STT <- density(triton.ss.STT$pal.long, adjust=0.5, from=-180, to=180, cut=T, na.rm=T)
+
+# Time
+par(mfcol=c(2,3))
+plot(time_points, OTT/empiricalLTT, log="y", ylim=c(1,1000), type="l", col="brown", main="Sampling rate through time", xlab="Age (Myrs)", ylab="Occurrences per lineage")
+points(time_points, OTT/empiricalLTT, pch=19, cex=0.5, col="brown")
+plot(time_points, OTT.ss.STT/empiricalLTT.ss.STT, log="y", ylim=c(1,1000), type="l", col="coral4", main=paste0("Sampling rate through time with ", nrow(triton.ss.STT) ," fossils"), xlab="Age (Myrs)", ylab="Occurrences per lineage")
+points(time_points, OTT.ss.STT/empiricalLTT.ss.STT, pch=19, cex=0.5, col="coral4")
+
+# Latitude
+hist(uniform_samples$lat, breaks=50, prob=T, ylim=c(0,0.02), main="Raw latitudinal distribution", xlab="Latitude", ylab="Fossil sampling density")
+lines(dty_lat_ref, lwd=2)
+hist(triton$pal.lat, breaks=50, prob=T, add=T, col=alpha("red", 0.1))
+lines(dty_lat_obs, lwd=2, col="red")
+text(x=70, y=0.015, paste("WD =", signif(transport::wasserstein1d(dty_lat_ref$y, dty_lat_obs$y), 2)))
+plot(dty_lat_ref, type="l", lwd=2, ylim=c(0,0.02), main=paste0("Latitudinal distribution with ", nrow(triton.ss.STT) ," fossils"), xlab="Latitude", ylab="Fossil sampling density")
+lines(dty_lat_obs.ss.STT, lwd=2, col="coral4")
+text(x=70, y=0.015, paste("WD =", signif(transport::wasserstein1d(dty_lat_ref$y, dty_lat_obs.ss.STT$y), 2)))
+
+# Longitude
+hist(uniform_samples$long, breaks=50, prob=T, ylim=c(0,0.02), main="Raw longitudinal distribution", xlab="Longitude", ylab="Fossil sampling density")
+lines(dty_long_ref, lwd=2)
+hist(triton$pal.long, breaks=50, prob=T, add=T, col=alpha("red", 0.1))
+lines(dty_long_obs, lwd=2, col="red")
+text(x=120, y=0.015, paste("WD =", signif(transport::wasserstein1d(dty_long_ref$y, dty_long_obs$y), 2)))
+plot(dty_long_ref, type="l", lwd=2, ylim=c(0,0.02), main=paste0("Longitudinal distribution with ", nrow(triton.ss.STT) ," fossils"), xlab="Longitude", ylab="Fossil sampling density")
+lines(dty_long_obs.ss.STT, lwd=2, col="coral4")
+text(x=120, y=0.015, paste("WD =", signif(transport::wasserstein1d(dty_long_ref$y, dty_long_obs.ss.STT$y), 2)))
+```
+
+## Compare to simulated homogeneous sampling
+
+```{r}
+fossil_sampling <- as.data.frame(t(sapply(unique(triton$species), function(sp){triton_spi <- triton[triton$species==sp,]; return(c(nb_fossils=nrow(triton_spi), duration=triton_spi$Speciation[1]-triton_spi$Extinction[1]))})))
+fossil_sampling.ss.STT <- as.data.frame(t(sapply(unique(triton.ss.STT$species), function(sp){triton_spi <- triton.ss.STT[triton.ss.STT$species==sp,]; return(c(nb_fossils=nrow(triton_spi), duration=triton_spi$Speciation[1]-triton_spi$Extinction[1]))})))
+```
+
+```{r fig.asp=0.6, fig.width=8, warning=FALSE}
+psi <- sum(fossil_sampling$nb_fossils)/sum(fossil_sampling$duration)
+psi.ss.STT <- sum(fossil_sampling.ss.STT$nb_fossils)/sum(fossil_sampling.ss.STT$duration)
+fossil_sampling.df <- data.frame(duration=c(fossil_sampling$duration, fossil_sampling.ss.STT$duration, fossil_sampling$duration, fossil_sampling.ss.STT$duration), nb.fossils=c(fossil_sampling$nb_fossils, fossil_sampling.ss.STT$nb_fossils, rpois(length(fossil_sampling$duration), fossil_sampling$duration*psi), rpois(length(fossil_sampling.ss.STT$duration), fossil_sampling.ss.STT$duration*psi.ss.STT)), origin=c(rep("Triton", nrow(fossil_sampling)), rep("Subsampled Triton", nrow(fossil_sampling.ss.STT)), rep("Simulation (~Triton)", nrow(fossil_sampling)), rep("Simulation (~subsampled Triton)", nrow(fossil_sampling.ss.STT))))
+
+p <- ggplot(fossil_sampling.df, aes(x=duration, y=nb.fossils, col=origin, alpha=origin, shape=origin)) +
+  geom_point(cex=2) +
+  scale_color_discrete(limits = c("Simulation (~Triton)", "Triton", "Simulation (~subsampled Triton)", "Subsampled Triton"),
+                       type = c("#040A3D",  "dodgerblue4", "#022B0B", "palegreen4")) +
+  scale_alpha_manual(limits = c("Simulation (~Triton)", "Triton", "Simulation (~subsampled Triton)", "Subsampled Triton"),
+                       values = c(0.4, 0.2, 0.4, 0.2)) +
+  scale_shape_manual(limits = c("Simulation (~Triton)", "Triton", "Simulation (~subsampled Triton)", "Subsampled Triton"),
+                     values = c(15, 16, 15, 16)) +
+  scale_x_continuous(trans = "log1p", name="Species lifetime (Myr)", breaks = c(0,1,10,50)) +
+  scale_y_log10(name="Number of fossils") + 
+  guides(
+    shape = guide_legend(override.aes = list(size = 5)),
+    color = guide_legend(nrow = 2)
+  ) +
+  theme_minimal() +
+  theme(
+    panel.background = element_rect(fill = NA, color = "grey70"),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    rect = element_rect(fill = "transparent"),
+    legend.position = "bottom",
+    legend.title = element_blank(),
+    plot.title = element_text(size = 12), 
+    strip.text = element_text(size = 12),
+    legend.text = element_text(size = 11)
+  ) + 
+  facet_wrap(sapply(grepl("sampled", origin), ifelse, yes="Subsampled database", no="Initial database")~.)
+
+p +  ggtitle("Observed fossil sampling compared to a homogeneous process")
+ggsave("Images/Empirical_versus_homogeneous_sampling.pdf", p, width = 5, height = 3.5)
+```
+
+# Save objects
+
+```{r}
+write.csv(triton.ss.STT, paste0("../../3-Data_processed/Triton_occurrences/TritonDB_subsampled_STT_",  nrow(triton.ss.STT), "foss.csv"))
+
+write.csv(time_points, "../../3-Data_processed/Triton_occurrences/time_points.csv", row.names=F)
+write.csv(OTT, "../../3-Data_processed/Triton_occurrences/OTT.csv", row.names=F)
+write.csv(expertLTT, "../../3-Data_processed/Triton_occurrences/expertLTT.csv", row.names=F)
+write.csv(empiricalLTT, "../../3-Data_processed/Triton_occurrences/empiricalLTT.csv", row.names=F)
+write.csv(OTT.ss.STT, paste0("../../3-Data_processed/Triton_occurrences/OTT_subsampled_STT_",  nrow(triton.ss.STT), "foss.csv"), row.names=F)
+write.csv(empiricalLTT.ss.STT, paste0("../../3-Data_processed/Triton_occurrences/empiricalLTT_subsampled_STT_",  nrow(triton.ss.STT), "foss.csv"), row.names=F)
+```
+
+```{r}
+#write.csv(triton.ss6, paste0("../../3-Data_processed/Triton_occurrences/TritonDB_subsampled_",  nrow(triton.ss6), "foss.csv"))
+#write.csv(triton.ss15, paste0("../../3-Data_processed/Triton_occurrences/TritonDB_subsampled_",  nrow(triton.ss15), "foss.csv"))
+#write.csv(triton.ss20, paste0("../../3-Data_processed/Triton_occurrences/TritonDB_subsampled_",  nrow(triton.ss20), "foss.csv"))
+
+#write.csv(OTT.ss6, paste0("../../3-Data_processed/Triton_occurrences/OTT_",  nrow(triton.ss6), "foss.csv"), row.names=F)
+#write.csv(empiricalLTT.ss6, paste0("../../3-Data_processed/Triton_occurrences/empiricalLTT_",  nrow(triton.ss6), "foss.csv"), row.names=F)
+#write.csv(OTT.ss15, paste0("../../3-Data_processed/Triton_occurrences/OTT_",  nrow(triton.ss15), "foss.csv"), row.names=F)
+#write.csv(empiricalLTT.ss15, paste0("../../3-Data_processed/Triton_occurrences/empiricalLTT_",  nrow(triton.ss15), "foss.csv"), row.names=F)
+#write.csv(OTT.ss20, paste0("../../3-Data_processed/Triton_occurrences/OTT_",  nrow(triton.ss20), "foss.csv"), row.names=F)
+#write.csv(empiricalLTT.ss20, paste0("../../3-Data_processed/Triton_occurrences/empiricalLTT_",  nrow(triton.ss20), "foss.csv"), row.names=F)
+```
+
+

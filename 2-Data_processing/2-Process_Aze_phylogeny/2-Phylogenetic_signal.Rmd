@@ -1,0 +1,121 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+# Phylogenetic signal
+## Discrete traits
+
+```{r}
+Foram_ancestry_table <- as_tibble(read.csv("../../3-Data_processed/Morphospecies_phylogenies/Foram_ancestry_table_alb_newTaxo.csv"))
+dat.discrete <- sampling_heterogeneity[sampling_heterogeneity$MacroMicro=="Macroperforate",c("reason", "db.source")]
+dat.discrete <- dat.discrete[which(sapply(rownames(dat.discrete), grepl, x=Foram_ancestry_table[,"Species.in.lineage"])),]  # keep only fossils with matched lineages in the tree
+
+last_tip <- sapply(Foram_ancestry_table$Species.in.lineage, function(x) tail(strsplit(x, split="-")[[1]], 1))
+match_fossil_to_last_tip <- as.character(sapply(rownames(dat.discrete), function(sp_name) grep("T", Foram_ancestry_table[grep(sp_name,last_tip), "Lineage.code"][[1]], value=T)))
+dat.discrete <- dat.discrete[match_fossil_to_last_tip!="character(0)",] ; match_fossil_to_last_tip <- match_fossil_to_last_tip[match_fossil_to_last_tip!="character(0)"]   # remove unmatched fossils
+row.names(dat.discrete) <- match_fossil_to_last_tip
+head(dat.discrete)
+```
+
+```{r fig.width=12, fig.asp = .6}
+Foram_phylo <- read.tree("Processed_data/Forams_bifurcating.tree")
+diversitree::trait.plot(tree=keep.tip(phy=Foram_phylo, tip=rownames(dat.discrete)), dat=dat.discrete,
+                        cols=list(reason=c("pink", "palevioletred", "red", "red4"), db.source=c("lightblue", "skyblue", "blue", "darkblue")))
+diversitree::trait.plot(tree=force.ultrametric(keep.tip(phy=Foram_phylo, tip=rownames(dat.discrete))), dat=dat.discrete,
+                        cols=list(reason=c("pink", "palevioletred", "red", "red4"), db.source=c("lightblue", "skyblue", "blue", "darkblue")))
+```
+
+```{r fig.width=12, fig.asp = .3, warning=FALSE}
+Foram_phylo.discrete <- keep.tip(phy=Foram_phylo, tip=rownames(dat.discrete))
+dat.discrete <- dat.discrete[Foram_phylo.discrete$tip.label,]
+geiger::fitDiscrete(phy=Foram_phylo.discrete, dat=dat.discrete)
+source("delta_statistic/code.R")  # https://github.com/mrborges23/delta_statistic
+
+delta_pvalue <- function(trait, tree, lambda0=0.1, se=0.0589, sim=10000, thin=10, burn=100, nrep=100){
+  deltaA <- delta(trait,tree,lambda0,se,sim,thin,burn)
+  random_delta <- rep(NA,nrep)
+  for (i in 1:nrep){
+    rtrait <- sample(trait)
+    random_delta[i] <- delta(rtrait,tree,lambda0,se,sim,thin,burn)
+  }
+  p_value <- sum(random_delta>deltaA)/length(random_delta)
+  return (list(deltaA=deltaA, p_value=p_value, random_delta=random_delta))
+}
+
+Foram_phylo_signal.reason <- delta_pvalue(trait=dat.discrete$reason, tree=Foram_phylo.discrete, sim=1000, nrep=20)
+Foram_phylo_signal.db.source <- delta_pvalue(trait=as.character(dat.discrete$db.source), tree=Foram_phylo.discrete, sim=1000, nrep=20)
+
+par(mfrow=c(1,2))
+boxplot(Foram_phylo_signal.reason$random_delta, ylim=c(0,5), main="PS significance - reason for sampling")
+abline(h=Foram_phylo_signal.reason$deltaA, col="red")
+boxplot(Foram_phylo_signal.db.source$random_delta, ylim=c(0,5), main="PS significance - database")
+abline(h=Foram_phylo_signal.db.source$deltaA, col="red")
+```
+
+```{r}
+ggplot(triton, aes(x=reason, y=age_runif)) + geom_boxplot(notch=T, varwidth = T)
+ggplot(triton, aes(x=reason, y=pal.lat)) + geom_boxplot(notch=T, varwidth = T)
+ggplot(triton, aes(x=reason, y=sample.depth)) + geom_boxplot(notch=T, varwidth = T)
+
+ggplot(triton, aes(x=reason, y=age_runif)) + geom_violin(varwidth = T)
+ggplot(triton, aes(x=reason, y=pal.lat)) + geom_violin(varwidth = T)
+ggplot(triton, aes(x=reason, y=sample.depth)) + geom_violin(varwidth = T)
+```
+
+## Continuous traits
+
+```{r}
+Foram_ancestry_table <- as_tibble(read.csv("Processed_data/Foram_ancestry_table_alb_newTaxo.csv"))
+
+dat.continuous <- sampling_heterogeneity[sampling_heterogeneity$MacroMicro=="Macroperforate",c("pal.lat", "pal.long", "pal.long.var", "year", "age", "sample.depth")]
+dat.continuous <- dat.continuous[which(sapply(rownames(dat.continuous), grepl, x=Foram_ancestry_table[,"Species.in.lineage"])),]  # keep only fossils with matched lineages in the tree
+
+match_fossil_to_last_tip <- as.character(sapply(rownames(dat.continuous), function(sp_name) grep("T", Foram_ancestry_table[grep(sp_name,last_tip), "Lineage.code"][[1]], value=T)))
+dat.continuous <- dat.continuous[match_fossil_to_last_tip!="character(0)",] ; match_fossil_to_last_tip <- match_fossil_to_last_tip[match_fossil_to_last_tip!="character(0)"]   # remove unmatched fossils
+row.names(dat.continuous) <- match_fossil_to_last_tip
+dat.continuous <- dat.continuous[!apply(dat.continuous, 1, anyNA),]  # remove rows with NAs
+head(dat.continuous)
+```
+
+```{r, fig.asp=0.3, fig.width=10}
+library(phylosignal)
+library(phylobase)
+Foram_phylo_4d <- phylo4d(keep.tip(phy=Foram_phylo, tip=rownames(dat.continuous)), dat.continuous)
+barplot.phylo4d(Foram_phylo_4d, tree.type = "phylo", tree.ladderize = TRUE)
+```
+
+```{r}
+Foram_phylo_4d_signal <- phyloSignal(p4d=Foram_phylo_4d, method = "all")  # best indices are Cmean and Pagel's Lambda according to https://doi.org/10.1111/j.2041-210X.2012.00196.x
+lapply(Foram_phylo_4d_signal, function(df)as.matrix(df[order(rowMeans(Foram_phylo_4d_signal$pvalue)),]))
+```
+
+```{r, fig.asp=0.3, fig.width=12}
+age.crlg <- phyloCorrelogram(Foram_phylo_4d, trait = "age")
+pal.lat.crlg <- phyloCorrelogram(Foram_phylo_4d, trait = "pal.lat")
+pal.long.crlg <- phyloCorrelogram(Foram_phylo_4d, trait = "pal.long")
+sample.depth.crlg <- phyloCorrelogram(Foram_phylo_4d, trait = "sample.depth")
+year.depth.crlg <- phyloCorrelogram(Foram_phylo_4d, trait = "year")
+pal.long.var.crlg <- phyloCorrelogram(Foram_phylo_4d, trait = "pal.long.var")
+
+par(mfrow=c(2,3))
+plot(age.crlg, main="Age autocorrelogram");plot(pal.lat.crlg, main="Paleolatitude autocorrelogram");plot(pal.long.crlg, main="Paleolongitude autocorrelogram");plot(sample.depth.crlg, main="Sample depth autocorrelogram");plot(year.depth.crlg, main="Year autocorrelogram");plot(pal.long.var.crlg, main="Paleolongitudinal spread autocorrelogram")
+```
+
+```{r, fig.asp=0.3, fig.width=10}
+Foram_phylo.lipa <- lipaMoran(Foram_phylo_4d)
+Foram_phylo.lipa.p4d <- lipaMoran(Foram_phylo_4d, as.p4d = TRUE)
+
+barplot.phylo4d(Foram_phylo_4d, bar.col=(Foram_phylo.lipa$p.value < 0.01) + 1)
+```
+
+```{r}
+dat.continuous$abs.pal.lat <- abs(dat.continuous$pal.lat)
+Foram_phylo_4d.abs <- phylo4d(keep.tip(phy=Foram_phylo, tip=rownames(dat.continuous)), dat.continuous[,c("pal.lat","abs.pal.lat")])
+Foram_phylo_4d_signal.abs <- phyloSignal(p4d=Foram_phylo_4d.abs, method = "all")  # best indices are Cmean and Pagel's Lambda according to https://doi.org/10.1111/j.2041-210X.2012.00196.x
+lapply(Foram_phylo_4d_signal.abs, function(df)as.matrix(df[order(rowMeans(Foram_phylo_4d_signal.abs$pvalue)),]))
+barplot.phylo4d(Foram_phylo_4d.abs, bar.col=(Foram_phylo.lipa$p.value < 0.01) + 1)
+
+abs.pal.lat.crlg <- phyloCorrelogram(Foram_phylo_4d.abs, trait = "abs.pal.lat")
+plot(abs.pal.lat.crlg, main="Absolute paleolatitude autocorrelogram")
+```

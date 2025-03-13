@@ -1,0 +1,350 @@
+---
+title: "Triton - Update the nomenclature of modern species and assign genera to monophyletic clades"
+output: html_notebook
+---
+
+```{r}
+library(ape)
+```
+
+# Update Triton with modern species
+## Update the taxonomy of modern species
+
+```{r}
+triton <- read.csv("../../3-Data_processed/Triton_occurrences/TritonDB_trimmed_runif.csv", row.names = 1)
+
+# Updated taxonomy
+## Spinose
+triton$species <- gsub("Globigerinoides ruber", "Globigerinoides ruber-albus", triton$species)
+triton$species <- gsub("Beella megastoma", "Beella digitata", triton$species)
+triton$species <- gsub("Globoturborotalita tenella", "Globigerinoides tenellus", triton$species)
+triton$species <- gsub("Trilobatus immaturus", "Trilobatus sacculifer", triton$species)
+triton$species <- gsub("Trilobatus quadrilobatus", "Trilobatus sacculifer", triton$species)
+triton$species <- gsub("Trilobatus trilobus", "Trilobatus sacculifer", triton$species)
+triton$species <- gsub("Turborotalita cristata", "Turborotalita humilis", triton$species)
+
+## Non-spinose
+triton$species <- gsub("Truncorotalia", "Globorotalia", triton$species)
+triton$species <- gsub("Menardella", "Globorotalia", triton$species)
+triton$species <- gsub("Hirsutella", "Globorotalia", triton$species)
+triton$species <- gsub("Globoconella", "Globorotalia", triton$species)
+triton$species <- gsub("Globorotalia theyeri", "Globorotalia eastropacia", triton$species)
+triton$species <- gsub("Globorotalia oceanica", "Globorotalia crassaformis", triton$species)
+triton$species <- gsub("Globorotalia excelsa", "Globorotalia truncatulinoides", triton$species)
+triton$species <- gsub("Globorotalia pachytheca", "Globorotalia truncatulinoides", triton$species)
+triton$species <- gsub("Globorotalia bermudezi", "Globorotalia scitula", triton$species)
+triton$species <- gsub("Pulleniatina finalis", "Pulleniatina obliquiloculata", triton$species)
+
+# Microperforate
+triton$species <- gsub("Tenuitella iota", "Tenuitellita iota", triton$species)
+triton$species <- gsub("Globigerinita parkerae", "Tenuitellita fleisheri", triton$species)
+triton$species <- gsub("Tenuitella parkerae", "Tenuitellita parkerae", triton$species)
+
+# Independent planktonic origin
+triton$species <- gsub("Gallitellia vivans", "Neogallitellia vivans", triton$species)
+triton$species <- gsub("Streptochilus globigerum", "Bolivina variabilis", triton$species)
+
+# Update the speciation times
+for (species in unique(triton$species)){
+  unique_Speciation <- unique(triton[triton$species == species,]$Speciation)
+  if (length(unique_Speciation) > 1){
+    triton[triton$species == species,]$Speciation <- max(unique_Speciation)
+  }
+}
+```
+
+```{r}
+# Orbulina suturalis is extinct today
+triton[triton$species == "Orbulina suturalis",]$Extinction <- floor(min(triton[triton$species == "Orbulina suturalis",]$age_runif)*1000)/1000
+```
+
+## Add missing extant species
+
+```{r}
+triton_unique <- triton[match(unique(triton$species), table=triton$species), c("species", "Speciation", "Extinction")]
+names(triton_unique)[1:3] <- c("taxon", "max_age", "min_age")
+
+# Count the number of occurrences per species
+triton_unique$k <- as.numeric(table(triton$species))
+
+# Add species without a record in Triton
+triton_unique <- rbind(triton_unique, c("Globigerinoides ruber-ruber", 0, 0, 0))
+triton_unique <- rbind(triton_unique, c("Globigerinella radians", 0, 0, 0))
+triton_unique <- rbind(triton_unique, c("Globorotalia cultrata", 0, 0, 0))
+
+# Match the nomenclature of modern MOTU2-level lineages
+triton_unique$taxon <- paste(triton_unique$taxon, "Ia")
+
+# Add modern cryptic biological species (MOTU2 lineages)
+#timetreeS_MOTU2 <- read.tree("../../3-Data_processed//Species_tree_reconciliation/Forams_Spinose_MOTU2.tree")
+seq_spinose <- read.FASTA("../../3-Data_processed/Sequence_alignments/SSU-align/Mask_pf0.95_pt0.95/Spinose_SSU-align_alignment_species.fasta")
+seq_nonspinose <- read.FASTA("../../3-Data_processed/Sequence_alignments/SSU-align/Mask_pf0.95_pt0.95/NonSpinose_SSU-align_alignment_species.fasta")
+seq_microperforate <- read.FASTA("../../3-Data_processed/Sequence_alignments/SSU-align/Mask_pf0.95_pt0.95/Microperforate_SSU-align_alignment_species.fasta")
+triton_unique <- rbind(triton_unique, cbind(taxon=gsub("_", " ", grep("_Ia", names(seq_spinose), value = T, invert = T)), max_age=0, min_age=0, k=0))
+triton_unique <- rbind(triton_unique, cbind(taxon=gsub("_", " ", grep("_Ia", names(seq_nonspinose), value = T, invert = T)), max_age=0, min_age=0, k=0))
+triton_unique <- rbind(triton_unique, cbind(taxon=gsub("_", " ", grep("_Ia", names(seq_microperforate), value = T, invert = T)), max_age=0, min_age=0, k=0))
+```
+
+## Find extant species in Triton that are not in the sequence alignments
+
+```{r}
+triton_extant_species <- triton_unique$taxon[triton_unique$min_age == "0"]
+
+# Get species names from sequences
+seq_species <- unique(c(
+  gsub("_", " ", names(seq_spinose)),
+  gsub("_", " ", names(seq_nonspinose)),
+  gsub("_", " ", names(seq_microperforate))
+))
+
+# Identify extant species not present in the sequence alignments
+setdiff(triton_extant_species, seq_species)
+```
+
+# Assign genera to modern monophyletic clades
+
+The 3 clades considered are named based on wall textures: Microperforate, Spinose, Non-spinose. Other and uncertain genera are assigned to an "independent" category. The assignment is based on the literature and descriptions at www.mikrotax.org/pforams.
+
+```{r}
+triton_unique$genus <- gsub(" .*", "", triton_unique$taxon)
+# Lists for each morphology category
+spinose <- c("Beella", "Catapsydrax", "Ciperoella", "Clavatorella", "Clavigerinella", "Cribrohantkenina", 
+             "Eoglobigerina", "Globanomalina", "Globigerina", "Globigerinatheka", "Globigerinella", "Globigerinoides", 
+             "Globigerinoidesella", "Globoturborotalita", "Guembelitrioides", "Hastigerina", "Hastigerinella", 
+             "Orbulina", "Orbulinoides", "Orcadia", "Paragloborotalia", "Parasubbotina", "Planoglobanomalina", 
+             "Praeorbulina", "Protentella", "Protentelloides", "Pseudoglobigerinella", "Pseudohastigerina", "Sphaeroidinella", 
+             "Sphaeroidinellopsis", "Subbotina", "Trilobatus", "Turborotalita")
+
+non_spinose <- c("Acarinina", "Alicantina", "Astrorotalia", "Dentoglobigerina", "Fohsella", "Globoquadrina", 
+                 "Globorotalia", "Globorotaloides", "Hantkenina", "Igorina", "Morozovella", "Morozovelloides", 
+                 "Muricohedbergella", "Neogloboquadrina", "Pearsonites", "Planorotalites", "Praemurica", 
+                 "Pulleniatina", "Turborotalia")
+
+microperforate <- c("Candeina", "Globigerinatella", "Globigerinita", "Mutabella", "Tenuitella", "Tenuitellita")
+
+independent <- c("Berggrenia", "Bolivina", "Dentigloborotalia", "Cassigerinella", "Cassigerinelloita", "Chiloguembelina", 
+                 "Dipsidripella", "Globoconusa", "Guembelitria", "Jenkinsina", "Neogallitellia", 
+                 "Parvularugoglobigerina", "Rectoguembelina", "Streptochilus", "Woodringina", "Zeauvigerina")
+
+# Create the data frame
+wall_textures <- data.frame(Morphology = c(rep("Spinose", length(spinose)),
+                                           rep("Non-spinose", length(non_spinose)),
+                                           rep("Microperforate", length(microperforate)),
+                                           rep("Independent", length(independent))), 
+                            row.names = c(spinose, non_spinose, microperforate, independent))
+
+write.csv(wall_textures, file = "../../3-Data_processed/Triton_occurrences/wall_textures.csv")
+
+triton_unique$wall_texture <- wall_textures[triton_unique$genus,]
+```
+
+# Save morphospecies ranges
+
+```{r}
+# Replace blank spaces by _
+triton_unique$taxon <- gsub(" ", "_", triton_unique$taxon)
+
+triton_unique_M <- triton_unique[triton_unique$wall_texture=="Microperforate",]
+triton_unique_S <- triton_unique[triton_unique$wall_texture=="Spinose",]
+triton_unique_NS <- triton_unique[triton_unique$wall_texture=="Non-spinose",]
+triton_unique_B <- triton_unique[triton_unique$wall_texture=="Independent",]
+
+write.csv(triton_unique[, 1:3], "../../3-Data_processed/Triton_occurrences/TritonDB_morphospecies_ranges.csv", row.names=F, quote=F)
+write.csv(triton_unique_M[,1:3], "../../3-Data_processed/Triton_occurrences/TritonDB_morphospecies_ranges_Microperforate.csv", row.names=F, quote=F)
+write.csv(triton_unique_S[,1:3], "../../3-Data_processed/Triton_occurrences/TritonDB_morphospecies_ranges_Spinose.csv", row.names=F, quote=F)
+write.csv(triton_unique_NS[,1:3], "../../3-Data_processed/Triton_occurrences/TritonDB_morphospecies_ranges_NonSpinose.csv", row.names=F, quote=F)
+write.csv(triton_unique_B[,1:3], "../../3-Data_processed/Triton_occurrences/TritonDB_morphospecies_ranges_Independent.csv", row.names=F, quote=F)
+
+write.csv(triton_unique_M$k, "../../3-Data_processed/Triton_occurrences/TritonDB_morphospecies_nbOccurrences_Microperforate.csv", row.names=F, quote=F)
+write.csv(triton_unique_S$k, "../../3-Data_processed/Triton_occurrences/TritonDB_morphospecies_nbOccurrences_Spinose.csv", row.names=F, quote=F)
+write.csv(triton_unique_NS$k, "../../3-Data_processed/Triton_occurrences/TritonDB_morphospecies_nbOccurrences_NonSpinose.csv", row.names=F, quote=F)
+write.csv(triton_unique_B$k, "../../3-Data_processed/Triton_occurrences/TritonDB_morphospecies_nbOccurrences_Independent.csv", row.names=F, quote=F)
+
+write.csv(triton_unique_M[triton_unique_M$min_age=="0", 1:3], "../../3-Data_processed/Triton_occurrences/TritonDB_morphospecies_ranges_extant_Microperforate.csv", row.names=F, quote=F)
+write.csv(triton_unique_S[triton_unique_S$min_age=="0", 1:3], "../../3-Data_processed/Triton_occurrences/TritonDB_morphospecies_ranges_extant_Spinose.csv", row.names=F, quote=F)
+write.csv(triton_unique_NS[triton_unique_NS$min_age=="0", 1:3], "../../3-Data_processed/Triton_occurrences/TritonDB_morphospecies_ranges_extant_NonSpinose.csv", row.names=F, quote=F)
+write.csv(triton_unique_B[triton_unique_B$min_age=="0", 1:3], "../../3-Data_processed/Triton_occurrences/TritonDB_morphospecies_ranges_extant_Independent.csv", row.names=F, quote=F)
+```
+
+Plot morphospecies richness through time.
+```{r}
+Time <- 0:80
+plot(Time, sapply(Time, function(x)sum(as.numeric(triton_unique_M$min_age) <= x & as.numeric(triton_unique_M$max_age) > x)), type="b", main = "Microperforate richness through time", ylab = "Number of morphospecies")
+plot(Time, sapply(Time, function(x)sum(as.numeric(triton_unique_S$min_age) <= x & as.numeric(triton_unique_S$max_age) > x)), type="b", main = "Spinose richness through time", ylab = "Number of morphospecies")
+plot(Time, sapply(Time, function(x)sum(as.numeric(triton_unique_NS$min_age) <= x & as.numeric(triton_unique_NS$max_age) > x)), type="b", main = "Non-Spinose richness through time", ylab = "Number of morphospecies")
+```
+
+# Process sequence alignment
+
+```{r}
+Foram_Taxonomy <- readxl::read_xlsx("../../1-Data_raw/Data_Morard/Taxonomy/Table S5.xlsx", sheet = "Molecular Nomenclature")
+head(Foram_Taxonomy)
+```
+
+## Spinose
+
+```{r}
+Spinose_SSUalign_seq <- phylotools::read.fasta("../../3-Data_processed/Sequence_alignments/SSU-align/Mask_pf0.95_pt0.95/SSU-align_Spinose/SSU-align_Spinose.eukarya.mask.afa")
+Spinose_SSUalign_seq <- Spinose_SSUalign_seq[order(Spinose_SSUalign_seq$seq.name),]
+Spinose_SSUalign_seq
+
+# DNA instead of RNA
+Spinose_SSUalign_seq$seq.text <- gsub("U", "T", Spinose_SSUalign_seq$seq.text)
+
+# Match the nomenclature of modern lineages (MOTU2-level)
+Foram_Taxonomy_Spinose <- Foram_Taxonomy[Foram_Taxonomy$Clade=="Spinose",]
+Foram_Taxonomy_Spinose <- Foram_Taxonomy_Spinose[order(Foram_Taxonomy_Spinose$Taxonomic_Path),]
+Foram_Taxonomy_Spinose
+
+Spinose_SSUalign_seq$seq.name <- paste0(gsub("\\|", "_", gsub("Representative_[0-9]*\\||Basetype_[0-9]*\\||basegroup_[0-9]*\\|", "", Spinose_SSUalign_seq$seq.name)), "_", Foram_Taxonomy_Spinose$MOTU_lvl_1, Foram_Taxonomy_Spinose$MOTU_lvl_2)
+
+# Keep only the first sequence for identical MOTU2 species
+Spinose_SSUalign_seq_unique <- Spinose_SSUalign_seq[match(unique(Spinose_SSUalign_seq$seq.name), table=Spinose_SSUalign_seq$seq.name), ]
+Spinose_SSUalign_seq_unique
+
+phylotools::dat2fasta(Spinose_SSUalign_seq_unique, outfile = "../../3-Data_processed/Sequence_alignments/SSU-align/Mask_pf0.95_pt0.95/Spinose_SSU-align_alignment_species.fasta")
+```
+
+## Non-spinose
+
+```{r}
+NonSpinose_SSUalign_seq <- phylotools::read.fasta("../../3-Data_processed/Sequence_alignments/SSU-align/Mask_pf0.95_pt0.95/SSU-align_NonSpinose/SSU-align_NonSpinose.eukarya.mask.afa")
+NonSpinose_SSUalign_seq <- NonSpinose_SSUalign_seq[order(NonSpinose_SSUalign_seq$seq.name),]
+NonSpinose_SSUalign_seq
+
+# DNA instead of RNA
+NonSpinose_SSUalign_seq$seq.text <- gsub("U", "T", NonSpinose_SSUalign_seq$seq.text)
+
+# Match the nomenclature of modern lineages (MOTU2-level)
+Foram_Taxonomy_NonSpinose <- Foram_Taxonomy[Foram_Taxonomy$Clade=="Non-spinose",]
+Foram_Taxonomy_NonSpinose <- Foram_Taxonomy_NonSpinose[order(Foram_Taxonomy_NonSpinose$Taxonomic_Path),]
+Foram_Taxonomy_NonSpinose
+
+NonSpinose_SSUalign_seq$seq.name <- paste0(gsub("\\|", "_", gsub("Representative_[0-9]*\\||Basetype_[0-9]*\\||basegroup_[0-9]*\\|", "", NonSpinose_SSUalign_seq$seq.name)), "_", Foram_Taxonomy_NonSpinose$MOTU_lvl_1, Foram_Taxonomy_NonSpinose$MOTU_lvl_2)
+cbind(gsub("\\|", "_", gsub("Representative_[0-9]*\\||Basetype_[0-9]*\\||basegroup_[0-9]*\\|", "", NonSpinose_SSUalign_seq$seq.name)), Foram_Taxonomy_NonSpinose)
+
+# Keep only the first sequence for identical MOTU2 species
+NonSpinose_SSUalign_seq_unique <- NonSpinose_SSUalign_seq[match(unique(NonSpinose_SSUalign_seq$seq.name), table=NonSpinose_SSUalign_seq$seq.name),]
+NonSpinose_SSUalign_seq_unique
+
+phylotools::dat2fasta(NonSpinose_SSUalign_seq_unique, outfile = "../../3-Data_processed/Sequence_alignments/SSU-align/Mask_pf0.95_pt0.95/NonSpinose_SSU-align_alignment_species.fasta")
+```
+
+## Microperforate
+
+```{r}
+Microperforate_SSUalign_seq <- phylotools::read.fasta("../../3-Data_processed/Sequence_alignments/SSU-align/Mask_pf0.95_pt0.95/SSU-align_Microperforates/SSU-align_Microperforates.eukarya.mask.afa")
+Microperforate_SSUalign_seq <- Microperforate_SSUalign_seq[order(Microperforate_SSUalign_seq$seq.name),]
+Microperforate_SSUalign_seq
+
+# Remove species of independant evolutionary origin
+Microperforate_SSUalign_seq <- Microperforate_SSUalign_seq[!grepl("Dentigloborotalia|Neogallitellia", Microperforate_SSUalign_seq$seq.name),]
+
+# DNA instead of RNA
+Microperforate_SSUalign_seq$seq.text <- gsub("U", "T", Microperforate_SSUalign_seq$seq.text)
+
+# Match the nomenclature of modern lineages (MOTU2-level)
+Foram_Taxonomy_Microperforate <- Foram_Taxonomy[Foram_Taxonomy$Clade=="Microperforates",]
+Foram_Taxonomy_Microperforate <- Foram_Taxonomy_Microperforate[order(Foram_Taxonomy_Microperforate$Taxonomic_Path),]
+Foram_Taxonomy_Microperforate <- Foram_Taxonomy_Microperforate[!grepl("Dentigloborotalia|Neogallitellia", Foram_Taxonomy_Microperforate$Genus),]
+Foram_Taxonomy_Microperforate
+
+Microperforate_SSUalign_seq$seq.name <- paste0(gsub("\\|", "_", gsub("Representative_[0-9]*\\||Basetype_[0-9]*\\||basegroup_[0-9]*\\|", "", Microperforate_SSUalign_seq$seq.name)), "_", Foram_Taxonomy_Microperforate$MOTU_lvl_1, Foram_Taxonomy_Microperforate$MOTU_lvl_2)
+cbind(gsub("\\|", "_", gsub("Representative_[0-9]*\\||Basetype_[0-9]*\\||basegroup_[0-9]*\\|", "", Microperforate_SSUalign_seq$seq.name)), Foram_Taxonomy_Microperforate)
+
+# Keep only the first sequence for identical MOTU2 species
+Microperforate_SSUalign_seq_unique <- Microperforate_SSUalign_seq[match(unique(Microperforate_SSUalign_seq$seq.name), table=Microperforate_SSUalign_seq$seq.name),]
+Microperforate_SSUalign_seq_unique
+
+phylotools::dat2fasta(Microperforate_SSUalign_seq_unique, outfile = "../../3-Data_processed/Sequence_alignments/SSU-align/Mask_pf0.95_pt0.95/Microperforate_SSU-align_alignment_species.fasta")
+```
+
+# Save individual occurrences
+
+Use the subsampled dataset
+
+```{r}
+triton.ss <- read.csv("../../3-Data_processed/Triton_occurrences/TritonDB_subsampled_STT_91253foss.csv", row.names = 1)
+triton.ss
+```
+
+Take the intersection of the morphological taxonomy and the subsampled dataset
+
+## Spinose
+
+```{r}
+rows.Spinose <- row.names(triton[gsub(" .*", "", triton$species) %in% row.names(wall_textures)[wall_textures$Morphology=="Spinose"],])
+triton.ss.Spinose <- triton[intersect(row.names(triton.ss), rows.Spinose), c("species", "Speciation", "Extinction", "age_runif")]
+names(triton.ss.Spinose) <- c("taxon", "Speciation", "Extinction", "age")
+triton.ss.Spinose$taxon <- paste(triton.ss.Spinose$taxon, "Ia")
+triton.ss.Spinose$taxon <- gsub(" ", "_", triton.ss.Spinose$taxon)
+triton.ss.Spinose
+```
+
+## Non-spinose
+
+```{r}
+rows.NonSpinose <- row.names(triton[gsub(" .*", "", triton$species) %in% row.names(wall_textures)[wall_textures$Morphology=="Non-spinose"],])
+triton.ss.NonSpinose <- triton[intersect(row.names(triton.ss), rows.NonSpinose), c("species", "Speciation", "Extinction", "age_runif")]
+names(triton.ss.NonSpinose) <- c("taxon", "Speciation", "Extinction", "age")
+triton.ss.NonSpinose$taxon <- paste(triton.ss.NonSpinose$taxon, "Ia")
+triton.ss.NonSpinose$taxon <- gsub(" ", "_", triton.ss.NonSpinose$taxon)
+triton.ss.NonSpinose
+```
+
+## Microperforate
+
+```{r}
+rows.Microperforate <- row.names(triton[gsub(" .*", "", triton$species) %in% row.names(wall_textures)[wall_textures$Morphology=="Microperforate"],])
+triton.ss.Microperforate <- triton[intersect(row.names(triton.ss), rows.Microperforate), c("species", "Speciation", "Extinction", "age_runif")]
+names(triton.ss.Microperforate) <- c("taxon", "Speciation", "Extinction", "age")
+triton.ss.Microperforate$taxon <- paste(triton.ss.Microperforate$taxon, "Ia")
+triton.ss.Microperforate$taxon <- gsub(" ", "_", triton.ss.Microperforate$taxon)
+triton.ss.Microperforate
+```
+
+## Compare the number of occurrences with the number of lineages from experts
+
+```{r fig.asp=0.3, fig.width=12}
+time_points <- 0:132/2
+OTT.ss.Spinose <- sapply(time_points, function(ti)sum(abs(triton.ss.Spinose$age - ti) <= diff(time_points)[1]/2))
+expertLTT.ss.Spinose <- sapply(time_points, function(ti)length(unique(triton.ss.Spinose[triton.ss.Spinose$Speciation >= ti & ti >= triton.ss.Spinose$Extinction,]$taxon)))
+empiricalLTT.ss.Spinose <- sapply(time_points, function(ti)length(unique(triton.ss.Spinose[abs(triton.ss.Spinose$age - ti) <= diff(time_points)[1]/2,]$taxon)))
+
+OTT.ss.NonSpinose <- sapply(time_points, function(ti)sum(abs(triton.ss.NonSpinose$age - ti) <= diff(time_points)[1]/2))
+expertLTT.ss.NonSpinose <- sapply(time_points, function(ti)length(unique(triton.ss.NonSpinose[triton.ss.NonSpinose$Speciation >= ti & ti >= triton.ss.NonSpinose$Extinction,]$taxon)))
+empiricalLTT.ss.NonSpinose <- sapply(time_points, function(ti)length(unique(triton.ss.NonSpinose[abs(triton.ss.NonSpinose$age - ti) <= diff(time_points)[1]/2,]$taxon)))
+
+OTT.ss.Microperforate <- sapply(time_points, function(ti)sum(abs(triton.ss.Microperforate$age - ti) <= diff(time_points)[1]/2))
+expertLTT.ss.Microperforate <- sapply(time_points, function(ti)length(unique(triton.ss.Microperforate[triton.ss.Microperforate$Speciation >= ti & ti >= triton.ss.Microperforate$Extinction,]$taxon)))
+empiricalLTT.ss.Microperforate <- sapply(time_points, function(ti)length(unique(triton.ss.Microperforate[abs(triton.ss.Microperforate$age - ti) <= diff(time_points)[1]/2,]$taxon)))
+
+par(mfrow=c(1,3))
+plot(time_points, OTT.ss.Spinose/15, type="p", ylim=c(0,50), xlab = "Time (Mya)", ylab="Number of occurences (x20)", main = "Correspondance between occurrences and LTT (S)")
+lines(time_points, expertLTT.ss.Spinose, lwd=3, col=ggplot2::alpha("purple", 0.5))
+
+plot(time_points, OTT.ss.NonSpinose/15, type="p", ylim=c(0,50), xlab = "Time (Mya)", ylab="Number of occurences (x20)", main = "Correspondance between occurrences and LTT (NS)")
+lines(time_points, expertLTT.ss.NonSpinose, lwd=3, col=ggplot2::alpha("purple", 0.5))
+
+plot(time_points, OTT.ss.Microperforate/15, type="p", ylim=c(0,50), xlab = "Time (Mya)", ylab="Number of occurences (x20)", main = "Correspondance between occurrences and LTT (M)")
+lines(time_points, expertLTT.ss.Microperforate, lwd=3, col=ggplot2::alpha("purple", 0.5))
+```
+
+## Save occurrences (no taxonomic information)
+
+```{r}
+write.table(t(triton.ss.Spinose$age), 
+            file = paste0("../../3-Data_processed/Triton_occurrences/TritonDB_subsampled_STT_", length(triton.ss.Spinose$age),"occurrences_Spinose.csv"), 
+            sep=";", quote=F, row.names=F, col.names=F)
+
+write.table(t(triton.ss.NonSpinose$age), 
+            file = paste0("../../3-Data_processed/Triton_occurrences/TritonDB_subsampled_STT_", length(triton.ss.NonSpinose$age),"occurrences_NonSpinose.csv"), 
+            sep=";", quote=F, row.names=F, col.names=F)
+
+write.table(t(triton.ss.Microperforate$age), 
+            file = paste0("../../3-Data_processed/Triton_occurrences/TritonDB_subsampled_STT_", length(triton.ss.Microperforate$age),"occurrences_Microperforate.csv"), 
+            sep=";", quote=F, row.names=F, col.names=F)
+```
+
+
+

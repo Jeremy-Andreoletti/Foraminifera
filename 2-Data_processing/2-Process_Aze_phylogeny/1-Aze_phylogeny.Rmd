@@ -1,0 +1,819 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+```{r}
+library(paleoPhylo)
+library(phytools)
+library(readxl)
+library(ggtree)
+library(ggplot2)
+library(tibble)
+library(dplyr)
+```
+
+# Load and plot the phylogeny
+
+```{r}
+data(pearson93) ##load a phylogeny
+data(berggren95) ##load a timescale
+op <- par(no.readonly=TRUE)
+p93 <- with(pearson93, as.paleoPhylo(Code, Parent, Start, End, label=Name))
+```
+
+## Example 1: without a time axis.
+
+```{r}
+drawPhylo (p93)
+```
+
+## Example 2: with a "classic" time axis.
+
+```{r}
+drawPhylo(p93,tmScl=berggren95, addTimeLine="classic", whatTime=c("epoch","zone"),
+          l2r=TRUE, cexText=c(1, 0.5), dumpLast=TRUE,  nmLim=0.3)
+```
+
+## Example 3: a fully bifucating version with different text sizes for time
+
+```{r}
+p93cb <- createBifurcate(p93)
+drawPhylo (p93cb, 
+  tmScl=berggren95, addTimeLine="cl", whatTime=c("epoch","zone"),
+  dumpLast=TRUE, cexText=c(1, 0.5), nmLim=0.3, srtText=0)
+```
+
+```{r}
+#example 4: with species arranged on the x-axis according ...
+## .... to some random trait data from a uniform distribution.
+## .... THIS DELIBERATELY LOOKS A TOTAL MESS
+##don't include latin names by leaving the "label" argument free.
+p93rnd <- with(pearson93, as.paleoPhylo(Code, Parent, Start, End,
+	 xx=runif(length(Code),-1,1)))
+drawPhylo (p93rnd, tmScl=berggren95, addTimeLine="classic", whatTime=c("epoch"),
+	l2r=TRUE, cexTime=0.8, dumpLast=TRUE, cexText=1, nmLim=0.3)
+```
+
+```{r}
+tree <- buildApe(p93cb)
+plotTree(tree)
+```
+
+# Distinguish speciation modes
+## Fully bifurcating tree
+
+```{r}
+Foram_ancestry_table_alb <- read_xls("../../1-Data_raw/Aze_phylogeny/brv_178_sm_appendixs5.xls", sheet = "aLb")
+Foram_ancestry_table_alb$`Ancestor code` <- gsub("NA", NA, Foram_ancestry_table_alb$`Ancestor code`)
+Foram_ancestry_table_alb
+```
+
+```{r fig.width=25, fig.asp = .6}
+Foram_phylogeny_aLb <- with(Foram_ancestry_table_alb, as.paleoPhylo(nm = `Lineage code`, pn = `Ancestor code`, st = `Start date`, en = `End date`, label = `Species in lineage`))
+drawPhylo (Foram_phylogeny_aLb, tmScl=berggren95, addTimeLine="classic", whatTime=c("epoch"),
+           l2r=TRUE, cexTime=0.8, dumpLast=TRUE, cexText=1, nmLim=0.3)
+```
+
+```{r fig.width=10, fig.asp = .8}
+Foram_phylo <- buildApe(Foram_phylogeny_aLb)
+plot(Foram_phylo, cex = 0.5)
+axisPhylo()
+write.tree(Foram_phylo, "../../3-Data_processed/Morphospecies_phylogenies/Forams_bifurcating.tree")
+write.nexus(Foram_phylo, file = "../../3-Data_processed/Morphospecies_phylogenies/Forams_bifurcating.nex")
+```
+
+## Budding/bifurcating tree
+
+```{r}
+Foram_ancestry_table_al <- read_xls("../../1-Data_raw/Aze_phylogeny/brv_178_sm_appendixs5.xls", sheet = "aL")
+Foram_ancestry_table_al$`Ancestor code` <- gsub("NA", NA, Foram_ancestry_table_al$`Ancestor code`)
+Foram_ancestry_table_al
+```
+
+```{r fig.width=10, fig.asp = .6}
+Foram_phylogeny_aL <- with(Foram_ancestry_table_al, as.paleoPhylo(nm = `Lineage code`, pn = `Ancestor code`, st = `Start date`, en = `End date`))
+drawPhylo (Foram_phylogeny_aL, tmScl=berggren95, addTimeLine="classic", whatTime=c("epoch"),
+           l2r=TRUE, cexTime=0.8, dumpLast=TRUE, cexText=1, nmLim=0.3)
+```
+# Observed origination and extinction rates
+
+```{r fig.width=12, fig.asp=.4}
+bin_range <- 2
+time_points_tree <- seq(0, 66, bin_range)
+
+observed_origination_events <- sapply(time_points_tree, function(ti)sum(Foram_ancestry_table_alb$`Start date`<ti+1 & Foram_ancestry_table_alb$`Start date`>ti))/2
+observed_extinction_events <- sapply(time_points_tree, function(ti)sum(Foram_ancestry_table_alb$`End date`<ti+1 & Foram_ancestry_table_alb$`End date`>ti))-observed_origination_events
+
+observed_LTT <- sapply(time_points_tree, function(ti)sum(Foram_ancestry_table_alb$`Start date`>ti+1 & Foram_ancestry_table_alb$`End date`<=ti))
+
+observed_origination_rates <- observed_origination_events/observed_LTT/bin_range
+observed_extinction_rates <- observed_extinction_events/observed_LTT/bin_range
+
+plot(-time_points_tree, observed_origination_rates, col="skyblue", lwd=2, type="l", ylim=c(0,1.0))
+lines(-time_points_tree, observed_extinction_rates, col="salmon", lwd=2)
+```
+
+# Transformations
+## Extract smaller trees
+
+```{r}
+foram_taxa = with(Foram_ancestry_table_al, data.frame(taxon=`Lineage code`, min_age=`End date`, max_age=`Start date`))
+foram_taxa$taxon <- gsub(".*-", "", foram_taxa$taxon)
+#foram_taxa$max <- foram_taxa$max + runif(nrow(foram_taxa))
+#foram_taxa$min <- sapply(foram_taxa$min - runif(nrow(foram_taxa)), max, b=0)
+head(foram_taxa)
+```
+
+
+```{r}
+foram_taxa_sample <- sample(grep("T", foram_taxa$taxon, value=T), 5)
+Foram_phylo_sample <- keep.tip(phy = Foram_phylo, tip = foram_taxa_sample)
+plot(Foram_phylo_sample, show.node.label = T)
+#plot(Foram_phylo)
+axisPhylo()
+write.table(foram_taxa, "../../3-Data_processed/Morphospecies_phylogenies/forams_taxa.tsv", sep="\t", row.names = F, quote = F)
+```
+
+```{r}
+write.tree(Foram_phylo_sample, "../../3-Data_processed/Morphospecies_phylogenies/Forams_small.tree")
+write.nexus(Foram_phylo_sample, file = "../../3-Data_processed/Morphospecies_phylogenies/Forams_small.nex")
+```
+
+## Update some phylogenetic placements
+
+Lineage N150 (Paragloborotalia pseudokugleri-Paragloborotalia kugleri) has been placed by Aze et al. in the Non-Spinose group, but has been confirmed recently within the Paragloborotalia genus, as a likely descendent of Paragloborotalia nana (Leckie et al. 2018, https://www.mikrotax.org/pforams/index.php?id=104347).
+
+```{r}
+Foram_ancestry_table_alb[Foram_ancestry_table_alb$`Lineage code` %in% c("N126", "N149", "N150", "N151", "N163", "N193"),]
+
+Foram_ancestry_table_alb_updated <- Foram_ancestry_table_alb
+
+# Remove the lineages N149, 150 and N151 from the former ancestor Dentoglobigerina galavisi
+
+# Extend lineage N23 to graft it to N149 (Dentoglobigerina galavisi)
+Foram_ancestry_table_alb_updated[Foram_ancestry_table_alb_updated$`Lineage code` == "N23",]$`Ancestor code` <- "N149"
+Foram_ancestry_table_alb_updated[Foram_ancestry_table_alb_updated$`Lineage code` == "N23",]$`Start date` <- 37.2
+
+# Merge N150 and N151
+Foram_ancestry_table_alb_updated[Foram_ancestry_table_alb_updated$`Lineage code` == "N150",]$`End date` <- 22
+Foram_ancestry_table_alb_updated[Foram_ancestry_table_alb_updated$`Lineage code` == "N152",]$`Ancestor code` <- "N150"
+Foram_ancestry_table_alb_updated[Foram_ancestry_table_alb_updated$`Lineage code` == "T153",]$`Ancestor code` <- "N150"
+
+# Graft the lineage N150 to the new ancestor N193 (Paragloborotalia nana)
+Foram_ancestry_table_alb_updated[Foram_ancestry_table_alb_updated$`Lineage code` == "N150",]$`Ancestor code` <- "N193"
+Foram_ancestry_table_alb_updated[Foram_ancestry_table_alb_updated$`Lineage code` == "N151",] <- tibble(`Lineage code` = "N193bis", `Ancestor code` = "N193", `Start date` = 37.2, `End date` = 30.5, `Species in lineage` = "Paragloborotalia nana")
+Foram_ancestry_table_alb_updated[Foram_ancestry_table_alb_updated$`Lineage code` == "N193",]$`End date` <- 37.2
+Foram_ancestry_table_alb_updated[Foram_ancestry_table_alb_updated$`Lineage code` == "T194",]$`Ancestor code` <- "N193bis"
+Foram_ancestry_table_alb_updated[Foram_ancestry_table_alb_updated$`Lineage code` == "N195",]$`Ancestor code` <- "N193bis"
+
+Foram_ancestry_table_alb_updated[Foram_ancestry_table_alb_updated$`Lineage code` %in% c("N126", "N149", "N150", "N163", "N193", "N193bis"),]
+```
+
+```{r}
+Foram_phylogeny_aLb_updated <- with(Foram_ancestry_table_alb_updated, as.paleoPhylo(nm = `Lineage code`, pn = `Ancestor code`, st = `Start date`, en = `End date`, label = `Species in lineage`))
+drawPhylo (Foram_phylogeny_aLb_updated, tmScl=berggren95, addTimeLine="classic", whatTime=c("epoch"),
+           l2r=TRUE, cexTime=0.8, dumpLast=TRUE, cexText=1, nmLim=0.3)
+```
+
+
+```{r}
+Foram_phylo_updated <- buildApe(Foram_phylogeny_aLb_updated)
+#Foram_phylo_updated$tip.label <- sapply(Foram_phylo_updated$tip.label, function(lab)Foram_ancestry_table_alb_updated[Foram_ancestry_table_alb_updated$`Lineage code` == lab,]$`Species in lineage`)
+plot(Foram_phylo_updated, cex = 0.4)
+```
+
+## Add fossils
+### New function to add fossils
+
+```{r}
+add.internal.fossil <- function(tree, node.label, position, where.node=NA, where.tip=NA){
+  if (!is.na(where.node)) tree <- bind.tip(tree, "NewT", where=length(tree$tip.label)+which(tree$node.label==where.node), edge.length=0, position=position)
+  else if (!is.na(where.tip))  tree <- bind.tip(tree, "NewT", where=which(tree$tip.label==where.tip),  edge.length=0, position=position)
+  else warning("Either `where.node` or `where.tip` should be provided")
+  tree$node.label[tree$node.label=="NA"] <- node.label
+  tree <- drop.tip(tree, "NewT", collapse.singles=F)
+  return (tree)
+}
+
+Foram_phylo_sample_fossils <- add.internal.fossil(Foram_phylo_sample, where.tip=Foram_phylo_sample$tip.label[3], "Fn", position=3)
+plot(Foram_phylo_sample_fossils, show.node.label=T)
+plot(drop.tip(Foram_phylo_sample_fossils, Foram_phylo_sample$tip.label[1], trim.internal=F), show.node.label=T)
+Foram_phylo_sample_fossils <- add.internal.fossil(Foram_phylo_sample, where.node=tail(Foram_phylo_sample$node.label,1), "Fn", position=3)
+plot(Foram_phylo_sample_fossils, show.node.label=T)
+```
+
+### Match fossil species in Triton and lineages in the tree
+
+```{r}
+head(Foram_ancestry_table_alb_updated)
+Foram_ancestry_table_alb_updated$`Species in lineage`
+Foram_ancestry_table_alb_updated[grep("Acarinina subsphaerica", Foram_ancestry_table_alb_updated$`Species in lineage`),]
+```
+
+```{r}
+triton.pres <- read.csv("../../3-Data_processed/Triton_occurrences/TritonDB_trimmed_runif.csv", row.names=1)
+matched_fossils <- names(which(sapply(unique(triton.pres$species), function(sp) any(grepl(sp, Foram_ancestry_table_alb_updated$`Species in lineage`)))))
+unmatched_fossils <- names(which(sapply(unique(triton.pres$species), function(sp) !any(grepl(sp, Foram_ancestry_table_alb_updated$`Species in lineage`)))))
+microperforates <- unique(triton.pres[triton.pres$Macro.micro=="Microperforate","species"])
+unmatched_fossils_other <- unmatched_fossils[!(unmatched_fossils %in% microperforates)]
+c(matched_fossils=length(matched_fossils), unmatched_fossils_microperforates=length(microperforates), unmatched_fossils_other=length(unmatched_fossils_other))
+
+tree_species <- unique(Reduce(c,sapply(Foram_ancestry_table_alb_updated$`Species in lineage`, strsplit, split="-")))
+matched_species <- matched_fossils
+unmatched_species <- tree_species[!(tree_species %in% matched_fossils)]
+c(matched_species=length(matched_species), unmatched_species=length(unmatched_species))
+```
+
+```{r}
+list(unmatched_fossils_other=sort(unmatched_fossils_other), unmatched_species=sort(unmatched_species))
+write.table(sort(unmatched_fossils_other), "../../3-Data_processed/Morphospecies_phylogenies/Macroperforate_fossils_not_in_the_tree.txt", row.names=F, col.names=F)
+write.table(sort(unmatched_species), "../../3-Data_processed/Morphospecies_phylogenies/Species_without_fossils.txt", row.names=F, col.names=F)
+```
+
+### Correct taxonomy for unmatched fossils
+
+Incorporate the corrections suggested by Isabel Fenton.
+
+```{r}
+# Causes of mismatch (by Isabel Fenton)
+fossil_matching <- read_xlsx("../../1-Data_raw/Aze_phylogeny/IF_Match_fossils_and_lineages.xlsx", sheet=1)
+lineage_matching <- read_xlsx("../../1-Data_raw/Aze_phylogeny/IF_Match_fossils_and_lineages.xlsx", sheet=2)
+fossil_matching
+lineage_matching
+```
+
+```{r}
+# Change morphospecies names in the tree to match Triton fossils that are not represented in the tree due to nomenclature changes
+Foram_ancestry_table_alb_newTaxo <- Foram_ancestry_table_alb_updated
+for (sp_name in na.omit(unique(fossil_matching$`Name in tree`))){
+  #fossil_names <- paste(fossil_matching[which(fossil_matching$`Name in tree`==sp_name),"Macroperforates not in tree"][[1]], collapse="-")
+  fossil_names <- fossil_matching[which(fossil_matching$`Name in tree`==sp_name),"Fossil names"][[1]][1]
+  Foram_ancestry_table_alb_newTaxo$`Species in lineage` <- gsub(sp_name, fossil_names, Foram_ancestry_table_alb_newTaxo$`Species in lineage`)
+}
+
+# Change morphospecies names in the tree for the ones which do not have corresponding Triton fossils due to outdated nomenclature
+for (i in which(lineage_matching$`Species without fossils`!=lineage_matching$`Name in Triton (accepted name)`)){
+  Foram_ancestry_table_alb_newTaxo$`Species in lineage` <- gsub(lineage_matching[i,"Species without fossils"], lineage_matching[i,"Name in Triton (accepted name)"], Foram_ancestry_table_alb_newTaxo$`Species in lineage`)
+}
+```
+
+### Update the taxonomy based on modern species
+
+For Triton.
+
+```{r}
+## Spinose
+#triton.pres$species <- gsub("Globigerinoides ruber", "Globigerinoides ruber-albus", triton.pres$species)
+triton.pres$species <- gsub("Beella megastoma", "Beella digitata", triton.pres$species)
+triton.pres$species <- gsub("Globoturborotalita tenella", "Globigerinoides tenellus", triton.pres$species)
+triton.pres$species <- gsub("Trilobatus immaturus", "Trilobatus sacculifer", triton.pres$species)
+triton.pres$species <- gsub("Trilobatus quadrilobatus", "Trilobatus sacculifer", triton.pres$species)
+triton.pres$species <- gsub("Trilobatus trilobus", "Trilobatus sacculifer", triton.pres$species)
+triton.pres$species <- gsub("Turborotalita cristata", "Turborotalita humilis", triton.pres$species)
+
+## Non-spinose
+triton.pres$species <- gsub("Truncorotalia", "Globorotalia", triton.pres$species)
+triton.pres$species <- gsub("Menardella", "Globorotalia", triton.pres$species)
+triton.pres$species <- gsub("Hirsutella", "Globorotalia", triton.pres$species)
+triton.pres$species <- gsub("Globoconella", "Globorotalia", triton.pres$species)
+triton.pres$species <- gsub("Globorotalia theyeri", "Globorotalia eastropacia", triton.pres$species)
+triton.pres$species <- gsub("Globorotalia oceanica", "Globorotalia crassaformis", triton.pres$species)
+triton.pres$species <- gsub("Globorotalia excelsa", "Globorotalia truncatulinoides", triton.pres$species)
+triton.pres$species <- gsub("Globorotalia pachytheca", "Globorotalia truncatulinoides", triton.pres$species)
+triton.pres$species <- gsub("Globorotalia bermudezi", "Globorotalia scitula", triton.pres$species)
+triton.pres$species <- gsub("Pulleniatina finalis", "Pulleniatina obliquiloculata", triton.pres$species)
+
+# Microperforate
+triton.pres$species <- gsub("Tenuitella iota", "Tenuitellita iota", triton.pres$species)
+triton.pres$species <- gsub("Globigerinita parkerae", "Tenuitellita fleisheri", triton.pres$species)
+triton.pres$species <- gsub("Tenuitella parkerae", "Tenuitellita parkerae", triton.pres$species)
+
+# Independent planktonic origin
+triton.pres$species <- gsub("Gallitellia vivans", "Neogallitellia vivans", triton.pres$species)
+triton.pres$species <- gsub("Streptochilus globigerum", "Bolivina variabilis", triton.pres$species)
+```
+
+For the tree.
+
+```{r}
+## Spinose
+#Foram_ancestry_table_alb_newTaxo$`Species in lineage` <- gsub("Globigerinoides ruber", "Globigerinoides ruber-albus", Foram_ancestry_table_alb_newTaxo$`Species in lineage`)
+Foram_ancestry_table_alb_newTaxo$`Species in lineage` <- gsub("Beella megastoma", "Beella digitata", Foram_ancestry_table_alb_newTaxo$`Species in lineage`)
+Foram_ancestry_table_alb_newTaxo$`Species in lineage` <- gsub("Globoturborotalita tenella", "Globigerinoides tenellus", Foram_ancestry_table_alb_newTaxo$`Species in lineage`)
+Foram_ancestry_table_alb_newTaxo$`Species in lineage` <- gsub("Trilobatus immaturus", "Trilobatus sacculifer", Foram_ancestry_table_alb_newTaxo$`Species in lineage`)
+Foram_ancestry_table_alb_newTaxo$`Species in lineage` <- gsub("Trilobatus quadrilobatus", "Trilobatus sacculifer", Foram_ancestry_table_alb_newTaxo$`Species in lineage`)
+Foram_ancestry_table_alb_newTaxo$`Species in lineage` <- gsub("Trilobatus trilobus", "Trilobatus sacculifer", Foram_ancestry_table_alb_newTaxo$`Species in lineage`)
+Foram_ancestry_table_alb_newTaxo$`Species in lineage` <- gsub("Turborotalita cristata", "Turborotalita humilis", Foram_ancestry_table_alb_newTaxo$`Species in lineage`)
+
+## Non-spinose
+Foram_ancestry_table_alb_newTaxo$`Species in lineage` <- gsub("Truncorotalia", "Globorotalia", Foram_ancestry_table_alb_newTaxo$`Species in lineage`)
+Foram_ancestry_table_alb_newTaxo$`Species in lineage` <- gsub("Menardella", "Globorotalia", Foram_ancestry_table_alb_newTaxo$`Species in lineage`)
+Foram_ancestry_table_alb_newTaxo$`Species in lineage` <- gsub("Hirsutella", "Globorotalia", Foram_ancestry_table_alb_newTaxo$`Species in lineage`)
+Foram_ancestry_table_alb_newTaxo$`Species in lineage` <- gsub("Globoconella", "Globorotalia", Foram_ancestry_table_alb_newTaxo$`Species in lineage`)
+Foram_ancestry_table_alb_newTaxo$`Species in lineage` <- gsub("Globorotalia theyeri", "Globorotalia eastropacia", Foram_ancestry_table_alb_newTaxo$`Species in lineage`)
+Foram_ancestry_table_alb_newTaxo$`Species in lineage` <- gsub("Globorotalia oceanica", "Globorotalia crassaformis", Foram_ancestry_table_alb_newTaxo$`Species in lineage`)
+Foram_ancestry_table_alb_newTaxo$`Species in lineage` <- gsub("Globorotalia excelsa", "Globorotalia truncatulinoides", Foram_ancestry_table_alb_newTaxo$`Species in lineage`)
+Foram_ancestry_table_alb_newTaxo$`Species in lineage` <- gsub("Globorotalia pachytheca", "Globorotalia truncatulinoides", Foram_ancestry_table_alb_newTaxo$`Species in lineage`)
+Foram_ancestry_table_alb_newTaxo$`Species in lineage` <- gsub("Globorotalia bermudezi", "Globorotalia scitula", Foram_ancestry_table_alb_newTaxo$`Species in lineage`)
+Foram_ancestry_table_alb_newTaxo$`Species in lineage` <- gsub("Pulleniatina finalis", "Pulleniatina obliquiloculata", Foram_ancestry_table_alb_newTaxo$`Species in lineage`)
+```
+
+### Check the remaining mismatches after the taxonomic update.
+
+```{r}
+matched_fossils_newTaxo <- names(which(sapply(unique(triton.pres$species), function(sp) any(grepl(sp, Foram_ancestry_table_alb_newTaxo$`Species in lineage`)))))
+unmatched_fossils_newTaxo <- names(which(sapply(unique(triton.pres$species), function(sp) !any(grepl(sp, Foram_ancestry_table_alb_newTaxo$`Species in lineage`)))))
+microperforates_newTaxo <- unique(triton.pres[triton.pres$Macro.micro=="Microperforate","species"])
+unmatched_fossils_other_newTaxo <- unmatched_fossils_newTaxo[!(unmatched_fossils_newTaxo %in% microperforates_newTaxo)]
+c(matched_fossils=length(matched_fossils_newTaxo), unmatched_fossils_microperforates=length(microperforates_newTaxo), unmatched_fossils_other=length(unmatched_fossils_other_newTaxo))
+
+tree_species_newTaxo <- unique(Reduce(c,sapply(Foram_ancestry_table_alb_newTaxo$`Species in lineage`, strsplit, split="-")))
+matched_species_newTaxo <- matched_fossils_newTaxo
+unmatched_species_newTaxo <- tree_species_newTaxo[!(tree_species_newTaxo %in% matched_fossils_newTaxo)]
+c(matched_species=length(matched_species_newTaxo), unmatched_species=length(unmatched_species_newTaxo))
+
+tree_lineages_newTaxo <- sapply(Foram_ancestry_table_alb_newTaxo$`Species in lineage`, strsplit, split="-")
+matched_lineages_newTaxo <- unique(names(tree_lineages_newTaxo)[sapply(tree_lineages_newTaxo, function(species_names) any(species_names %in% matched_fossils_newTaxo))])
+unmatched_lineages_newTaxo <- unique(names(tree_lineages_newTaxo)[!sapply(tree_lineages_newTaxo, function(species_names) any(species_names %in% matched_fossils_newTaxo))])
+c(matched_lineages=length(matched_lineages_newTaxo), unmatched_lineages=length(unmatched_lineages_newTaxo))
+```
+
+```{r}
+unmatched_fossils_other_newTaxo
+```
+
+$\to$ Dentigloborotalia anfracta, Globigerinella navazuelensis and Globoturborotalita cancellata are not recognized as species in the tree.
+
+Regarding Globoconella pseudospinosa, let's include it after Globoconella puncticulata, following https://www.mikrotax.org/pforams/catalog/Globoconella_pseudospinosa.
+
+```{r}
+Foram_ancestry_table_alb_newTaxo$`Species in lineage` <- gsub("Globoconella sphericomiozea-Globoconella puncticulata-Globoconella triangula-Globoconella inflata", "Globoconella sphericomiozea-Globoconella puncticulata-Globoconella pseudospinosa-Globoconella triangula-Globoconella inflata", Foram_ancestry_table_alb_newTaxo$`Species in lineage`)
+```
+
+```{r}
+Foram_ancestry_table_alb_newTaxo[Foram_ancestry_table_alb_newTaxo$`Species in lineage` %in% unmatched_lineages_newTaxo,]
+```
+
+```{r}
+# Merge morphospecies that appear several times in the same lineage due to the taxonomic update
+Foram_ancestry_table_alb_newTaxo$`Species in lineage` <- sapply(Foram_ancestry_table_alb_newTaxo$`Species in lineage`, function(species_in_lin)paste(unique(strsplit(species_in_lin, "-")[[1]]), collapse = "-"))
+```
+
+Save the tree with the new taxonomy.
+
+```{r}
+write.csv(Foram_ancestry_table_alb_newTaxo, "../../3-Data_processed/Morphospecies_phylogenies/Foram_ancestry_table_alb_newTaxo.csv", row.names=F)
+```
+
+### Add Triton fossils in Aze tree
+
+```{r}
+triton.ss <- read.csv("../../3-Data_processed/Triton_occurrences/TritonDB_subsampled_STT_91253foss.csv", row.names = 1)
+head(triton.ss)
+```
+
+```{r}
+### Update the taxonomy based on modern species
+## Spinose
+#triton.ss$species <- gsub("Globigerinoides ruber", "Globigerinoides ruber-albus", triton.ss$species)
+triton.ss$species <- gsub("Beella megastoma", "Beella digitata", triton.ss$species)
+triton.ss$species <- gsub("Globoturborotalita tenella", "Globigerinoides tenellus", triton.ss$species)
+triton.ss$species <- gsub("Trilobatus immaturus", "Trilobatus sacculifer", triton.ss$species)
+triton.ss$species <- gsub("Trilobatus quadrilobatus", "Trilobatus sacculifer", triton.ss$species)
+triton.ss$species <- gsub("Trilobatus trilobus", "Trilobatus sacculifer", triton.ss$species)
+triton.ss$species <- gsub("Turborotalita cristata", "Turborotalita humilis", triton.ss$species)
+
+## Non-spinose
+triton.ss$species <- gsub("Truncorotalia", "Globorotalia", triton.ss$species)
+triton.ss$species <- gsub("Menardella", "Globorotalia", triton.ss$species)
+triton.ss$species <- gsub("Hirsutella", "Globorotalia", triton.ss$species)
+triton.ss$species <- gsub("Globoconella", "Globorotalia", triton.ss$species)
+triton.ss$species <- gsub("Globorotalia theyeri", "Globorotalia eastropacia", triton.ss$species)
+triton.ss$species <- gsub("Globorotalia oceanica", "Globorotalia crassaformis", triton.ss$species)
+triton.ss$species <- gsub("Globorotalia excelsa", "Globorotalia truncatulinoides", triton.ss$species)
+triton.ss$species <- gsub("Globorotalia pachytheca", "Globorotalia truncatulinoides", triton.ss$species)
+triton.ss$species <- gsub("Globorotalia bermudezi", "Globorotalia scitula", triton.ss$species)
+triton.ss$species <- gsub("Pulleniatina finalis", "Pulleniatina obliquiloculata", triton.ss$species)
+
+# Microperforate
+triton.ss$species <- gsub("Tenuitella iota", "Tenuitellita iota", triton.ss$species)
+triton.ss$species <- gsub("Globigerinita parkerae", "Tenuitellita fleisheri", triton.ss$species)
+triton.ss$species <- gsub("Tenuitella parkerae", "Tenuitellita parkerae", triton.ss$species)
+
+# Independent planktonic origin
+triton.ss$species <- gsub("Gallitellia vivans", "Neogallitellia vivans", triton.ss$species)
+triton.ss$species <- gsub("Streptochilus globigerum", "Bolivina variabilis", triton.ss$species)
+```
+
+```{r fig.width=12, fig.asp = .8}
+Foram_phylo_fossils <- Foram_phylo_updated
+Foram_ancestry_table_alb_fossils <- Foram_ancestry_table_alb_newTaxo
+#nbF <- 5000
+nbF <- 1000
+nbF_cpt <- 0
+for (i in sample(1:nrow(triton.ss), size=min(nbF*2, nrow(triton.ss)), replace=F)){
+#for (i in 1:nrow(triton.ss)){
+  Fi <- triton.ss[i,]
+  cond <- grepl(Fi$species, Foram_ancestry_table_alb_fossils$`Species in lineage`) & Foram_ancestry_table_alb_fossils$`Start date`>Fi$age_runif & Fi$age_runif > Foram_ancestry_table_alb_fossils$`End date`
+  
+  if (any(cond)) {
+    triton_to_Aze_Fi <- Foram_ancestry_table_alb_fossils[sample(1:length(cond), 1, prob = cond),]
+    
+    matched_fossils <- union(matched_fossils, Fi$species)
+    Fi$code <- triton_to_Aze_Fi$`Lineage code`
+    Fi$label <- paste0("F",i)
+    Fi$position <- Fi$age_runif - triton_to_Aze_Fi$`End date`
+
+    if (grepl("T",Fi$code)) Foram_phylo_fossils <- add.internal.fossil(Foram_phylo_fossils, where.tip=Fi$code, node.label=Fi$label, position=Fi$position)
+    else Foram_phylo_fossils <- add.internal.fossil(Foram_phylo_fossils, where.node=Fi$code, node.label=Fi$label, position=Fi$position)
+    
+    # Add the new ancestry relationship in the table
+    Foram_ancestry_table_alb_fossils[cond,"Start date"] <- triton_to_Aze_Fi$`End date` <- Fi$age_runif
+    Foram_ancestry_table_alb_fossils[cond,"Ancestor code"] <- triton_to_Aze_Fi$`Lineage code` <- Fi$label
+    Foram_ancestry_table_alb_fossils <- rbind(Foram_ancestry_table_alb_fossils, triton_to_Aze_Fi)
+    nbF_cpt <- nbF_cpt + 1
+    if (nbF_cpt==nbF) break
+  }
+}
+```
+
+
+```{r fig.width=20, fig.asp = .8}
+p <- ggtree(Foram_phylo_updated) +  geom_tiplab(size=2.5) + geom_nodelab(size=2) + theme_tree2()
+q <- ggtree(Foram_phylo_fossils) + 
+  geom_tiplab(size=2.5) + theme_tree2() +
+  geom_nodelab(size=2, 
+               nudge_y=as.numeric(list("FALSE"=0,"TRUE"=0.5)[as.character(grepl("F",c(Foram_phylo_fossils$node.label)))]), 
+               colour=as.character(list("FALSE"='black',"TRUE"="red")[as.character(grepl("F",c(Foram_phylo_fossils$node.label)))]))
+revts(p)
+revts(q)
+```
+
+```{r}
+Foram_ancestry_table_alb_fossils[Foram_ancestry_table_alb_fossils$`Start date`-Foram_ancestry_table_alb_fossils$`End date`>10,]
+write.csv(Foram_ancestry_table_alb_fossils[Foram_ancestry_table_alb_fossils$`Start date`-Foram_ancestry_table_alb_fossils$`End date`>10,],
+          paste0("../../3-Data_processed/Morphospecies_phylogenies/Foram_ancestry_table_alb_", nbF, "fossils_10MyrGaps.csv"))
+write.csv(Foram_ancestry_table_alb_fossils[Foram_ancestry_table_alb_fossils$`Start date`-Foram_ancestry_table_alb_fossils$`End date`>5,], 
+          paste0("../../3-Data_processed/Morphospecies_phylogenies/Foram_ancestry_table_alb_", nbF, "fossils_5MyrGaps.csv"))
+write.csv(Foram_ancestry_table_alb_fossils, 
+          paste0("../../3-Data_processed/Morphospecies_phylogenies/Foram_ancestry_table_alb_", nbF, "fossils.csv"))
+```
+
+```{r fig.width=12, fig.asp = .3}
+Foram_ancestry_table_alb_fossils[grepl("Globorotaloides eovariabilis", Foram_ancestry_table_alb_fossils$`Species in lineage`),]
+
+ggplot(triton.pres[triton.pres$species=="Globorotaloides eovariabilis",], aes(x=age_runif, fill=age_runif<Speciation)) + 
+  geom_histogram(bins = 60) +
+  geom_vline(linetype="dashed", aes(xintercept = Speciation, color="Speciation")) +
+  geom_vline(linetype="dashed", aes(xintercept = Extinction, color="Extinction")) +
+  geom_vline(aes(xintercept = 0, color="Lineage extinction")) +
+  geom_vline(aes(xintercept = 44.5, color="Lineage origination")) 
+```
+
+```{r fig.width=20, fig.asp = .6}
+Foram_phylo_fossils_reconstructed <- Foram_phylo_fossils
+for (tip_lab in Foram_phylo_fossils$tip.label[paleotree::dateNodes(Foram_phylo_fossils, rootAge=FossilSim::tree.max(Foram_phylo_fossils))[1:Ntip(Foram_phylo_fossils)] > 1e-6]){
+  Foram_phylo_fossils_reconstructed <- drop.tip(Foram_phylo_fossils_reconstructed, tip_lab, trim.internal=F, collapse.singles=F)
+}
+
+ggtree(Foram_phylo_fossils_reconstructed) + 
+  geom_tiplab(size=2.5, color="blue") +
+  geom_nodelab(size=2, 
+               nudge_y=as.numeric(list("FALSE"=0,"TRUE"=0.5)[as.character(grepl("F",c(Foram_phylo_fossils_reconstructed$node.label)))]), 
+               colour=as.character(list("FALSE"='black',"TRUE"="red")[as.character(grepl("F",c(Foram_phylo_fossils_reconstructed$node.label)))]))
+```
+
+```{r}
+write.tree(Foram_phylo_fossils_reconstructed, paste0("../../3-Data_processed/Morphospecies_phylogenies/Forams_", nbF, "foss.tree"))
+write.nexus(Foram_phylo_fossils_reconstructed, file=paste0("../../3-Data_processed/Morphospecies_phylogenies/Forams_", nbF, "foss.nex"))
+```
+
+# Split into monophyletic phylogenies
+
+```{r}
+# Load the foraminifera monophyletic groups of all genera, described by their wall texture
+wall_textures <- read.csv("../../3-Data_processed/Triton_occurrences/wall_textures.csv")
+names(wall_textures) <- c("Genus", "Morphology")
+wall_textures
+```
+
+## Display the wall texture on the full phylogeny
+
+```{r fig.width=12, fig.asp=1.2}
+# Extract genus, first and last species, and End date
+lineage_info <- Foram_ancestry_table_alb_newTaxo %>%
+  select(`Lineage code`, `Species in lineage`, `End date`) %>%
+  mutate(
+    # First species (already present but kept for reference)
+    First_species = sapply(`Species in lineage`, function(x) strsplit(x,"-")[[1]][1]),
+    # Last species in the lineage
+    Last_species = sapply(`Species in lineage`, function(x) {
+      sp_list <- strsplit(x, "-")[[1]]
+      sp_list[length(sp_list)]
+    }),
+    Genus = sapply(First_species, function(y) strsplit(y, " ")[[1]][1])
+  ) %>%
+  # Merge with wall textures
+  left_join(wall_textures, by="Genus")
+
+# Combine tip labels with lineage info
+tip_data <- data.frame(label = Foram_phylo_updated$tip.label, stringsAsFactors = FALSE) %>%
+  left_join(lineage_info, by = c("label" = "Lineage code"))
+
+# Plot the tree and color tips by Morphology
+# Add last species names to extant tips only (End date == 0)
+p <- ggtree(Foram_phylo_updated) %<+% tip_data +
+  geom_tippoint(aes(color=Morphology), size=2) + 
+  geom_tiplab(aes(label = ifelse(`End date` == 0, Last_species, "")), size=2, hjust=-0.05) + 
+  xlim_tree(6) +
+  scale_color_manual(values = c("Spinose" = "salmon", "Non-spinose" = "cyan3")) +
+  theme_tree2()
+
+q <- ggtree(Foram_phylo_updated) %<+% tip_data +
+  geom_tippoint(aes(color=Morphology), size=2) + 
+  geom_tiplab(aes(label = Last_species), size=2, hjust=-0.05) + 
+  xlim_tree(6) +
+  scale_color_manual(values = c("Spinose" = "salmon", "Non-spinose" = "cyan3")) +
+  theme_tree2()
+
+ggsave("../../3-Data_processed/Morphospecies_phylogenies/Images/Foram_phylo_walltexture.png", revts(q), width = 12, height = 14)
+revts(p)
+revts(q)
+```
+
+```{r fig.width=10, fig.asp=0.8}
+node_NonSpinoseOnly <- "N198"
+node_SpinoseOnly <- "N257"
+node_MixedSpinose <- "N182"
+
+# Extract one clade from that node
+Phylo_NonSpinoseOnly <- extract.clade(Foram_phylo_updated, node = node_NonSpinoseOnly, root.edge = 1)
+Phylo_SpinoseOnly <- extract.clade(Foram_phylo_updated, node = node_SpinoseOnly, root.edge = 1)
+Phylo_MixedSpinose <- extract.clade(Foram_phylo_updated, node = node_MixedSpinose, root.edge = 1)
+
+# Add morphological information
+Phylo_NonSpinoseOnly_data <-  data.frame(label = Phylo_NonSpinoseOnly$tip.label, stringsAsFactors = FALSE) %>% left_join(tip_data, by = "label")
+Phylo_SpinoseOnly_data <- data.frame(label = Phylo_SpinoseOnly$tip.label, stringsAsFactors = FALSE) %>% left_join(tip_data, by = "label")
+Phylo_MixedSpinose_data <- data.frame(label = Phylo_MixedSpinose$tip.label, stringsAsFactors = FALSE) %>% left_join(tip_data, by = "label")
+
+# Plots
+p1 <- ggtree(Phylo_NonSpinoseOnly) %<+% Phylo_NonSpinoseOnly_data +
+  geom_tippoint(aes(color=Morphology), size=2) +
+  geom_rootedge() +
+  xlim_tree(8) +
+  scale_color_manual(values = c("Spinose" = "salmon", "Non-spinose" = "cyan3")) +
+  geom_tiplab(aes(label = Last_species), size=2, hjust=-0.05) + 
+  theme_tree2() +
+  ggtitle("Clade of exclusively non-spinose foraminifera")
+
+p2 <- ggtree(Phylo_SpinoseOnly) %<+% Phylo_SpinoseOnly_data +
+  geom_tippoint(aes(color=Morphology), size=2) +
+  geom_rootedge() +
+  xlim_tree(8) +
+  scale_color_manual(values = c("Spinose" = "salmon", "Non-spinose" = "cyan3")) +
+  geom_tiplab(aes(label = Last_species), size=2, hjust=-0.05) + 
+  theme_tree2() +
+  ggtitle("Clade of exclusively spinose foraminifera")
+
+p3 <- ggtree(Phylo_MixedSpinose) %<+% Phylo_MixedSpinose_data +
+  geom_tippoint(aes(color=Morphology), size=2) +
+  geom_rootedge() +
+  xlim_tree(8) +
+  scale_color_manual(values = c("Spinose" = "salmon", "Non-spinose" = "cyan3")) +
+  geom_tiplab(aes(label = Last_species), size=2, hjust=-0.05) + 
+  theme_tree2() +
+  ggtitle("Clade of mixed spinose and non-spinose foraminifera")
+
+# Print the plots
+revts(p1)
+revts(p2)
+revts(p3)
+ggsave("../../3-Data_processed/Morphospecies_phylogenies/Images/NonSpinoseOnly_phylo_walltexture.png", revts(p1), width = 10, height = 8)
+ggsave("../../3-Data_processed/Morphospecies_phylogenies/Images/SpinoseOnly_phylo_walltexture.png", revts(p2), width = 10, height = 8)
+ggsave("../../3-Data_processed/Morphospecies_phylogenies/Images/MixedSpinose_phylo_walltexture.png", revts(p3), width = 10, height = 8)
+```
+
+Save split trees
+
+```{r}
+write.tree(Phylo_NonSpinoseOnly, paste0("../../3-Data_processed/Morphospecies_phylogenies/NonSpinoseOnly.tree"))
+write.tree(Phylo_SpinoseOnly, paste0("../../3-Data_processed/Morphospecies_phylogenies/SpinoseOnly.tree"))
+write.tree(Phylo_MixedSpinose, paste0("../../3-Data_processed/Morphospecies_phylogenies/MixedSpinose.tree"))
+```
+
+## Idem on the phylogeny with sampled ancestors
+
+```{r fig.width=12, fig.asp=1.2}
+q <- ggtree(Foram_phylo_fossils) %<+% tip_data +
+  geom_tippoint(aes(color=Morphology), size=2) + 
+  geom_tiplab(aes(label = Last_species), size=2, hjust=-0.05) +
+  geom_nodelab(size=1, 
+               nudge_y=as.numeric(list("FALSE"=0,"TRUE"=0.5)[as.character(grepl("F",c(Foram_phylo_fossils$node.label)))]), 
+               colour=as.character(list("FALSE"='black',"TRUE"="red")[as.character(grepl("F",c(Foram_phylo_fossils$node.label)))])) + 
+  xlim_tree(6) +
+  scale_color_manual(values = c("Spinose" = "salmon", "Non-spinose" = "cyan3")) +
+  theme_tree2()
+
+ggsave("../../3-Data_processed/Morphospecies_phylogenies/Images/Foram_phylo_sampledAncestors_walltexture.png", revts(q), width = 12, height = 14)
+revts(q)
+```
+
+```{r fig.width=15, fig.asp=0.8}
+node_NonSpinoseOnly <- "N198"
+node_SpinoseOnly <- "N257"
+node_MixedSpinose <- "N182"
+
+# Extract one clade from that node
+Phylo_NonSpinoseOnly_sampledAncestors <- extract.clade(Foram_phylo_fossils, node = node_NonSpinoseOnly, root.edge = 1, collapse.singles = F)
+Phylo_SpinoseOnly_sampledAncestors <- extract.clade(Foram_phylo_fossils, node = node_SpinoseOnly, root.edge = 1, collapse.singles = F)
+Phylo_MixedSpinose_sampledAncestors <- extract.clade(Foram_phylo_fossils, node = node_MixedSpinose, root.edge = 3, collapse.singles = F)
+
+# Add morphological information
+Phylo_NonSpinoseOnly_sampledAncestors_data <-  data.frame(label = Phylo_NonSpinoseOnly_sampledAncestors$tip.label, stringsAsFactors = FALSE) %>% left_join(tip_data, by = "label")
+Phylo_SpinoseOnly_sampledAncestors_data <- data.frame(label = Phylo_SpinoseOnly_sampledAncestors$tip.label, stringsAsFactors = FALSE) %>% left_join(tip_data, by = "label")
+Phylo_MixedSpinose_sampledAncestors_data <- data.frame(label = Phylo_MixedSpinose_sampledAncestors$tip.label, stringsAsFactors = FALSE) %>% left_join(tip_data, by = "label")
+
+# Plots
+p1 <- ggtree(Phylo_NonSpinoseOnly_sampledAncestors) %<+% Phylo_NonSpinoseOnly_sampledAncestors_data +
+  geom_tippoint(aes(color=Morphology), size=2) +
+  xlim_tree(8) +
+  geom_rootedge() +
+  scale_color_manual(values = c("Spinose" = "salmon", "Non-spinose" = "cyan3")) +
+  geom_tiplab(aes(label = Last_species), size=3, hjust=-0.05) +
+  geom_nodelab(size=2, 
+               nudge_y=as.numeric(list("FALSE"=0,"TRUE"=0.2)[as.character(grepl("F",c(Phylo_NonSpinoseOnly_sampledAncestors$node.label)))]), 
+               colour=as.character(list("FALSE"='black',"TRUE"="red")[as.character(grepl("F",c(Phylo_NonSpinoseOnly_sampledAncestors$node.label)))])) + 
+  theme_tree2() +
+  ggtitle("Clade of exclusively non-spinose foraminifera")
+
+p2 <- ggtree(Phylo_SpinoseOnly_sampledAncestors) %<+% Phylo_SpinoseOnly_sampledAncestors_data +
+  geom_tippoint(aes(color=Morphology), size=2) +
+  geom_rootedge() +
+  xlim_tree(8) +
+  scale_color_manual(values = c("Spinose" = "salmon", "Non-spinose" = "cyan3")) +
+  geom_tiplab(aes(label = Last_species), size=3, hjust=-0.05) + 
+  geom_nodelab(size=2, 
+               nudge_y=as.numeric(list("FALSE"=0,"TRUE"=0.2)[as.character(grepl("F",c(Phylo_SpinoseOnly_sampledAncestors$node.label)))]), 
+               colour=as.character(list("FALSE"='black',"TRUE"="red")[as.character(grepl("F",c(Phylo_SpinoseOnly_sampledAncestors$node.label)))])) + 
+  theme_tree2() +
+  theme_tree2() +
+  ggtitle("Clade of exclusively spinose foraminifera")
+
+p3 <- ggtree(Phylo_MixedSpinose_sampledAncestors) %<+% Phylo_MixedSpinose_sampledAncestors_data +
+  geom_tippoint(aes(color=Morphology), size=2) +
+  geom_rootedge() +
+  xlim_tree(8) +
+  scale_color_manual(values = c("Spinose" = "salmon", "Non-spinose" = "cyan3")) +
+  geom_tiplab(aes(label = Last_species), size=3, hjust=-0.05) + 
+  geom_nodelab(size=2, 
+               nudge_y=as.numeric(list("FALSE"=0,"TRUE"=0.2)[as.character(grepl("F",c(Phylo_MixedSpinose_sampledAncestors$node.label)))]), 
+               colour=as.character(list("FALSE"='black',"TRUE"="red")[as.character(grepl("F",c(Phylo_MixedSpinose_sampledAncestors$node.label)))])) + 
+  theme_tree2() +
+  theme_tree2() +
+  ggtitle("Clade of mixed spinose and non-spinose foraminifera")
+
+# Print the plots
+revts(p1)
+revts(p2)
+revts(p3)
+ggsave("../../3-Data_processed/Morphospecies_phylogenies/Images/NonSpinoseOnly_sampledAncestors_phylo_walltexture.png", revts(p1), width = 15, height = 12)
+ggsave("../../3-Data_processed/Morphospecies_phylogenies/Images/SpinoseOnly_sampledAncestors_phylo_walltexture.png", revts(p2), width = 15, height = 12)
+ggsave("../../3-Data_processed/Morphospecies_phylogenies/Images/MixedSpinose_sampledAncestors_phylo_walltexture.png", revts(p3), width = 15, height = 12)
+```
+
+Save split trees
+
+```{r}
+write.tree(Phylo_NonSpinoseOnly_sampledAncestors, paste0("../../3-Data_processed/Morphospecies_phylogenies/NonSpinoseOnly_sampledAncestors.tree"))
+write.tree(Phylo_SpinoseOnly_sampledAncestors, paste0("../../3-Data_processed/Morphospecies_phylogenies/SpinoseOnly_sampledAncestors.tree"))
+write.tree(Phylo_MixedSpinose_sampledAncestors, paste0("../../3-Data_processed/Morphospecies_phylogenies/MixedSpinose_sampledAncestors.tree"))
+```
+
+# Save individual occurrences
+
+Take the intersection of the morphological taxonomy and the subsampled dataset
+
+```{r}
+get_genera <- function(tree, ancestry_table){
+  species_labels <- c(tree$node.label, tree$tip.label)
+  species <- sapply(species_labels, function(code)sapply(ancestry_table[ancestry_table$`Lineage code` == code, "Species in lineage"], strsplit, split = "-"))
+  unique(gsub(" .*", "", unlist(species)))
+  #unique(unlist(species))
+}
+Phylo_NonSpinoseOnly_Genera <- get_genera(Phylo_NonSpinoseOnly_sampledAncestors, Foram_ancestry_table_alb_fossils)
+Phylo_SpinoseOnly_Genera <- get_genera(Phylo_SpinoseOnly_sampledAncestors, Foram_ancestry_table_alb_fossils)
+Phylo_MixedSpinose_Genera <- get_genera(Phylo_MixedSpinose_sampledAncestors, Foram_ancestry_table_alb_fossils)
+
+Foram_phylo_Genera <- get_genera(Foram_phylo_fossils, Foram_ancestry_table_alb_fossils)
+```
+
+Avoid overlaps by removing genera that are present in the wrong clade due to one misplaced species (resp. "Paragloborotalia continuosa", "Parasubbotina hagni" and "Globorotalia bella")
+
+```{r}
+Phylo_NonSpinoseOnly_Genera <- Phylo_NonSpinoseOnly_Genera[!grepl("Paragloborotalia", Phylo_NonSpinoseOnly_Genera)]
+Phylo_SpinoseOnly_Genera <- Phylo_SpinoseOnly_Genera[!grepl("Parasubbotina", Phylo_SpinoseOnly_Genera)]
+Phylo_MixedSpinose_Genera <- Phylo_MixedSpinose_Genera[!grepl("Globorotalia", Phylo_MixedSpinose_Genera)]
+
+intersect(Phylo_NonSpinoseOnly_Genera, Phylo_SpinoseOnly_Genera)
+intersect(Phylo_NonSpinoseOnly_Genera, Phylo_MixedSpinose_Genera)
+intersect(Phylo_SpinoseOnly_Genera, Phylo_MixedSpinose_Genera)
+```
+
+Remaining stem genera, as expected
+
+```{r}
+Phylo_Stem_Genera <- Foram_phylo_Genera[!Foram_phylo_Genera %in% c(Phylo_NonSpinoseOnly_Genera, Phylo_SpinoseOnly_Genera, Phylo_MixedSpinose_Genera)]
+Phylo_Stem_Genera
+```
+
+Add Hastigerinidae genera (Hastigerina, Hastigerinella and Orcadia) in the Spinose only clade, given that they are thought to have evolved from Globigerinella (https://www.mikrotax.org/Nannotax3/index.php?module=pf_cenozoic&taxon=Hastigerinidae)
+
+```{r}
+Phylo_SpinoseOnly_Genera <- c(Phylo_SpinoseOnly_Genera, "Hastigerina", "Hastigerinella", "Orcadia")
+
+wall_textures[!wall_textures$Morphology %in% c("Microperforate", "Independent") & !wall_textures$Genus %in% c(Phylo_NonSpinoseOnly_Genera, Phylo_SpinoseOnly_Genera, Phylo_MixedSpinose_Genera, Phylo_Stem_Genera),]
+```
+
+```{r}
+triton.ss$genus <- gsub(" .*", "", triton.ss$species)
+```
+
+## Spinose only
+
+```{r}
+triton.ss.SpinoseOnly <- triton.ss[triton.ss$genus %in% Phylo_SpinoseOnly_Genera, c("species", "Speciation", "Extinction", "age_runif")]
+names(triton.ss.SpinoseOnly) <- c("taxon", "Speciation", "Extinction", "age")
+triton.ss.SpinoseOnly$taxon <- paste(triton.ss.SpinoseOnly$taxon, "Ia")
+triton.ss.SpinoseOnly$taxon <- gsub(" ", "_", triton.ss.SpinoseOnly$taxon)
+triton.ss.SpinoseOnly
+```
+
+## Non-spinose only
+
+```{r}
+triton.ss.NonSpinoseOnly <- triton.ss[triton.ss$genus %in% Phylo_NonSpinoseOnly_Genera, c("species", "Speciation", "Extinction", "age_runif")]
+names(triton.ss.NonSpinoseOnly) <- c("taxon", "Speciation", "Extinction", "age")
+triton.ss.NonSpinoseOnly$taxon <- paste(triton.ss.NonSpinoseOnly$taxon, "Ia")
+triton.ss.NonSpinoseOnly$taxon <- gsub(" ", "_", triton.ss.NonSpinoseOnly$taxon)
+triton.ss.NonSpinoseOnly
+```
+
+## Mixed spinose
+
+```{r}
+triton.ss.MixedSpinose <- triton.ss[triton.ss$genus %in% Phylo_MixedSpinose_Genera, c("species", "Speciation", "Extinction", "age_runif")]
+names(triton.ss.MixedSpinose) <- c("taxon", "Speciation", "Extinction", "age")
+triton.ss.MixedSpinose$taxon <- paste(triton.ss.MixedSpinose$taxon, "Ia")
+triton.ss.MixedSpinose$taxon <- gsub(" ", "_", triton.ss.MixedSpinose$taxon)
+triton.ss.MixedSpinose
+```
+
+## Compare the number of occurrences with the number of lineages from experts
+
+```{r fig.asp=0.3, fig.width=12}
+time_points <- 0:132/2
+OTT.ss.SpinoseOnly <- sapply(time_points, function(ti)sum(abs(triton.ss.SpinoseOnly$age - ti) <= diff(time_points)[1]/2))
+expertLTT.ss.SpinoseOnly <- sapply(time_points, function(ti)length(unique(triton.ss.SpinoseOnly[triton.ss.SpinoseOnly$Speciation >= ti & ti >= triton.ss.SpinoseOnly$Extinction,]$taxon)))
+empiricalLTT.ss.SpinoseOnly <- sapply(time_points, function(ti)length(unique(triton.ss.SpinoseOnly[abs(triton.ss.SpinoseOnly$age - ti) <= diff(time_points)[1]/2,]$taxon)))
+
+OTT.ss.NonSpinoseOnly <- sapply(time_points, function(ti)sum(abs(triton.ss.NonSpinoseOnly$age - ti) <= diff(time_points)[1]/2))
+expertLTT.ss.NonSpinoseOnly <- sapply(time_points, function(ti)length(unique(triton.ss.NonSpinoseOnly[triton.ss.NonSpinoseOnly$Speciation >= ti & ti >= triton.ss.NonSpinoseOnly$Extinction,]$taxon)))
+empiricalLTT.ss.NonSpinoseOnly <- sapply(time_points, function(ti)length(unique(triton.ss.NonSpinoseOnly[abs(triton.ss.NonSpinoseOnly$age - ti) <= diff(time_points)[1]/2,]$taxon)))
+
+OTT.ss.MixedSpinose <- sapply(time_points, function(ti)sum(abs(triton.ss.MixedSpinose$age - ti) <= diff(time_points)[1]/2))
+expertLTT.ss.MixedSpinose <- sapply(time_points, function(ti)length(unique(triton.ss.MixedSpinose[triton.ss.MixedSpinose$Speciation >= ti & ti >= triton.ss.MixedSpinose$Extinction,]$taxon)))
+empiricalLTT.ss.MixedSpinose <- sapply(time_points, function(ti)length(unique(triton.ss.MixedSpinose[abs(triton.ss.MixedSpinose$age - ti) <= diff(time_points)[1]/2,]$taxon)))
+
+par(mfrow=c(1,3))
+plot(time_points, OTT.ss.SpinoseOnly/15, type="p", ylim=c(0,50), xlab = "Time (Mya)", ylab="Number of occurences (x20)", main = "Correspondance between occurrences and LTT (S only)")
+lines(time_points, expertLTT.ss.SpinoseOnly, lwd=3, col=ggplot2::alpha("purple", 0.5))
+
+plot(time_points, OTT.ss.NonSpinoseOnly/15, type="p", ylim=c(0,50), xlab = "Time (Mya)", ylab="Number of occurences (x20)", main = "Correspondance between occurrences and LTT (NS only)")
+lines(time_points, expertLTT.ss.NonSpinoseOnly, lwd=3, col=ggplot2::alpha("purple", 0.5))
+
+plot(time_points, OTT.ss.MixedSpinose/15, type="p", ylim=c(0,50), xlab = "Time (Mya)", ylab="Number of occurences (x20)", main = "Correspondance between occurrences and LTT (Mixed)")
+lines(time_points, expertLTT.ss.MixedSpinose, lwd=3, col=ggplot2::alpha("purple", 0.5))
+```
+
+## Save occurrences (no taxonomic information)
+
+```{r}
+write.table(t(triton.ss.SpinoseOnly$age), 
+            file = paste0("../../3-Data_processed/Triton_occurrences/TritonDB_subsampled_STT_", length(triton.ss.SpinoseOnly$age),"occurrences_SpinoseOnly.csv"), 
+            sep=";", quote=F, row.names=F, col.names=F)
+
+write.table(t(triton.ss.NonSpinoseOnly$age), 
+            file = paste0("../../3-Data_processed/Triton_occurrences/TritonDB_subsampled_STT_", length(triton.ss.NonSpinoseOnly$age),"occurrences_NonSpinoseOnly.csv"), 
+            sep=";", quote=F, row.names=F, col.names=F)
+
+write.table(t(triton.ss.MixedSpinose$age), 
+            file = paste0("../../3-Data_processed/Triton_occurrences/TritonDB_subsampled_STT_", length(triton.ss.MixedSpinose$age),"occurrences_MixedSpinose.csv"), 
+            sep=";", quote=F, row.names=F, col.names=F)
+```
+

@@ -1,0 +1,29 @@
+# ssu-mask :: mask SSU rRNA alignments
+# SSU-ALIGN 0.1.1 (Feb 2016)
+# Copyright (C) 2016 Howard Hughes Medical Institute
+# Freely distributed under the BSD open source license.
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# command: ssu-mask ../../3-Data_processed/Sequence_alignments/SSU-align/Mask_pf0.95_pt0.95/SSU-align_Spinose
+# date:    Wed Oct 30 17:50:25 2024
+#
+# Masking alignments based on posterior probabilities...
+#
+#                                                              mask    
+#                                                          ------------
+# file name                           in/out  type  #cols  incl.  excl.
+# ----------------------------------  ------  ----  -----  -----  -----
+  SSU-align_Spinose.eukarya.stk        input   aln   2646      -      -
+  SSU-align_Spinose.eukarya.mask      output  mask   1881    219   1662
+  SSU-align_Spinose.eukarya.mask.pdf  output   pdf   1881    219   1662
+  SSU-align_Spinose.eukarya.mask.stk  output   aln    219      -      -
+#
+# All attempts to draw structure diagrams of masks were successful.
+#
+# List of executed commands saved in:     SSU-align_Spinose.ssu-mask.log.
+# Output printed to the screen saved in:  SSU-align_Spinose.ssu-mask.sum.
+#
+# All output files created in directory ./../../3-Data_processed/Sequence_alignments/SSU-align/Mask_pf0.95_pt0.95/SSU-align_Spinose/
+#
+# CPU time:  00:00:00.93  (hh:mm:ss)
+# 
+# SSU-ALIGN-SUCCESS

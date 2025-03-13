@@ -1,0 +1,19 @@
+#1 - Describe the name of your executable, and the optional arguments
+executable = /users/biodiv/andreole/Softwares/revbayes/bin/revbayes-dev
+universe = vanilla
+accounting_group = LongJob.Unlimited
+notification = complete
+
+#2 - Describe the name of the files where the stdout, stderr and log of your job should get redirected:
+error = /data/biodiv/andreole/Forams/4-Phylogenetic_reconstruction/Logs/OBDP_Microperforate.$(Cluster).$(Process).stderr
+log = /data/biodiv/andreole/Forams/4-Phylogenetic_reconstruction/Logs/OBDP_Microperforate.$(Cluster).$(Process).log
+output = /data/biodiv/andreole/Forams/4-Phylogenetic_reconstruction/Logs/OBDP_Microperforate.$(Cluster).$(Process).stdout
+
+#3 - Describe the resources requirements of your job : 
+request_memory = 1 GB
+request_cpus = 1
+
+#4 - Submit your job
+arguments = /data/biodiv/andreole/Forams/4-Phylogenetic_reconstruction/mcmc_OBDP_Forams_Microperforate.Rev
+
+queue

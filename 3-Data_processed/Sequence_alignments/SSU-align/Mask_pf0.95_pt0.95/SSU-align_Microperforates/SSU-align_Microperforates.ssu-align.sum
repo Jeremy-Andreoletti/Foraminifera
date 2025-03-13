@@ -1,0 +1,59 @@
+# ssu-align :: align SSU rRNA sequences
+# SSU-ALIGN 0.1.1 (Feb 2016)
+# Copyright (C) 2016 Howard Hughes Medical Institute
+# Freely distributed under the BSD open source license.
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# command: ssu-align Data/Sequences_Morard/Basetypes_Microperforates.fasta Data_processing/Aligned_sequences/SSU-align_Microperforates
+# date:    Fri Feb 17 14:27:23 2023
+#
+# Validating input sequence file ... done.
+#
+# Stage 1: Determining SSU start/end positions and best-matching models...
+#
+# output file name                            description                                
+# ------------------------------------------  -------------------------------------------
+  SSU-align_Microperforates.tab               locations/scores of hits defined by HMM(s)
+  SSU-align_Microperforates.eukarya.hitlist   list of sequences to align with eukarya CM
+  SSU-align_Microperforates.eukarya.fa             67 sequences to align with eukarya CM
+#
+# Stage 2: Aligning each sequence to its best-matching model...
+#
+# output file name                            description
+# ------------------------------------------  ---------------------------------------
+  SSU-align_Microperforates.eukarya.stk       eukarya alignment
+  SSU-align_Microperforates.eukarya.cmalign   eukarya cmalign output
+  SSU-align_Microperforates.eukarya.ifile     eukarya insert info
+  SSU-align_Microperforates.scores            list of CM/HMM scores for each sequence
+#
+# Summary statistics:
+#
+# model or       number  fraction        average   average               
+# category      of seqs  of total         length  coverage    nucleotides
+# ------------  -------  --------  -------------  --------  -------------
+  *input*            67    1.0000         876.69    1.0000          58738
+#
+  archaea             0    0.0000              -         -              0
+  bacteria            0    0.0000              -         -              0
+  eukarya            67    1.0000         762.55    0.8698          51091
+#
+  *all-models*       67    1.0000         762.55    0.8698          51091
+  *no-models*         0    0.0000              -         -              0
+#
+# Speed statistics:
+#
+# stage      num seqs  seq/sec  seq/sec/model    nucleotides    nt/sec
+# ---------  --------  -------  -------------  -------------  --------
+  search           67   14.472          4.824          58738   12687.7
+  alignment        67   13.844         13.844          51091   10556.9
+#
+#
+# List of executed commands saved in:     SSU-align_Microperforates.ssu-align.log.
+# Output printed to the screen saved in:  SSU-align_Microperforates.ssu-align.sum.
+#
+# All output files created in directory ./Data_processing/Aligned_sequences/SSU-align_Microperforates/
+#
+# CPU time (search):     00:00:04.63  (hh:mm:ss)
+# CPU time (alignment):  00:00:04.84  (hh:mm:ss)
+# CPU time (total):      00:00:10.61  (hh:mm:ss)
+#
+# SSU-ALIGN-SUCCESS

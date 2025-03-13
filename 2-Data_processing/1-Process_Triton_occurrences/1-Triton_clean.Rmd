@@ -1,0 +1,246 @@
+---
+title: "Clean the raw Triton database"
+output: html_notebook
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+```{r include=FALSE}
+library("ggplot2")
+library("ape")
+```
+
+```{r}
+# Load occurrence dataset
+load("../../1-Data_raw/TritonDB/triton.RData")
+```
+
+# Trim the dataset
+## Remove outliers
+
+```{r}
+# Work on the trimmed dataset, which excludes occurrences that fall significantly outside the known range of the species. The cut-off for the Neogene is 2Ma outside the species known range, and 5Ma for the Palaeogene (cf. Fenton et al. 2021).
+triton <- triton.pres[triton.pres$trim == "inc",]
+```
+
+Some species are lost in the trimmed dataset
+
+```{r}
+species_lost <- unique(triton.pres$species)[!(unique(triton.pres$species) %in% unique(triton$species))]
+triton.pres[triton.pres$species %in% species_lost,]
+```
+
+## Remove samples at present (or with negative age)
+
+```{r}
+# Some samples have a negative age
+table(triton.pres$age<0)
+```
+
+```{r}
+# Keep only past occurrences
+triton <- triton[triton$age > 0,]
+```
+
+## Reverse negative uncertainty ranges
+
+```{r}
+data.frame(positive = sum(triton$rng.age > 0, na.rm=T), 
+           null = sum(triton$rng.age == 0, na.rm=T), 
+           negative = sum(triton$rng.age < 0, na.rm=T))
+#triton <- triton[sapply(triton$rng.age > 0, function(x) ifelse(is.na(x), F, x)),]
+age.min <- apply(triton[,c("age.en", "age.st")], 1, min)
+age.max <- apply(triton[,c("age.en", "age.st")], 1, max)
+triton$age.en <- age.min
+triton$age.st <- age.max
+triton$rng.age <- triton$age.st - triton$age.en
+```
+
+## 2 species have a speciation date of 0.0. Change it to the oldest fossil age.
+
+```{r}
+unique(triton[triton$Speciation==0,]$species)
+triton[triton$species=="Berggrenia pumilio",]$Speciation <- max(triton[triton$species=="Berggrenia pumilio",]$age)
+triton[triton$species=="Globigerinita minuta",]$Speciation <- max(triton[triton$species=="Globigerinita minuta",]$age)
+```
+
+```{r}
+names(triton)
+```
+# Check the repartition through time
+## Full fossil record
+
+Each occurrence is associated with a **stratigraphic age uncertainty interval** (minimum and maximum ages).
+
+```{r, fig.asp=0.4, fig.width=15}
+ggplot(triton[!is.na(triton$rng.age),]) +
+  geom_segment(aes(x = -age.st, y = -age, xend = -age.en, yend=-age, color=-age)) +
+  scale_x_continuous(name = "Time (My)") +
+  scale_y_discrete(name = "Occurrences") +
+  labs(colour="Mean age") +
+  ggtitle("Distribution of age intervals, depending on the age calculation method") +
+  theme(axis.text.y=element_blank(),
+        axis.ticks.y=element_blank(),
+        panel.grid.major.y = element_blank(),
+        legend.position = "bottom") +
+  facet_grid(. ~ age.calc)
+```
+
+```{r, fig.asp=0.3, fig.width=15}
+p <- ggplot(triton, aes(x=-age, y=rnorm(length(age), 1, 0.05))) +
+  geom_point(cex=0.01, alpha=0.05) +
+  scale_x_continuous(name = "Time (My)") +
+  scale_y_continuous(name = "Occurrences", limits = c(0.7, 1.3)) +
+  scale_fill_discrete(name="Accepted rank") +
+  theme(panel.background = element_blank(),
+        axis.line.x = element_line(linewidth = 0.5, linetype = "solid", colour = "black"),
+        axis.text.y = element_blank(),
+        axis.ticks.y = element_blank()) +
+  ggtitle(paste("Temporal repartition of", dim(triton)[1], "recorded occurrences - Midpoint"))
+
+q <- ggplot(triton, aes(x=-age, y=pal.lat)) +
+  geom_point(cex=0.01, alpha=0.05) +
+  scale_x_continuous(name = "Time (My)") +
+  scale_y_continuous(name = "Paleolatitude (°)") +
+  scale_fill_discrete(name="Accepted rank") +
+  theme(panel.background = element_blank(),
+        axis.line.x = element_line(linewidth = 0.5, linetype = "solid", colour = "black")) +
+  ggtitle(paste("Spatio-temporal repartition of", dim(triton)[1], "recorded occurrences - Midpoint"))
+
+r <- ggplot(triton, aes(x=-age)) +
+  geom_histogram(binwidth = 1) +
+  scale_x_continuous(name = "Time (My)") +
+  scale_y_continuous(name = "Number of occurrences") +
+  scale_fill_discrete(name="Accepted rank") +
+  theme(panel.grid.major.y = element_blank(),
+        legend.position="bottom") +
+  ggtitle(paste("Evolution of the number occurrences ( total of", dim(triton)[1], ")"))
+
+p;q;r
+```
+
+## Add age uncertainty to avoid occurrences with the same age
+
+Many occurrences have the exact same age.
+
+```{r}
+head(sort(table(triton$age), decreasing = T), 5)
+```
+
+In order to avoid clusters let's draw them uniformly in their interval rather than taking the midpoint (for the "Zone" and "Magneto" methods).
+
+```{r}
+triton$age_runif <- triton$age
+
+# Zone method
+cond <- triton$age.calc == "Zone"
+triton[cond,]$age_runif <- apply(triton[cond,], 1, function(Tr) {
+                                      age_min <- as.numeric(Tr["age.en"])
+                                      age_max <- as.numeric(Tr["age.st"])
+                                      if (age_max == age_min) age_max <- age_max + 0.01
+                                      return (runif(1, age_min, age_max))
+                                      })
+# Magneto method
+cond <- triton$age.calc == "Magneto"
+triton[cond,]$age_runif <- apply(triton[cond,], 1, function(Tr) {
+                                      age_min <- as.numeric(Tr["mag.age.en"])
+                                      age_max <- as.numeric(Tr["mag.age.st"])
+                                      if (age_max == age_min) age_max <- age_max + 0.01
+                                      return (runif(1, age_min, age_max))
+                                      })
+```
+
+For other methods, simply add 10000 yrs uncertainty around age estimates, reflecting uniformisation in the sedimentation process.
+
+```{r}
+# Other methods
+time_span <- 0.01  # 10000 ys = 0.01 Mys
+cond <- triton$age.calc != "Zone" & triton$age.calc != "Magneto" & triton$Speciation > triton$Extinction
+triton[cond,]$age_runif <- apply(triton[cond,], 1, function(Tr) {
+                                      age_min <- max(as.numeric(Tr["age"]) - time_span/2, 0)
+                                      age_max <- as.numeric(Tr["age"]) + time_span/2
+                                      #print(c(as.numeric(Tr["age"]), 1.1*as.numeric(Tr["Speciation"]), age_max))
+                                      return (runif(1, age_min, age_max))
+                                      })
+
+#age_min <- sapply(triton[cond,]$age-time_span/2, max, 0)
+#age_max <- triton[cond,]$age+time_span/2
+#mapply(runif, n=1, min=age_min, max=age_max) - triton[cond,]$age_runif
+```
+
+```{r}
+head(sort(table(triton$age_runif), decreasing = T), 5)
+```
+
+The issue is now solved.
+
+```{r, fig.asp=0.3, fig.width=15}
+p
+ggplot(triton, aes(x=-age_runif, y=rnorm(length(age_runif), 1, 0.05))) +
+  geom_point(cex=0.01, alpha=0.05) +
+  scale_x_continuous(name = "Time (My)") +
+  scale_y_continuous(name = "Occurrences", limits = c(0.7, 1.3)) +
+  scale_fill_discrete(name="Accepted rank") +
+  theme(panel.background = element_blank(),
+        axis.line.x = element_line(size = 0.5, linetype = "solid", colour = "black"),
+        axis.text.y = element_blank(),
+        axis.ticks.y = element_blank()) +
+  ggtitle(paste("Temporal repartition of", dim(triton)[1], "recorded occurrences - Uniform draw"))
+
+q
+ggplot(triton, aes(x=-age_runif, y=pal.lat)) +
+  geom_point(cex=0.01, alpha=0.05) +
+  scale_x_continuous(name = "Time (My)") +
+  scale_y_continuous(name = "Paleolatitude (°)") +
+  scale_fill_discrete(name="Accepted rank") +
+  theme(panel.background = element_blank(),
+        axis.line.x = element_line(size = 0.5, linetype = "solid", colour = "black")) +
+  ggtitle(paste("Spatio-temporal repartition of", dim(triton)[1], "recorded occurrences - Uniform draw"))
+```
+
+# Check the repartition of occurrences per species
+
+```{r}
+head(sort(table(triton$species), decreasing = T), 10)
+```
+
+Some species have much more occurrences than others. Let's compare the distribution of number of occurrences in Triton compared to a Poisson sampling over the species lifetime.
+
+```{r, fig.asp=0.4, fig.width=10}
+ggplot(triton, aes(x=reorder(species, table(species)[species]))) +
+  geom_bar(stat="count", fill="darkgreen", col="darkgreen") + 
+  scale_x_discrete(name = "Species names") +
+  scale_y_continuous(trans = "log10", name = "Number of corresponding occurrences (log-scale)", limits=c(1,100000)) +
+  theme(axis.text.x=element_blank(),
+        axis.ticks.x=element_blank(),
+        panel.grid.major.x = element_blank(),
+        legend.position = "none") +
+  ggtitle("Distribution of the number of occurrences identified to the same species")
+
+# Sample the same number of occurrences as in Triton, but with a sampling probability strictly proportional to the species range.
+triton_Poisson <- data.frame(species=sample(triton$species, size=nrow(triton), replace=T, prob=triton$Speciation-triton$Extinction))
+
+ggplot(triton_Poisson, aes(x=reorder(species, table(species)[species]))) +
+  geom_bar(stat="count", fill="darkgreen", col="darkgreen") + 
+  scale_x_discrete(name = "Species names") +
+  scale_y_continuous(trans = "log10", name = "Number of corresponding occurrences (log-scale)", limits=c(1,100000)) +
+  theme(axis.text.x=element_blank(),
+        axis.ticks.x=element_blank(),
+        panel.grid.major.x = element_blank(),
+        legend.position = "none") +
+  ggtitle("Expected distribution of the number of occurrences under a Poisson process")
+```
+
+```{r}
+data.frame(median_triton = median(table(triton$species)), median_expected = median(table(triton_Poisson$species)))
+```
+
+The expected distribution is more unequal: the rarest species have fewer occurrences, the median species has around 100 occurrences, for nearly 250 in Triton.
+
+# Save database
+
+```{r}
+write.csv(triton, "../../3-Data_processed/Triton_occurrences/TritonDB_trimmed_runif.csv")
+```

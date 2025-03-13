@@ -1,0 +1,461 @@
+---
+title: "R Notebook"
+output:
+  html_document:
+    df_print: paged
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+```{r include=FALSE}
+library("ggplot2")
+library("divDyn")
+library("rEDM")
+#library("sjPlot")
+```
+
+# Load processed data
+
+```{r}
+triton <- read.csv("../../3-Data_processed/Triton_occurrences/TritonDB_trimmed_runif.csv", row.names=1)
+triton.ss <- read.csv("../../3-Data_processed/Triton_occurrences/TritonDB_subsampled_STT_91253foss.csv", row.names=1)
+```
+
+```{r}
+time_points <- read.csv("../../3-Data_processed/Triton_occurrences/time_points.csv")[,1]
+#OTT <- read.csv("../../3-Data_processed/Triton_occurrences/OTT.csv")[,1]
+expertLTT <- read.csv("../../3-Data_processed/Triton_occurrences/expertLTT.csv")[,1]
+#empiricalLTT <- read.csv("../../3-Data_processed/Triton_occurrences/empiricalLTT.csv")[,1]
+#OTT.ss <- read.csv("../../3-Data_processed/Triton_occurrences/OTT_ss.csv")[,1]
+#expertLTT.ss <- read.csv("../../3-Data_processed/Triton_occurrences/expertLTT_ss.csv")[,1]
+#empiricalLTT.ss <- read.csv("../../3-Data_processed/Triton_occurrences/empiricalLTT_ss.csv")[,1]
+```
+
+# DivDyn plots
+
+Classical methods to estimate diversification rates from the fossil record.
+
+```{r}
+data(tens)
+data(stages)
+data(keys)
+# names of the bins
+colnames(tens)[colnames(tens)=="X10"] <- "name"
+colnames(stages)[colnames(stages)=="stage"] <- "name"
+tens
+stages
+```
+
+Select columns from the Triton database. Diversification analysis will be run using `age_runif`, sampled within the fossil age uncertainty range.
+
+```{r}
+triton_divDyn <- triton[c("species", "age", "age_runif", "holeID")]
+
+# 1My bins
+triton_divDyn$MyrBin <- round(triton_divDyn$age_runif)
+sampMyrBin <- binstat(triton_divDyn, tax="species", bin="MyrBin", coll="holeID", duplicates=FALSE)
+
+# Stage bins (homogenize names)
+triton_divDyn$stage <- sapply(triton_divDyn$age_runif, function(ti)stages[stages$bottom>ti & ti>=stages$top,]$name)
+triton_divDyn$stage <- gsub("Lower Miocene", "Early Miocene", triton_divDyn$stage)
+triton_divDyn$stage <- gsub("Upper Miocene", "Late Miocene", triton_divDyn$stage)
+triton_divDyn$stage <- gsub("Selandian-Thanetian", "Selandian", triton_divDyn$stage)
+triton_divDyn$stg <- as.numeric(categorize(triton_divDyn$stage, keys$stgInt))
+sampStg <- binstat(triton_divDyn, tax="species", bin="stg", coll="holeID", noNAStart=FALSE, duplicates=FALSE)
+```
+
+```{r fig.asp=0.4, fig.width=12}
+par(mfrow=c(1,2))
+# Plot every stage
+tsplot(stages, shading="short", boxes=c("short", "sys"), boxes.col=c("col", "systemCol"), xlim=c(66,0), ylim=c(0,15000), labels.args=list(cex=0.7), ylab="Occurrences (black) and collections (blue)"); title("Foraminiferan fossils at each geological stage")
+# occurrences
+lines(stages$mid, sampStg$occs, lwd=2)
+# collections
+lines(stages$mid, sampStg$colls, lwd=2, col="blue")
+
+# Plot every 1Myr
+tsplot(stages, shading="short", boxes=c("short", "sys"), boxes.col=c("col", "systemCol"), xlim=c(66,0), ylim=c(0,15000), labels.args=list(cex=0.7), ylab="Occurrences (black) and collections (blue)"); title("Foraminiferan fossils at each 1Myr time bin")
+# occurrences
+lines(sampMyrBin$MyrBin, sampMyrBin$occs, lwd=2)
+# collections
+lines(sampMyrBin$MyrBin, sampMyrBin$colls, lwd=2, col="blue")
+```
+
+```{r fig.asp=0.5, fig.width=12}
+tsplot(stages, shading="short", boxes=c("short", "sys"), boxes.col=c("col", "systemCol"), xlim=c(66,0), labels.args=list(cex=0.7))
+ranges(triton_divDyn, tax="species", bin="age_runif")
+title("Stratigraphic ranges for foraminiferan species in the Triton database")
+```
+
+Run divDyn.
+
+```{r}
+ddStages <- divDyn(triton_divDyn, bin="stg", tax="species")
+ddMyrBins <- divDyn(triton_divDyn, bin="MyrBin", tax="species")
+```
+
+```{r fig.asp=0.4, fig.width=12}
+par(mfrow=c(1,2))
+
+tsplot(stages, shading="short", boxes=c("short", "sys"), boxes.col=c("col", "systemCol"), xlim=c(66,0), ylim=c(0,300), labels.args=list(cex=0.7))
+title("Sampled-in-bin foraminiferan diversity (stages)")
+lines(stages$mid, ddStages$divCSIB, col="darkgreen", lwd=2)
+lines(stages$mid, ddStages$divSIB, lwd=1)
+legend("top", inset=c(0.01,0.01), legend=c("raw SIB", "corrected SIB"),
+col=c("black", "darkgreen"), lwd=c(1,2), bg="white", cex=1)
+
+tsplot(stages, shading="short", boxes=c("short", "sys"), boxes.col=c("col", "systemCol"), xlim=c(66,0), ylim=c(0,300), labels.args=list(cex=0.7))
+title("Sampled-in-bin foraminiferan diversity (1Myr bins)")
+lines(sampMyrBin$MyrBin, ddMyrBins$divCSIB, col="darkgreen", lwd=2)
+lines(sampMyrBin$MyrBin, ddMyrBins$divSIB, lwd=1)
+legend("top", inset=c(0.01,0.01), legend=c("raw SIB", "corrected SIB"), col=c("black", "darkgreen"), lwd=c(1,2), bg="white", cex=1)
+```
+
+100 iterations of Shareholder Quorum Subsampling (SQS).
+
+```{r message=FALSE, warning=FALSE}
+sqsMyrBinsPlot <- subsample(triton_divDyn, bin="MyrBin", tax="species", coll="holeID", q=0.7, iter=500, ref="holeID", singleton="ref", type="sqs", duplicates=FALSE, excludeDominant=TRUE, largestColl =TRUE, output="dist", na.rm=TRUE)
+```
+
+Diversity trends, using raw data, expert estimates (from the speciation and extinction dates in Triton) and mean of the SQS trials.
+
+```{r fig.asp=0.6, fig.width=10}
+tsplot(stages, shading="short", boxes=c("short", "sys"), boxes.col=c("col", "systemCol"), xlim=c(66,0), ylim=c(0,120), labels.args=list(cex=0.7))
+title("Comparison between estimates of foram richness trends")
+lines(sampMyrBin$MyrBin, ddMyrBins$divCSIB, col="darkgreen", lwd=2)
+lines(time_points, expertLTT, col="purple", lwd=2)
+
+# loop through all trial results
+for(i in 1:ncol(sqsMyrBinsPlot$divCSIB)){
+  lines(sampMyrBin$MyrBin, sqsMyrBinsPlot$divCSIB[,i], col="#00000005", lwd=1)
+}
+legend("topleft", bg="white", legend=c("raw data (CSIB)", "experts' LTT", "SQS trials"), col=c("darkgreen", "purple", "#00000088"), lwd=3, inset=c(0.01, 0.01, 0.01))
+
+#the mean of the trial results
+meanSQS <- rowMeans(sqsMyrBinsPlot$divCSIB, na.rm = T)
+lines(sampMyrBin$MyrBin, meanSQS, col="black", lwd=2)
+```
+
+Several methods to compute diversification rates, by increasing reliability (note that some give negative rates).
+
+```{r fig.asp=0.6, fig.width=8}
+tsplot(stages, shading="short", boxes=c("short", "sys"), boxes.col=c("col", "systemCol"), xlim=c(66,0), ylim=c(0,0.3), labels.args=list(cex=0.7))
+title("Per capita rates")
+lines(sampMyrBin$MyrBin, ddMyrBins$extPC, col="red", lwd=2)
+lines(sampMyrBin$MyrBin, ddMyrBins$oriPC, col="blue", lwd=2)
+legend("topright", legend=c("extinctions", "originations"), col=c("red", "blue"), lwd=2, bg="white", inset=c(0.01, 0.01))
+
+tsplot(stages, shading="short", boxes=c("short", "sys"), boxes.col=c("col", "systemCol"), xlim=c(66,0), ylim=c(0,0.3), labels.args=list(cex=0.7))
+title("Corrected three-timer rates")
+lines(sampMyrBin$MyrBin, ddMyrBins$extC3t, col="red", lwd=2)
+lines(sampMyrBin$MyrBin, ddMyrBins$oriC3t, col="blue", lwd=2)
+legend("topright", legend=c("extinctions", "originations"), col=c("red", "blue"), lwd=2, bg="white", inset=c(0.01, 0.01))
+
+tsplot(stages, shading="short", boxes=c("short", "sys"), boxes.col=c("col", "systemCol"), xlim=c(66,0), ylim=c(0, 0.3), labels.args=list(cex=0.7))
+title("Gap-filler rates")
+lines(sampMyrBin$MyrBin, ddMyrBins$extGF, col="red", lwd=2)
+lines(sampMyrBin$MyrBin, ddMyrBins$oriGF, col="blue", lwd=2)
+legend("topright", legend=c("extinctions", "originations"), col=c("red", "blue"), lwd=2, bg="white", inset=c(0.01, 0.01))
+
+tsplot(stages, shading="short", boxes=c("short", "sys"), boxes.col=c("col", "systemCol"), xlim=c(66,0), ylim=c(0, 0.3), labels.args=list(cex=0.7))
+title("Second-for-third substitution rates")
+lines(sampMyrBin$MyrBin, ddMyrBins$ext2f3, col="red", lwd=2)
+lines(sampMyrBin$MyrBin, ddMyrBins$ori2f3, col="blue", lwd=2)
+legend("topright", legend=c("extinctions", "originations"), col=c("red", "blue"), lwd=2, bg="white", inset=c(0.01, 0.01))
+```
+
+First approach to include some uncertainty: envelope plot from all the methods.
+
+```{r fig.asp=0.4, fig.width=12}
+par(mfrow=c(1,2))
+
+# extinctions
+# 1st panel - 1myr bins
+par(mar=c(2, 5.1, 4.1, 1)) # margin adjustment
+# plot
+tsplot(stages, shading="short", boxes=c("short", "sys"), boxes.col=c("col", "systemCol"), xlim=c(66,0), ylim=c(0, 0.3), labels.args=list(cex=0.7))
+title("Extinction rates")
+extMat <- as.matrix(ddMyrBins[grep("ext", names(ddMyrBins), value=T)])
+shades(sampMyrBin$MyrBin, extMat, col="red") # background
+for(i in 2:ncol(extMat)) lines(sampMyrBin$MyrBin, extMat[,i] , lwd=0.5) # extinctions - BIN
+
+# extinctions
+# 1st panel - 1myr bins
+par(mar=c(2, 5.1, 4.1, 1)) # margin adjustment
+# plot
+tsplot(stages, shading="short", boxes=c("short", "sys"), boxes.col=c("col", "systemCol"), xlim=c(66,0), ylim=c(0, 0.3), labels.args=list(cex=0.7))
+title("Origination rates")
+oriMat <- as.matrix(ddMyrBins[grep("ori", names(ddMyrBins), value=T)])
+shades(sampMyrBin$MyrBin, oriMat, col="blue") # background
+for(i in 2:ncol(oriMat)) lines(sampMyrBin$MyrBin, oriMat[,i] , lwd=0.5) # originations - BIN
+```
+
+Second approach to include some uncertainty: envelope plot from all the SQS trials
+
+```{r fig.asp=0.5, fig.width=12}
+#par(mfrow=c(3,1))
+layout(mat = matrix(c(1, 2, 3, 3), nrow = 2, byrow = F))
+
+# extinction rates
+par(mar=c(2, 5.1, 4.1, 1)) # margin adjustment
+# plot
+tsplot(stages, shading="short", boxes=c("short", "sys"), boxes.col=c("col", "systemCol"), xlim=c(66,0), ylim=c(0, 0.5), labels.args=list(cex=0.7))
+title("Extinction rates")
+shades(sampMyrBin$MyrBin, sqsMyrBinsPlot$ext2f3, col="red", res=50) # background
+#for(i in 2:ncol(extMat)) lines(sampMyrBin$MyrBin, extMat[,i] , lwd=0.5) # extinctions - BIN
+
+# origination rates
+# plot
+tsplot(stages, shading="short", boxes=c("short", "sys"), boxes.col=c("col", "systemCol"), xlim=c(66,0), ylim=c(0, 0.5), labels.args=list(cex=0.7))
+title("Origination rates")
+shades(sampMyrBin$MyrBin, sqsMyrBinsPlot$ori2f3, col="blue", res=50) # background
+#for(i in 2:ncol(oriMat)) lines(sampMyrBin$MyrBin, oriMat[,i] , lwd=0.5) # originations - BIN
+
+# diversification rates
+# plot
+tsplot(stages, shading="short", boxes=c("short", "sys"), boxes.col=c("col", "systemCol"), xlim=c(66,0), ylim=c(-0.3, 0.3), labels.args=list(cex=0.7))
+title("Net-diversification rates")
+shades(sampMyrBin$MyrBin, sqsMyrBinsPlot$ori2f3-sqsMyrBinsPlot$ext2f3, col="darkgreen", res=50) # background
+#for(i in 2:ncol(oriMat)) lines(sampMyrBin$MyrBin, oriMat[,i] , lwd=0.5) # originations - BIN
+```
+
+Compute the mean speciation and extinction rates with the 2f3 method from the SQS trials.
+
+```{r fig.asp=0.3, fig.width=7}
+par(mfrow=c(1,2))
+mean(sqsMyrBinsPlot$ori2f3, na.rm=T)
+mean(sqsMyrBinsPlot$ext2f3, na.rm=T)
+```
+
+## Diversity dependance
+### Plots and correlations
+
+Relationship between speciation and extinction rates.
+
+```{r fig.asp=0.4, fig.width=12}
+par(mfrow=c(1,2))
+plot(sqsMyrBinsPlot$ori2f3, sqsMyrBinsPlot$ext2f3, pch=3, cex=0.5, col=alpha("black",0.1), main="Relation between extinction and origination rates (2f3)", xlab="Origination rates (2f3)", ylab="Extinction rates (2f3)")
+ori2f3_mean = rowMeans(sqsMyrBinsPlot$ori2f3)
+ext2f3_mean = rowMeans(sqsMyrBinsPlot$ext2f3)
+plot(ori2f3_mean, ext2f3_mean, pch=16, cex=0.5, col="red", xlim=range(sqsMyrBinsPlot$ori2f3, na.rm=T), ylim=range(sqsMyrBinsPlot$ext2f3, na.rm=T), main="Relation between mean extinction and origination rates (2f3)", xlab="Origination rates (2f3)", ylab="Extinction rates (2f3)")
+ori2f3_sd = sqrt(rowMeans((sqsMyrBinsPlot$ori2f3-ori2f3_mean)**2))
+ext2f3_sd = sqrt(rowMeans((sqsMyrBinsPlot$ext2f3-ext2f3_mean)**2))
+arrows(x0=ori2f3_mean, x1=ori2f3_mean, y0=ext2f3_mean-ext2f3_sd, y1=ext2f3_mean+ext2f3_sd, code=3, angle=90, length=0.01, col=alpha("red", 0.2), lwd=0.5)
+arrows(x0=ori2f3_mean-ori2f3_sd, x1=ori2f3_mean+ori2f3_sd, y0=ext2f3_mean, y1=ext2f3_mean, code=3, angle=90, length=0.01, col=alpha("red", 0.2), lwd=0.5)
+```
+
+```{r fig.asp=0.8, fig.width=10}
+par(mfrow=c(2,2))
+plot(sqsMyrBinsPlot$divCSIB, sqsMyrBinsPlot$ori2f3, pch=3, cex=0.5, col=alpha("black",0.1), main="Diversity-dependance on origination rates", xlab="Subsampled species richness (SQS)", ylab="Extinction rates (2f3)")
+plot(sqsMyrBinsPlot$divCSIB, sqsMyrBinsPlot$ext2f3, pch=3, cex=0.5, col=alpha("black",0.1), main="Diversity-dependance on extinction rates", xlab="Subsampled species richness (SQS)", ylab="Extinction rates (2f3)")
+
+divSQS_sd = sqrt(rowMeans((sqsMyrBinsPlot$divCSIB-meanSQS)**2))
+
+plot(meanSQS, ori2f3_mean, pch=3, cex=0.5, col="red", main="Diversity-dependance on mean origination rates", xlab="Subsampled species richness (SQS)", ylab="Origination rates (2f3)", xlim=range(sqsMyrBinsPlot$divCSIB, na.rm=T), ylim=range(sqsMyrBinsPlot$ori2f3, na.rm=T))
+arrows(x0=meanSQS, x1=meanSQS, y0=ori2f3_mean-ori2f3_sd, y1=ori2f3_mean+ori2f3_sd, code=3, angle=90, length=0.01, col=alpha("red", 0.2), lwd=0.5)
+arrows(x0=meanSQS-divSQS_sd, x1=meanSQS+divSQS_sd, y0=ori2f3_mean, y1=ori2f3_mean, code=3, angle=90, length=0.01, col=alpha("red", 0.2), lwd=0.5)
+
+plot(meanSQS, ext2f3_mean, pch=3, cex=0.5, col="red", main="Diversity-dependance on mean extinction rates", xlab="Subsampled species richness (SQS)", ylab="Extinction rates (2f3)", xlim=range(sqsMyrBinsPlot$divCSIB, na.rm=T), ylim=range(sqsMyrBinsPlot$ext2f3, na.rm=T))
+arrows(x0=meanSQS, x1=meanSQS, y0=ext2f3_mean-ext2f3_sd, y1=ext2f3_mean+ext2f3_sd, code=3, angle=90, length=0.01, col=alpha("red", 0.2), lwd=0.5)
+arrows(x0=meanSQS-divSQS_sd, x1=meanSQS+divSQS_sd, y0=ext2f3_mean, y1=ext2f3_mean, code=3, angle=90, length=0.01, col=alpha("red", 0.2), lwd=0.5)
+```
+Basically 0 correlation.
+
+```{r}
+summary(lm(ori2f3_mean ~ meanSQS))
+summary(lm(ext2f3_mean ~ meanSQS))
+```
+
+### Lagged auto-correlations and cross-correlations
+
+```{r fig.asp=0.6, fig.width=10}
+par(mfrow=c(2,3), mar=c(5, 4, 4, 2))
+acf(ori2f3_mean, main="Auto-Correlation - Origination rates", na.action = na.pass)
+acf(ext2f3_mean, main="Auto-Correlation - Extinction rates", na.action = na.pass)
+acf(meanSQS, main="Auto-Correlation - SQS richness", na.action = na.pass)
+ccf(ext2f3_mean, ori2f3_mean, main="Cross-Correlation - Ori vs Ext rates", na.action = na.pass)
+ccf(ori2f3_mean, meanSQS, main="Cross-Correlation - Ori vs SQS richness", na.action = na.pass)
+ccf(ext2f3_mean, meanSQS, main="Cross-Correlation - Ext vs SQS richness", na.action = na.pass)
+```
+
+Observations:
+1. Diversification rates and SQS richness are all somewhat autocorrelated.
+2. Origination rates are positively cross-correlated with contemporaneous and previous (1My older) extinction rates.
+3. Extinction rates are negatively cross-correlated with previous (1Myr and 2Myr older) diversity.
+
+### SDEs : layeranalyzer
+
+Reitan, T, Liow, LH. layeranalyzer: Inferring correlative and causal connections from time series data in r. Methods Ecol Evol. 2019 https://doi.org/10.1111/2041-210X.13299
+
+```{r}
+#devtools::install_github(repo="trondreitan/layeranalyzer",dependencies=TRUE,build_vignettes=TRUE)
+#library("layeranalyzer")
+
+#models=traverse.standalone.layered(hare.norm, max.layers=2, 
+#  talkative=TRUE, allow.one.feedback.loop=TRUE, 
+#  just.stationary=FALSE, no.rw=FALSE,    
+#  time.integrals.possible=FALSE, 
+#  allow.deterministic.layers=TRUE,
+#  use.stationary.stdev = FALSE, mcmc=TRUE,
+#  num.MCMC=1000,spacing=10,burnin=2000, num.temp = 4, prior=p.hare)
+#compare.layered(models)
+```
+
+### Convergent cross mapping
+
+Empirical Dynamic Modeling (2022-03-31)
+George Sugihara, Joseph Park, Ethan Deyle, Erik Saberski, Cameron Smith, Hao Ye
+https://cran.gedik.edu.tr/web/packages/rEDM/vignettes/rEDM-tutorial.pdf
+
+First, select the embedding dimension using a nearest neighbor forecasting method:
+`lib` = “training” portion of the data, on which nearest neighbors can be identified
+`pred` = “test” portion of the data, on which 1-step ahead forecasts will be made
+
+```{r fig.asp=0.3, fig.width=12}
+rates_2f3 <- data.frame(test=1, ori=ori2f3_mean, ori_sd=ori2f3_sd, ext=ext2f3_mean, ext_sd=ext2f3_sd)
+par(mfrow=c(1,3))
+
+get_rho_E_matrix <- function(t_series_1, t_series_2){
+  return (sapply(1:ncol(t_series_1), function(i){
+    rates_2f3_i <- data.frame(test=1, col=t_series_1[,i], target=t_series_2[,i])
+    EmbedDimension(dataFrame=na.omit(rates_2f3_i), lib="1 30", pred="30 63", columns="col", target = "target", showPlot=F)$rho
+  }))
+}
+
+rho_E_matrix <- get_rho_E_matrix(sqsMyrBinsPlot$ori2f3, sqsMyrBinsPlot$ori2f3)
+matplot(rho_E_matrix, type="l", col=alpha("black", 0.02), lwd=2, lty=1, xlab="Embeding dimension E", ylab="Prediction Skill", main="Selecting E for origination")
+lines(apply(rho_E_matrix, 1, median), col="black", lwd=2)
+paste("Optimal E value for origination rates:", which.max(apply(rho_E_matrix, 1, median)))
+
+rho_E_matrix <- get_rho_E_matrix(sqsMyrBinsPlot$ext2f3, sqsMyrBinsPlot$ext2f3)
+matplot(rho_E_matrix, type="l", col=alpha("black", 0.02), lwd=2, lty=1, xlab="Embeding dimension E", ylab="Prediction Skill", main="Selecting E for extinction")
+lines(apply(rho_E_matrix, 1, median), col="black", lwd=2)
+paste("Optimal E value for extinction rates:", which.max(apply(rho_E_matrix, 1, median)))
+
+rho_E_matrix <- get_rho_E_matrix(sqsMyrBinsPlot$ori2f3, sqsMyrBinsPlot$ext2f3)
+matplot(rho_E_matrix, type="l", col=alpha("black", 0.02), lwd=2, lty=1, xlab="Embeding dimension E", ylab="Prediction Skill", main="Selecting E for origination vs extinction")
+lines(apply(rho_E_matrix, 1, median), col="black", lwd=2)
+paste("Optimal E value for origination vs extinction rates:", which.max(apply(rho_E_matrix, 1, median)))
+```
+
+The median results are very flat, there probably isn't much signal in this data.
+
+```{r fig.asp=0.3, fig.width=12}
+par(mfrow=c(1,3))
+get_rho_Tp_matrix <- function(t_series_1, t_series_2, E){
+  return (sapply(1:ncol(t_series_1), function(i){
+    rates_2f3_i <- data.frame(test=1, col=t_series_1[,i], target=t_series_2[,i])
+    PredictInterval(dataFrame=na.omit(rates_2f3_i), lib="1 30", pred="30 63", columns="col", target="target", E=E, showPlot=F)$rho
+  }))
+}
+
+rho_Tp_matrix <- get_rho_Tp_matrix(sqsMyrBinsPlot$ori2f3, sqsMyrBinsPlot$ori2f3, E=7)
+paste("Optimal Tp value for origination rates:", which.max(apply(rho_Tp_matrix, 1, median)))
+matplot(rho_Tp_matrix, type="l", col=alpha("black", 0.02), lwd=2, lty=1, xlab="Forecast Interval Tp", ylab="Prediction Skill", main="Selecting Tp for origination")
+lines(apply(rho_Tp_matrix, 1, median), col="black", lwd=2)
+
+rho_Tp_matrix <- get_rho_Tp_matrix(sqsMyrBinsPlot$ext2f3, sqsMyrBinsPlot$ext2f3, E=3)
+paste("Optimal Tp value for extinction rates:", which.max(apply(rho_Tp_matrix, 1, median)))
+matplot(rho_Tp_matrix, type="l", col=alpha("black", 0.02), lwd=2, lty=1, xlab="Forecast Interval Tp", ylab="Prediction Skill", main="Selecting Tp for extinction")
+lines(apply(rho_Tp_matrix, 1, median), col="black", lwd=2)
+
+rho_Tp_matrix <- get_rho_Tp_matrix(sqsMyrBinsPlot$ori2f3, sqsMyrBinsPlot$ext2f3, E=6)
+paste("Optimal Tp value for origination vs extinction rates:", which.max(apply(rho_Tp_matrix, 1, median)))
+matplot(rho_Tp_matrix, type="l", col=alpha("black", 0.02), lwd=2, lty=1, xlab="Forecast Interval Tp", ylab="Prediction Skill", main="Selecting Tp for origination vs extinction")
+lines(apply(rho_Tp_matrix, 1, median), col="black", lwd=2)
+```
+
+```{r fig.asp=0.3, fig.width=12}
+par(mfrow=c(1,3))
+get_rho_Tp_matrix_Nonlinear <- function(t_series_1, t_series_2, E){
+  return (sapply(1:ncol(t_series_1), function(i){
+    rates_2f3_i <- data.frame(test=1, col=t_series_1[,i], target=t_series_2[,i])
+    PredictNonlinear(dataFrame=na.omit(rates_2f3_i), lib="1 30", pred="30 63", columns="col", target="target", E=E, showPlot=F)$rho
+  }))
+}
+
+rho_Tp_matrix <- get_rho_Tp_matrix_Nonlinear(sqsMyrBinsPlot$ori2f3, sqsMyrBinsPlot$ori2f3, E=7)
+paste("Optimal S−map Localisation for origination rates:", which.max(apply(rho_Tp_matrix, 1, median)))
+matplot(rho_Tp_matrix, type="l", col=alpha("black", 0.02), lwd=2, lty=1, xlab="S−map Localisation", ylab="Prediction Skill", main="Selecting S−map Localisation for origination")
+lines(apply(rho_Tp_matrix, 1, median), col="black", lwd=2)
+
+rho_Tp_matrix <- get_rho_Tp_matrix_Nonlinear(sqsMyrBinsPlot$ext2f3, sqsMyrBinsPlot$ext2f3, E=3)
+paste("Optimal S−map Localisation for extinction rates:", which.max(apply(rho_Tp_matrix, 1, median)))
+matplot(rho_Tp_matrix, type="l", col=alpha("black", 0.02), lwd=2, lty=1, xlab="S−map Localisation", ylab="Prediction Skill", main="Selecting S−map Localisation for extinction")
+lines(apply(rho_Tp_matrix, 1, median), col="black", lwd=2)
+
+rho_Tp_matrix <- get_rho_Tp_matrix_Nonlinear(sqsMyrBinsPlot$ori2f3, sqsMyrBinsPlot$ext2f3, E=6)
+paste("Optimal S−map Localisation for origination vs extinction rates:", which.max(apply(rho_Tp_matrix, 1, median)))
+matplot(rho_Tp_matrix, type="l", col=alpha("black", 0.02), lwd=2, lty=1, xlab="S−map Localisation", ylab="Prediction Skill", main="Selecting S−map Localisation for origination vs extinction")
+lines(apply(rho_Tp_matrix, 1, median), col="black", lwd=2)
+```
+
+Now perform the convergent cross-mapping with the selected parameters.
+
+`sample` = number of subsamples generated at each library size
+
+Results on a single rate trajectory (probably not reliable):
+
+```{r warning=FALSE, fig.asp=0.3, fig.width=10, message=FALSE, warning=FALSE}
+par(mfrow=c(1,3))
+cmap <- CCM(dataFrame=na.omit(rates_2f3), E=7, Tp=7, columns="ori", target="ori", libSizes = "7 30 1", sample=100, showPlot = TRUE)
+cmap <- CCM(dataFrame=na.omit(rates_2f3), E=3, Tp=9, columns="ext", target="ext", libSizes = "3 30 1", sample = 100, showPlot = TRUE)
+cmap <- CCM(dataFrame=na.omit(rates_2f3), E=6, Tp=1, columns="ori", target="ext", libSizes = "6 30 1", sample = 100, showPlot = TRUE)
+```
+
+Observations:
+  1. Negative values for ori:ori -> no prediction skill -> no causal effect
+  2. Negative values for ori:ori -> no prediction skill -> no causal effect
+  3. Negative values for ori:ext -> no prediction skill -> no causal effect
+  4. Positive values for ext:ori -> prediction skills -> origination rates influence extinction rates
+
+Results on all SQS samples:
+
+```{r fig.asp=0.3, fig.width=5, message=FALSE, warning=FALSE}
+get_CCM_matrix <- function(t_series_1, t_series_2, E, Tp){
+  return (sapply(1:ncol(t_series_1), function(i){
+    rates_2f3_i <- data.frame(test=1, col=t_series_1[,i], target=t_series_2[,i])
+    CCM(dataFrame=na.omit(rates_2f3_i), columns="col", target="target", libSizes=paste(E,"30 1"), E=E, Tp=Tp, sample=100, showPlot=F)
+  }))
+}
+
+CCM_matrix <- get_CCM_matrix(sqsMyrBinsPlot$ori2f3, sqsMyrBinsPlot$ori2f3, E=7, Tp=7)
+CCM_matrix_LibSize <- sapply(1:ncol(CCM_matrix), function(i)CCM_matrix[,i]$LibSize)
+CCM_matrix_ColTarget <- sapply(1:ncol(CCM_matrix), function(i)CCM_matrix[,i]$`col:target`)
+CCM_matrix_TargetCol <- sapply(1:ncol(CCM_matrix), function(i)CCM_matrix[,i]$`target:col`)
+
+CCM_matrix <- get_CCM_matrix(sqsMyrBinsPlot$ext2f3, sqsMyrBinsPlot$ext2f3, E=3, Tp=9)
+CCM_matrix_LibSize <- sapply(1:ncol(CCM_matrix), function(i)CCM_matrix[,i]$LibSize)
+CCM_matrix_ColTarget <- sapply(1:ncol(CCM_matrix), function(i)CCM_matrix[,i]$`col:target`)
+CCM_matrix_TargetCol <- sapply(1:ncol(CCM_matrix), function(i)CCM_matrix[,i]$`target:col`)
+
+CCM_matrix <- get_CCM_matrix(sqsMyrBinsPlot$ori2f3, sqsMyrBinsPlot$ext2f3, E=6, Tp=1)
+CCM_matrix_LibSize <- sapply(1:ncol(CCM_matrix), function(i)CCM_matrix[,i]$LibSize)
+CCM_matrix_ColTarget <- sapply(1:ncol(CCM_matrix), function(i)CCM_matrix[,i]$`col:target`)
+CCM_matrix_TargetCol <- sapply(1:ncol(CCM_matrix), function(i)CCM_matrix[,i]$`target:col`)
+```
+
+```{r fig.asp=0.3, fig.width=12}
+par(mfrow=c(1,3))
+matplot(CCM_matrix_LibSize, CCM_matrix_ColTarget, type="l", col=alpha("blue", 0.02), lwd=2, lty=1, xlab="Library size", ylab="Prediction Skill", main="Convergent cross mapping for origination")
+lines(CCM_matrix_LibSize[,1], apply(CCM_matrix_ColTarget, 1, median), col="blue", lwd=2)
+matplot(CCM_matrix_LibSize, CCM_matrix_TargetCol, type="l", col=alpha("red", 0.02), lwd=2, lty=1, add=T)
+lines(CCM_matrix_LibSize[,1], apply(CCM_matrix_TargetCol, 1, median), col="red", lwd=2)
+legend("topleft", legend=c("ori:ori", "ori:ori"), col=c("red", "blue"), lty=1, cex=0.8)
+
+matplot(CCM_matrix_LibSize, CCM_matrix_ColTarget, type="l", col=alpha("blue", 0.02), lwd=2, lty=1, xlab="Library size", ylab="Prediction Skill", main="Convergent cross mapping for extinction")
+lines(CCM_matrix_LibSize[,1], apply(CCM_matrix_ColTarget, 1, median), col="blue", lwd=2)
+matplot(CCM_matrix_LibSize, CCM_matrix_TargetCol, type="l", col=alpha("red", 0.02), lwd=2, lty=1, add=T)
+lines(CCM_matrix_LibSize[,1], apply(CCM_matrix_TargetCol, 1, median), col="red", lwd=2)
+legend("topleft", legend=c("ext:ext", "ext:ext"), col=c("red", "blue"), lty=1, cex=0.8)
+
+matplot(CCM_matrix_LibSize, CCM_matrix_ColTarget, type="l", col=alpha("blue", 0.02), lwd=2, lty=1, xlab="Library size", ylab="Prediction Skill", main="CCM for origination vs extinction")
+lines(CCM_matrix_LibSize[,1], apply(CCM_matrix_ColTarget, 1, median), col="blue", lwd=2)
+matplot(CCM_matrix_LibSize, CCM_matrix_TargetCol, type="l", col=alpha("red", 0.02), lwd=2, lty=1, add=T)
+lines(CCM_matrix_LibSize[,1], apply(CCM_matrix_TargetCol, 1, median), col="red", lwd=2)
+legend("topleft", legend=c("ext:ori", "ori:ext"), col=c("red", "blue"), lty=1, cex=0.8)
+```
+

@@ -1,0 +1,252 @@
+############################################################################################
+#
+# RevBayes Foraminifera Analysis: Occurrence Birth-Death process
+#
+# Model: Tree is drawn from a constant-rate occurrence birth-death process
+#
+#
+# authors: Jérémy Andréoletti
+#
+############################################################################################
+
+seed(12345)
+
+#######################
+# Reading in the Data #
+#######################
+
+# Create the full list of taxa (extant species with molecular data) #
+taxa <- readTaxonData("../3-Data_processed/Triton_occurrences/TritonDB_morphospecies_ranges_extant_Microperforate.csv", separator=",")
+n_taxa <- taxa.size()
+occurrence_ages <- readDelimitedDataFile("../3-Data_processed/Triton_occurrences/TritonDB_subsampled_STT_4642occurrences_Microperforate.csv", delim=";")[1]
+n_occ <- occurrence_ages.size()
+
+# Sample 200 occurrences
+n_samples <- 200
+b ~ dnDirichlet(rep(1,n_occ))
+Q <- quantile(b, n_samples/n_occ)
+j <- 1
+for (i in 1:n_occ){
+    if (b[i] < Q){
+        occurrence_sample[j] := occurrence_ages[i]
+        j += 1
+    }
+}
+
+# Molecular alignment for extant species
+# seq <- readDiscreteCharacterData("../3-Data_processed/Sequence_alignments/SSU-align/Microperforate_SSU-align_alignment_species.fasta")
+seq <- readDiscreteCharacterData("../3-Data_processed/Sequence_alignments/SSU-align/Microperforate_SSU-align_alignment_species_pf5_pt5.fasta")
+seq.addMissingTaxa( taxa )
+
+################################################################################################
+# Joint Occurrence Birth-Death Range Process prior on the topology and fossil occurrence times #
+################################################################################################
+
+# Define exponential priors on the birth rate and death rate #
+speciation_rate ~ dnExponential(2)
+extinction_rate ~ dnExponential(2)
+speciation_rate.setValue(0.5)
+
+# Specify a scale move on the speciation_rate parameter #
+# This move will be applied with 3 different tuning values (lambda) to help improve mixing # 
+moves = VectorMoves()
+moves.append( mvScale(speciation_rate, lambda=0.02, weight=1) )
+moves.append( mvScale(speciation_rate, lambda=0.1,  weight=1) )
+moves.append( mvScale(speciation_rate, lambda=0.5,  weight=1) )
+
+# Specify a sliding-window move on the extinction_rate parameter #
+# This move will be applied with 3 different window widths (delta) to help improve mixing # 
+moves.append( mvScale(extinction_rate, lambda=0.02, weight=1) )
+moves.append( mvScale(extinction_rate, lambda=0.1,  weight=1) )
+moves.append( mvScale(extinction_rate, lambda=0.5,    weight=1) )
+
+# Create deterministic nodes for the diversification and turnover rates so that they can be monitored #
+diversification := speciation_rate - extinction_rate
+turnover := extinction_rate/speciation_rate
+
+# Fix the probability of sampling parameter (rho) to 1, #
+# because all extant forams are represented in this analysis #
+rho <- 1.0
+
+# Assume an exponential prior on the rate of sampling fossils (psi) #
+# timeline <- v(20.0, 40.0)
+psi <- 0.0
+
+omega ~ dnExponential(1.0)
+omega.setValue(0.5)
+
+# Specify a scale move on the psi parameter #
+# This move will be applied with 3 different tuning values (lambda) to help improve mixing # 
+moves.append( mvScale(omega, lambda=0.02, weight=1) )
+moves.append( mvScale(omega, lambda=0.1,  weight=1) )
+moves.append( mvScale(omega, lambda=0.5,  weight=1) )
+
+# The OBD is conditioned on a starting time for the process, which is the origin time #
+# Specify a uniform prior on the origin #
+maxAge <- abs(max(occurrence_ages))
+origin_time ~ dnUnif(maxAge, 50.0)
+
+# Specify a sliding-window move on the origin_time parameter #
+# This move will be applied with 3 different window widths (delta) to help improve mixing # 
+moves.append( mvSlide(origin_time, delta=0.01, weight=5.0) )
+moves.append( mvSlide(origin_time, delta=0.1,  weight=5.0) )
+moves.append( mvSlide(origin_time, delta=1,    weight=5.0) )
+
+# Other parameters
+rm <- 0.0
+N <- 40
+cond <- "survival"
+useMt <- TRUE
+verbose <- FALSE
+
+
+### Define the tree-prior distribution as the occurrence birth-death process ###
+obd_dist = dnOBDP(origin          = origin_time, 
+                  lambda          = speciation_rate, 
+                  mu              = extinction_rate, 
+                  psi             = psi, 
+                  omega           = omega, 
+                  rho             = rho, 
+                  r               = rm, 
+                  maxHiddenLin    = N, 
+                  condition       = cond, 
+                  taxa            = taxa,
+                  occurrence_ages = occurrence_ages, 
+                  useMt           = useMt,
+                  verbose         = verbose)
+
+# Constraints for clades without molecular information
+# genus_Tenuitellita <- clade("Tenuitellita_iota_Ia",
+#                             "Tenuitellita_parkerae_Ia",
+#                             "Tenuitellita_fleisheri_Ia")
+# obd_tree ~ dnConstrainedTopology(obd_dist, constraints = v(genus_Tenuitellita))
+
+obd_tree ~ obd_dist
+
+# Specify moves on the tree and node times #
+# These moves update the tree topology
+moves.append( mvFNPR(obd_tree, weight=15.0) )
+
+# These moves update the node ages #
+# Because we are conditioning on the origin time, we must also sample the root node age #
+moves.append( mvNodeTimeSlideUniform(obd_tree, weight=40.0) )
+moves.append( mvRootTimeSlideUniform(obd_tree, origin_time, weight=5.0) )
+
+
+## Clock Model: Exponential 
+
+# Mean branch rate as an exponential random variable
+branch_rates_mean ~ dnExponential(100.0)
+branch_rates_mean.setValue(0.001)
+
+moves.append( mvScale(branch_rates_mean, lambda=0.01, weight=1.0) )
+moves.append( mvScale(branch_rates_mean, lambda=0.1,  weight=1.0) )
+moves.append( mvScale(branch_rates_mean, lambda=1.0,  weight=1.0) )
+
+# Option 1: Fixed clock
+branch_rates := branch_rates_mean
+
+# # Option 2: Relaxed Uncorrelated clock
+
+# # Loop to draw a iid rate for each branch.
+
+# n_branches <- 2 * n_taxa - 2
+
+# for(i in 1:n_branches){
+#     branch_rates[i] ~ dnExp(1/branch_rates_mean)
+#     moves.append( mvScale(branch_rates[i], lambda=1.0,  weight=1.0) )
+#     moves.append( mvScale(branch_rates[i], lambda=0.1,  weight=1.0) )
+#     moves.append( mvScale(branch_rates[i], lambda=0.01, weight=1.0) )
+# }
+
+# # Vector scale move to propose changes to all branch rates simultaneously
+
+# moves.append( mvVectorScale(branch_rates, lambda=0.01, weight=4.0) )
+# moves.append( mvVectorScale(branch_rates, lambda=0.1,  weight=4.0) )
+# moves.append( mvVectorScale(branch_rates, lambda=1.0,  weight=4.0) )
+
+
+## Nucleotide Sequence Evolution Model: General Time-Reversible (GTR) + Gamma
+
+# GTR instantaneous-rate matrix (Q-matrix): set of 4 stationary frequencies, and 
+# 6 exchangeability rates (stochastic nodes drawn from a uniform Dirichlet prior).
+
+sf_hp <- v(1,1,1,1)
+sf ~ dnDirichlet(sf_hp)
+
+er_hp <- v(1,1,1,1,1,1)
+er ~ dnDirichlet(er_hp)
+
+moves.append( mvSimplexElementScale(er, alpha=10.0, weight=5.0) )
+moves.append( mvSimplexElementScale(sf, alpha=10.0, weight=2.0) )
+
+Q_seq := fnGTR(er,sf)
+
+# Gamma-distributed rates: exponential shape parameter α, discretized into 4 rate categories.
+
+alpha_seq ~ dnExponential( 1.0 )
+
+moves.append( mvScale(alpha_seq, lambda=0.1,  weight=2.0) )
+moves.append( mvScale(alpha_seq, lambda=1,    weight=2.0) )
+
+rates_seq := fnDiscretizeGamma( alpha_seq, alpha_seq, 4 )
+
+# Modeling Invariable Sites
+
+p_inv ~ dnBeta(1,1)
+
+moves.append( mvSlide(p_inv) )
+
+# Phylogenetic continuous time Markov chain (PhyloCTMC)
+
+phySeq ~ dnPhyloCTMC(tree=obd_tree, Q=Q_seq, siteRates=rates_seq, pInv=p_inv, branchRates=branch_rates, type="DNA")
+phySeq.clamp(seq)
+
+
+########
+# MCMC #
+########
+
+# initialize the model object #
+mymodel = model(obd_tree)
+
+monitors = VectorMonitors()
+
+# Create a vector of monitors #
+# 1. for the full model #
+monitors.append( mnModel(filename="output_pf5_pt5/forams_Microperforate.log", printgen=1) )
+
+# 2. the tree #
+monitors.append( mnFile(filename="output_pf5_pt5/forams_Microperforate.trees", printgen=1, obd_tree) )
+
+# 3. and a few select parameters to be printed to the screen #
+monitors.append( mnScreen(printgen=100, origin_time) )
+
+# Initialize the MCMC object #
+mymcmc = mcmc(mymodel, monitors, moves, nruns=1)
+
+# Run the MCMC #
+#mymcmc.run(generations=100, checkpointInterval=10, checkpointFile="output_pf5_pt5/forams.state")
+
+# state = readDelimitedDataFile("output_pf5_pt5/forams.state")
+# write(state[1][1], filename="output_pf5_pt5/forams.state")
+# for (i in range(2, state[1].size())){
+#   write("", state[1][i], filename="output_pf5_pt5/forams.state", append=TRUE)
+# }
+# write("\n", tree_init, filename="output_pf5_pt5/forams.state", append=TRUE, separator="")
+# #write("\n", state[2][1], filename="output_pf5_pt5/forams.state", append=TRUE, separator="")
+# for (i in range(2, state[2].size())){
+#   write("", state[2][i], filename="output_pf5_pt5/forams.state", append=TRUE)
+# }
+
+#mymcmc.initializeFromCheckpoint(checkpointFile="output_pf5_pt5/forams.state")
+mymcmc.run(generations=50000, checkpointInterval=1000, checkpointFile="output_pf5_pt5/forams_Microperforate.state")
+
+# Read in the Tree Trace and Construct the Maximum Clade Credibility (MCC) Tree
+trace = readTreeTrace("output_pf5_pt5/forams_Microperforate.trees")
+map_tree = mapTree(trace, file="output_pf5_pt5/forams_Microperforate_MAP.tre")
+mcc_tree = mccTree(trace, file="output_pf5_pt5/forams_Microperforate_MCC.tre")
+
+# Quit RevBayes #
+q()
+

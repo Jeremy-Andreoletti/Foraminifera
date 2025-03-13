@@ -1,0 +1,288 @@
+# command:    ssu-cmsearch --hmm-cW 1.5 --no-null3 --noalign -T -1 --tab Data_processing/Aligned_sequences/SSU-align_Microperforates/SSU-align_Microperforates.tab --viterbi /usr/local/share/ssu-align-0.1.1/ssu-align-0p1.cm Data/Sequences_Morard/Basetypes_Microperforates.fasta
+# date:       Fri Feb 17 14:27:24 2023
+# num seqs:   67
+# dbsize(Mb): 0.117476
+#
+# Pre-search info for CM 1: archaea
+#
+# rnd  mod  alg  cfg   beta  bit sc cut
+# ---  ---  ---  ---  -----  ----------
+#   1  hmm  vit  loc      -       -1.00
+#
+# CM: archaea
+#                                                                               target coord   query coord                         
+#                                                                     ----------------------  ------------                         
+# model name  target name                                                  start        stop  start   stop    bit sc   E-value  GC%
+# ----------  ------------------------------------------------------  ----------  ----------  -----  -----  --------  --------  ---
+  archaea     Basetype_8|basegroup_64|Globigerinita|glutinata                743         781      1   1508     25.12         -   62
+  archaea     Basetype_119|basegroup_180|Globigerinita|minuta                117         389      1   1508     22.73         -   48
+  archaea     Basetype_120|basegroup_192|Candeina|nitida                     741         779      1   1508     25.12         -   62
+  archaea     Basetype_121|basegroup_163|Dentigloborotalia|anfracta          742         780      1   1508     25.12         -   62
+  archaea     Basetype_122|basegroup_164|Tenuitellita|iota                   790         828      1   1508     22.99         -   59
+  archaea     Basetype_123|basegroup_164|Tenuitellita|iota                   799         837      1   1508     22.99         -   59
+  archaea     Basetype_124|basegroup_164|Tenuitellita|iota                   790         828      1   1508     22.99         -   59
+  archaea     Basetype_125|basegroup_164|Tenuitellita|iota                   789         827      1   1508     22.99         -   59
+  archaea     Basetype_126|basegroup_164|Tenuitellita|iota                   789         827      1   1508     22.99         -   59
+  archaea     Basetype_127|basegroup_164|Tenuitellita|iota                   789         827      1   1508     22.99         -   59
+  archaea     Basetype_128|basegroup_165|Dentigloborotalia|anfracta          745         783      1   1508     25.12         -   62
+  archaea     Basetype_129|basegroup_165|Dentigloborotalia|anfracta          744         782      1   1508     25.12         -   62
+  archaea     Basetype_130|basegroup_165|Dentigloborotalia|anfracta          744         782      1   1508     25.12         -   62
+  archaea     Basetype_131|basegroup_165|Dentigloborotalia|anfracta          743         781      1   1508     25.12         -   62
+  archaea     Basetype_132|basegroup_166|Dentigloborotalia|anfracta          747         785      1   1508     25.12         -   62
+  archaea     Basetype_133|basegroup_166|Dentigloborotalia|anfracta          742         780      1   1508     25.12         -   62
+  archaea     Basetype_134|basegroup_167|Tenuitellita|iota                   789         827      1   1508     22.99         -   59
+  archaea     Basetype_135|basegroup_167|Tenuitellita|iota                   789         827      1   1508     22.99         -   59
+  archaea     Basetype_136|basegroup_167|Tenuitellita|iota                   802         840      1   1508     22.99         -   59
+  archaea     Basetype_137|basegroup_167|Tenuitellita|iota                   789         827      1   1508     22.99         -   59
+  archaea     Basetype_138|basegroup_167|Tenuitellita|iota                   801         839      1   1508     22.99         -   59
+  archaea     Basetype_139|basegroup_167|Tenuitellita|iota                   800         838      1   1508     22.99         -   59
+  archaea     Basetype_140|basegroup_167|Tenuitellita|iota                   800         838      1   1508     22.99         -   59
+  archaea     Basetype_141|basegroup_167|Tenuitellita|iota                   800         838      1   1508     22.99         -   59
+  archaea     Basetype_142|basegroup_167|Tenuitellita|iota                   790         828      1   1508     22.99         -   59
+  archaea     Basetype_143|basegroup_168|Tenuitellita|fleisheri              791         829      1   1508     22.99         -   59
+  archaea     Basetype_144|basegroup_168|Tenuitellita|fleisheri              791         829      1   1508     22.99         -   59
+  archaea     Basetype_145|basegroup_168|Tenuitellita|fleisheri              783         821      1   1508     22.99         -   59
+  archaea     Basetype_146|basegroup_168|Tenuitellita|fleisheri              792         830      1   1508     22.99         -   59
+  archaea     Basetype_147|basegroup_168|Tenuitellita|fleisheri              793         831      1   1508     22.99         -   59
+  archaea     Basetype_148|basegroup_168|Tenuitellita|fleisheri              788         826      1   1508     22.99         -   59
+  archaea     Basetype_149|basegroup_168|Tenuitellita|fleisheri              789         827      1   1508     22.99         -   59
+  archaea     Basetype_180|basegroup_91|Globigerinita|glutinata              733         771      1   1508     25.12         -   62
+  archaea     Basetype_181|basegroup_91|Globigerinita|glutinata              737         775      1   1508     25.12         -   62
+  archaea     Basetype_182|basegroup_92|Globigerinita|glutinata              737         775      1   1508     25.12         -   62
+  archaea     Basetype_183|basegroup_86|Tenuitellita|fleisheri               790         828      1   1508     22.99         -   59
+  archaea     Basetype_184|basegroup_86|Tenuitellita|fleisheri               781         819      1   1508     22.99         -   59
+  archaea     Basetype_209|basegroup_181|Globigerinita|glutinata             731         769      1   1508     25.12         -   62
+  archaea     Basetype_210|basegroup_86|Tenuitellita|fleisheri               781         819      1   1508     22.99         -   59
+  archaea     Basetype_211|basegroup_182|Candeina|nitida                     742         780      1   1508     25.12         -   62
+  archaea     Basetype_212|basegroup_183|Globigerinita|glutinata             736         774      1   1508     25.12         -   62
+  archaea     Basetype_213|basegroup_184|Globigerinita|glutinata             732         770      1   1508     25.12         -   62
+  archaea     Basetype_214|basegroup_185|Globigerinita|glutinata             733         771      1   1508     25.12         -   62
+  archaea     Basetype_215|basegroup_173|Globigerinita|glutinata             731         769      1   1508     25.12         -   62
+  archaea     Basetype_216|basegroup_173|Globigerinita|glutinata             733         771      1   1508     25.12         -   62
+  archaea     Basetype_217|basegroup_125|Globigerinita|minuta                101         374      1   1508     21.68         -   47
+  archaea     Basetype_217|basegroup_125|Globigerinita|minuta                198         186      1   1508      0.23         -   62
+  archaea     Basetype_218|basegroup_175|Globigerinita|glutinata             733         771      1   1508     25.12         -   62
+  archaea     Basetype_219|basegroup_192|Candeina|nitida                     741         779      1   1508     25.12         -   62
+  archaea     Basetype_220|basegroup_192|Candeina|nitida                     746         784      1   1508     25.12         -   62
+  archaea     Basetype_221|basegroup_191|Globigerinita|glutinata             731         769      1   1508     25.12         -   62
+  archaea     Basetype_222|basegroup_193|Candeina|nitida                     742         780      1   1508     25.12         -   62
+  archaea     Basetype_223|basegroup_193|Candeina|nitida                     741         779      1   1508     25.12         -   62
+  archaea     Basetype_224|basegroup_190|Globigerinita|glutinata             732         770      1   1508     25.12         -   62
+  archaea     Basetype_225|basegroup_194|Globigerinita|glutinata             732         770      1   1508     25.12         -   62
+  archaea     Basetype_265|basegroup_143|Globigerinita|uvula                 790         828      1   1508     22.99         -   59
+  archaea     Basetype_267|basegroup_142|Globigerinita|uvula                 790         828      1   1508     22.99         -   59
+  archaea     Basetype_268|basegroup_141|Globigerinita|uvula                 788         826      1   1508     22.99         -   59
+  archaea     Basetype_269|basegroup_141|Globigerinita|uvula                 786         824      1   1508     22.99         -   59
+  archaea     Basetype_270|basegroup_141|Globigerinita|uvula                 788         826      1   1508     22.99         -   59
+  archaea     Basetype_271|basegroup_141|Globigerinita|uvula                 788         826      1   1508     22.99         -   59
+  archaea     Basetype_272|basegroup_144|Globigerinita|uvula                 788         826      1   1508     22.99         -   59
+  archaea     Basetype_273|basegroup_124|Globigerinita|glutinata             735         773      1   1508     25.12         -   62
+  archaea     Basetype_274|basegroup_123|Globigerinita|glutinata             737         775      1   1508     25.12         -   62
+  archaea     Basetype_276|basegroup_141|Globigerinita|uvula                 786         824      1   1508     22.99         -   59
+  archaea     Basetype_334|basegroup_209|Globigerinita|uvula                 787         825      1   1508     22.99         -   59
+  archaea     Representative_2|basegroup_199|Neogallitellia|vivans           751         789      1   1508     25.12         -   62
+  archaea     Representative_10|basegroup_77|Globigerinita|glutinata         741         779      1   1508     25.12         -   62
+#
+# Post-search info for CM 1: archaea
+#
+# rnd  mod  alg  cfg   beta  bit sc cut  num hits  surv fract
+# ---  ---  ---  ---  -----  ----------  --------  ----------
+#   1  hmm  vit  loc      -       -1.00        68      0.0263
+#
+#    run time  (hr:min:sec)
+# -----------
+#    00:00:01
+#
+# Pre-search info for CM 2: bacteria
+#
+# rnd  mod  alg  cfg   beta  bit sc cut
+# ---  ---  ---  ---  -----  ----------
+#   1  hmm  vit  loc      -       -1.00
+#
+# CM: bacteria
+#                                                                               target coord   query coord                         
+#                                                                     ----------------------  ------------                         
+# model name  target name                                                  start        stop  start   stop    bit sc   E-value  GC%
+# ----------  ------------------------------------------------------  ----------  ----------  -----  -----  --------  --------  ---
+  bacteria    Basetype_8|basegroup_64|Globigerinita|glutinata                406         443      1   1582      9.98         -   53
+  bacteria    Basetype_119|basegroup_180|Globigerinita|minuta                368         389      1   1582      9.80         -   59
+  bacteria    Basetype_119|basegroup_180|Globigerinita|minuta                523         495      1   1582      0.73         -   38
+  bacteria    Basetype_120|basegroup_192|Candeina|nitida                     401         438      1   1582      9.98         -   53
+  bacteria    Basetype_121|basegroup_163|Dentigloborotalia|anfracta          386         407      1   1582      9.80         -   59
+  bacteria    Basetype_121|basegroup_163|Dentigloborotalia|anfracta          543         521      1   1582      0.22         -   30
+  bacteria    Basetype_122|basegroup_164|Tenuitellita|iota                   438         459      1   1582      9.80         -   59
+  bacteria    Basetype_123|basegroup_164|Tenuitellita|iota                   447         468      1   1582      9.80         -   59
+  bacteria    Basetype_124|basegroup_164|Tenuitellita|iota                   438         459      1   1582      9.80         -   59
+  bacteria    Basetype_125|basegroup_164|Tenuitellita|iota                   437         458      1   1582      9.80         -   59
+  bacteria    Basetype_126|basegroup_164|Tenuitellita|iota                   437         458      1   1582      9.80         -   59
+  bacteria    Basetype_127|basegroup_164|Tenuitellita|iota                   437         458      1   1582      9.80         -   59
+  bacteria    Basetype_128|basegroup_165|Dentigloborotalia|anfracta          389         410      1   1582      9.80         -   59
+  bacteria    Basetype_128|basegroup_165|Dentigloborotalia|anfracta          546         524      1   1582      0.22         -   30
+  bacteria    Basetype_129|basegroup_165|Dentigloborotalia|anfracta          388         409      1   1582      9.80         -   59
+  bacteria    Basetype_129|basegroup_165|Dentigloborotalia|anfracta          545         523      1   1582      0.22         -   30
+  bacteria    Basetype_130|basegroup_165|Dentigloborotalia|anfracta          388         409      1   1582      9.80         -   59
+  bacteria    Basetype_130|basegroup_165|Dentigloborotalia|anfracta          545         523      1   1582      0.22         -   30
+  bacteria    Basetype_131|basegroup_165|Dentigloborotalia|anfracta          387         408      1   1582      9.80         -   59
+  bacteria    Basetype_131|basegroup_165|Dentigloborotalia|anfracta          544         522      1   1582      0.22         -   30
+  bacteria    Basetype_132|basegroup_166|Dentigloborotalia|anfracta          391         412      1   1582      9.80         -   59
+  bacteria    Basetype_132|basegroup_166|Dentigloborotalia|anfracta          548         526      1   1582      0.22         -   30
+  bacteria    Basetype_133|basegroup_166|Dentigloborotalia|anfracta          386         407      1   1582      9.80         -   59
+  bacteria    Basetype_133|basegroup_166|Dentigloborotalia|anfracta          543         521      1   1582      0.22         -   30
+  bacteria    Basetype_134|basegroup_167|Tenuitellita|iota                   437         458      1   1582      9.80         -   59
+  bacteria    Basetype_135|basegroup_167|Tenuitellita|iota                   437         458      1   1582      9.80         -   59
+  bacteria    Basetype_136|basegroup_167|Tenuitellita|iota                   450         471      1   1582      9.80         -   59
+  bacteria    Basetype_137|basegroup_167|Tenuitellita|iota                   437         458      1   1582      9.80         -   59
+  bacteria    Basetype_138|basegroup_167|Tenuitellita|iota                   449         470      1   1582      9.80         -   59
+  bacteria    Basetype_139|basegroup_167|Tenuitellita|iota                   448         469      1   1582      9.80         -   59
+  bacteria    Basetype_140|basegroup_167|Tenuitellita|iota                   448         469      1   1582      9.80         -   59
+  bacteria    Basetype_141|basegroup_167|Tenuitellita|iota                   448         469      1   1582      9.80         -   59
+  bacteria    Basetype_142|basegroup_167|Tenuitellita|iota                   438         459      1   1582      9.80         -   59
+  bacteria    Basetype_143|basegroup_168|Tenuitellita|fleisheri              438         459      1   1582      9.80         -   59
+  bacteria    Basetype_144|basegroup_168|Tenuitellita|fleisheri              438         459      1   1582      9.80         -   59
+  bacteria    Basetype_145|basegroup_168|Tenuitellita|fleisheri              440         461      1   1582      9.80         -   59
+  bacteria    Basetype_146|basegroup_168|Tenuitellita|fleisheri              440         461      1   1582      9.80         -   59
+  bacteria    Basetype_147|basegroup_168|Tenuitellita|fleisheri              440         461      1   1582      9.80         -   59
+  bacteria    Basetype_148|basegroup_168|Tenuitellita|fleisheri              436         457      1   1582      9.80         -   59
+  bacteria    Basetype_149|basegroup_168|Tenuitellita|fleisheri              436         457      1   1582      9.80         -   59
+  bacteria    Basetype_180|basegroup_91|Globigerinita|glutinata              392         429      1   1582      9.98         -   53
+  bacteria    Basetype_180|basegroup_91|Globigerinita|glutinata              148         127      1   1582     -1.00         -   23
+  bacteria    Basetype_181|basegroup_91|Globigerinita|glutinata              396         433      1   1582      9.98         -   53
+  bacteria    Basetype_181|basegroup_91|Globigerinita|glutinata              152         131      1   1582     -1.00         -   23
+  bacteria    Basetype_182|basegroup_92|Globigerinita|glutinata              396         433      1   1582      9.98         -   53
+  bacteria    Basetype_182|basegroup_92|Globigerinita|glutinata              152         131      1   1582     -1.00         -   23
+  bacteria    Basetype_183|basegroup_86|Tenuitellita|fleisheri               438         459      1   1582      9.80         -   59
+  bacteria    Basetype_184|basegroup_86|Tenuitellita|fleisheri               438         459      1   1582      9.80         -   59
+  bacteria    Basetype_209|basegroup_181|Globigerinita|glutinata             401         438      1   1582      9.98         -   53
+  bacteria    Basetype_210|basegroup_86|Tenuitellita|fleisheri               438         459      1   1582      9.80         -   59
+  bacteria    Basetype_211|basegroup_182|Candeina|nitida                     394         431      1   1582      9.98         -   53
+  bacteria    Basetype_212|basegroup_183|Globigerinita|glutinata             405         442      1   1582      9.98         -   53
+  bacteria    Basetype_213|basegroup_184|Globigerinita|glutinata             396         433      1   1582      9.98         -   53
+  bacteria    Basetype_214|basegroup_185|Globigerinita|glutinata             397         434      1   1582      9.98         -   53
+  bacteria    Basetype_215|basegroup_173|Globigerinita|glutinata             396         433      1   1582      9.98         -   53
+  bacteria    Basetype_215|basegroup_173|Globigerinita|glutinata             152         131      1   1582     -1.00         -   23
+  bacteria    Basetype_216|basegroup_173|Globigerinita|glutinata             397         434      1   1582      9.98         -   53
+  bacteria    Basetype_216|basegroup_173|Globigerinita|glutinata             152         131      1   1582     -1.00         -   23
+  bacteria    Basetype_217|basegroup_125|Globigerinita|minuta                353         374      1   1582      9.80         -   59
+  bacteria    Basetype_217|basegroup_125|Globigerinita|minuta                521         492      1   1582      0.64         -   37
+  bacteria    Basetype_218|basegroup_175|Globigerinita|glutinata             403         440      1   1582      9.98         -   53
+  bacteria    Basetype_219|basegroup_192|Candeina|nitida                     401         438      1   1582      9.98         -   53
+  bacteria    Basetype_220|basegroup_192|Candeina|nitida                     406         443      1   1582      9.98         -   53
+  bacteria    Basetype_221|basegroup_191|Globigerinita|glutinata             394         431      1   1582      9.98         -   53
+  bacteria    Basetype_222|basegroup_193|Candeina|nitida                     401         438      1   1582      9.98         -   53
+  bacteria    Basetype_223|basegroup_193|Candeina|nitida                     401         438      1   1582      9.98         -   53
+  bacteria    Basetype_224|basegroup_190|Globigerinita|glutinata             396         433      1   1582      9.98         -   53
+  bacteria    Basetype_225|basegroup_194|Globigerinita|glutinata             396         433      1   1582      9.98         -   53
+  bacteria    Basetype_265|basegroup_143|Globigerinita|uvula                 413         434      1   1582      9.80         -   59
+  bacteria    Basetype_267|basegroup_142|Globigerinita|uvula                 415         436      1   1582      9.80         -   59
+  bacteria    Basetype_268|basegroup_141|Globigerinita|uvula                 413         434      1   1582      9.80         -   59
+  bacteria    Basetype_269|basegroup_141|Globigerinita|uvula                 411         432      1   1582      9.80         -   59
+  bacteria    Basetype_270|basegroup_141|Globigerinita|uvula                 411         432      1   1582      9.80         -   59
+  bacteria    Basetype_271|basegroup_141|Globigerinita|uvula                 413         434      1   1582      9.80         -   59
+  bacteria    Basetype_272|basegroup_144|Globigerinita|uvula                 411         432      1   1582      9.80         -   59
+  bacteria    Basetype_273|basegroup_124|Globigerinita|glutinata             398         435      1   1582      9.98         -   53
+  bacteria    Basetype_274|basegroup_123|Globigerinita|glutinata             400         437      1   1582      9.98         -   53
+  bacteria    Basetype_276|basegroup_141|Globigerinita|uvula                 411         432      1   1582      9.80         -   59
+  bacteria    Basetype_334|basegroup_209|Globigerinita|uvula                 410         431      1   1582      9.80         -   59
+  bacteria    Representative_2|basegroup_199|Neogallitellia|vivans           390         411      1   1582      9.80         -   59
+  bacteria    Representative_2|basegroup_199|Neogallitellia|vivans           550         528      1   1582      0.22         -   30
+  bacteria    Representative_10|basegroup_77|Globigerinita|glutinata         400         437      1   1582      9.98         -   53
+#
+# Post-search info for CM 2: bacteria
+#
+# rnd  mod  alg  cfg   beta  bit sc cut  num hits  surv fract
+# ---  ---  ---  ---  -----  ----------  --------  ----------
+#   1  hmm  vit  loc      -       -1.00        82      0.0187
+#
+#    run time  (hr:min:sec)
+# -----------
+#    00:00:01
+#
+# Pre-search info for CM 3: eukarya
+#
+# rnd  mod  alg  cfg   beta  bit sc cut
+# ---  ---  ---  ---  -----  ----------
+#   1  hmm  vit  loc      -       -1.00
+#
+# CM: eukarya
+#                                                                               target coord   query coord                         
+#                                                                     ----------------------  ------------                         
+# model name  target name                                                  start        stop  start   stop    bit sc   E-value  GC%
+# ----------  ------------------------------------------------------  ----------  ----------  -----  -----  --------  --------  ---
+  eukarya     Basetype_8|basegroup_64|Globigerinita|glutinata                 49         792      1   1881    171.86         -   47
+  eukarya     Basetype_119|basegroup_180|Globigerinita|minuta                117         765      1   1881    156.32         -   48
+  eukarya     Basetype_120|basegroup_192|Candeina|nitida                      50         790      1   1881    172.13         -   47
+  eukarya     Basetype_121|basegroup_163|Dentigloborotalia|anfracta           48         791      1   1881    171.30         -   46
+  eukarya     Basetype_122|basegroup_164|Tenuitellita|iota                    46         839      1   1881    161.08         -   46
+  eukarya     Basetype_123|basegroup_164|Tenuitellita|iota                    56         848      1   1881    161.17         -   46
+  eukarya     Basetype_124|basegroup_164|Tenuitellita|iota                    46         839      1   1881    161.08         -   46
+  eukarya     Basetype_125|basegroup_164|Tenuitellita|iota                    46         838      1   1881    161.17         -   46
+  eukarya     Basetype_126|basegroup_164|Tenuitellita|iota                    46         838      1   1881    161.17         -   46
+  eukarya     Basetype_127|basegroup_164|Tenuitellita|iota                    46         838      1   1881    161.17         -   46
+  eukarya     Basetype_128|basegroup_165|Dentigloborotalia|anfracta           48         794      1   1881    171.03         -   45
+  eukarya     Basetype_129|basegroup_165|Dentigloborotalia|anfracta           48         793      1   1881    171.12         -   45
+  eukarya     Basetype_130|basegroup_165|Dentigloborotalia|anfracta           48         793      1   1881    171.12         -   45
+  eukarya     Basetype_131|basegroup_165|Dentigloborotalia|anfracta           48         792      1   1881    171.21         -   45
+  eukarya     Basetype_132|basegroup_166|Dentigloborotalia|anfracta           50         796      1   1881    171.03         -   45
+  eukarya     Basetype_133|basegroup_166|Dentigloborotalia|anfracta           48         791      1   1881    171.30         -   45
+  eukarya     Basetype_134|basegroup_167|Tenuitellita|iota                    46         838      1   1881    161.17         -   46
+  eukarya     Basetype_135|basegroup_167|Tenuitellita|iota                    46         838      1   1881    156.29         -   46
+  eukarya     Basetype_136|basegroup_167|Tenuitellita|iota                    58         851      1   1881    161.08         -   46
+  eukarya     Basetype_137|basegroup_167|Tenuitellita|iota                    46         838      1   1881    161.17         -   46
+  eukarya     Basetype_138|basegroup_167|Tenuitellita|iota                    58         850      1   1881    156.29         -   46
+  eukarya     Basetype_139|basegroup_167|Tenuitellita|iota                    56         849      1   1881    161.08         -   46
+  eukarya     Basetype_140|basegroup_167|Tenuitellita|iota                    56         849      1   1881    158.01         -   46
+  eukarya     Basetype_141|basegroup_167|Tenuitellita|iota                    56         849      1   1881    161.08         -   46
+  eukarya     Basetype_142|basegroup_167|Tenuitellita|iota                    46         839      1   1881    161.08         -   46
+  eukarya     Basetype_143|basegroup_168|Tenuitellita|fleisheri               50         840      1   1881    161.35         -   45
+  eukarya     Basetype_144|basegroup_168|Tenuitellita|fleisheri               52         840      1   1881    161.53         -   45
+  eukarya     Basetype_145|basegroup_168|Tenuitellita|fleisheri               52         832      1   1881    162.24         -   46
+  eukarya     Basetype_146|basegroup_168|Tenuitellita|fleisheri               52         841      1   1881    161.44         -   45
+  eukarya     Basetype_147|basegroup_168|Tenuitellita|fleisheri               52         842      1   1881    161.35         -   45
+  eukarya     Basetype_148|basegroup_168|Tenuitellita|fleisheri               50         837      1   1881    161.62         -   45
+  eukarya     Basetype_149|basegroup_168|Tenuitellita|fleisheri               50         838      1   1881    161.53         -   45
+  eukarya     Basetype_180|basegroup_91|Globigerinita|glutinata               49         782      1   1881    172.75         -   46
+  eukarya     Basetype_181|basegroup_91|Globigerinita|glutinata               53         786      1   1881    172.75         -   46
+  eukarya     Basetype_182|basegroup_92|Globigerinita|glutinata               53         786      1   1881    172.75         -   46
+  eukarya     Basetype_183|basegroup_86|Tenuitellita|fleisheri                52         839      1   1881    161.62         -   45
+  eukarya     Basetype_184|basegroup_86|Tenuitellita|fleisheri                52         830      1   1881    162.42         -   46
+  eukarya     Basetype_209|basegroup_181|Globigerinita|glutinata              51         780      1   1881    173.11         -   47
+  eukarya     Basetype_210|basegroup_86|Tenuitellita|fleisheri                52         830      1   1881    162.42         -   45
+  eukarya     Basetype_211|basegroup_182|Candeina|nitida                      50         791      1   1881    171.35         -   44
+  eukarya     Basetype_212|basegroup_183|Globigerinita|glutinata              55         785      1   1881    173.02         -   47
+  eukarya     Basetype_213|basegroup_184|Globigerinita|glutinata              47         781      1   1881    172.66         -   47
+  eukarya     Basetype_214|basegroup_185|Globigerinita|glutinata              47         782      1   1881    172.58         -   47
+  eukarya     Basetype_215|basegroup_173|Globigerinita|glutinata              53         780      1   1881    173.29         -   46
+  eukarya     Basetype_216|basegroup_173|Globigerinita|glutinata              53         782      1   1881    173.11         -   46
+  eukarya     Basetype_217|basegroup_125|Globigerinita|minuta                101         765      1   1881    141.94         -   47
+  eukarya     Basetype_217|basegroup_125|Globigerinita|minuta                541         523      1   1881     -0.82         -   32
+  eukarya     Basetype_218|basegroup_175|Globigerinita|glutinata              53         782      1   1881    173.11         -   47
+  eukarya     Basetype_219|basegroup_192|Candeina|nitida                      50         790      1   1881    172.13         -   47
+  eukarya     Basetype_220|basegroup_192|Candeina|nitida                      50         795      1   1881    171.69         -   47
+  eukarya     Basetype_221|basegroup_191|Globigerinita|glutinata              49         780      1   1881    172.93         -   45
+  eukarya     Basetype_222|basegroup_193|Candeina|nitida                      50         791      1   1881    172.04         -   47
+  eukarya     Basetype_223|basegroup_193|Candeina|nitida                      50         790      1   1881    172.13         -   47
+  eukarya     Basetype_224|basegroup_190|Globigerinita|glutinata              47         781      1   1881    172.66         -   47
+  eukarya     Basetype_225|basegroup_194|Globigerinita|glutinata              47         781      1   1881    172.66         -   47
+  eukarya     Basetype_265|basegroup_143|Globigerinita|uvula                  49         839      1   1881    162.14         -   46
+  eukarya     Basetype_267|basegroup_142|Globigerinita|uvula                  49         839      1   1881    162.14         -   46
+  eukarya     Basetype_268|basegroup_141|Globigerinita|uvula                  49         837      1   1881    162.32         -   46
+  eukarya     Basetype_269|basegroup_141|Globigerinita|uvula                  49         835      1   1881    162.49         -   46
+  eukarya     Basetype_270|basegroup_141|Globigerinita|uvula                  49         837      1   1881    162.32         -   46
+  eukarya     Basetype_271|basegroup_141|Globigerinita|uvula                  49         837      1   1881    162.32         -   46
+  eukarya     Basetype_272|basegroup_144|Globigerinita|uvula                  49         837      1   1881    162.32         -   46
+  eukarya     Basetype_273|basegroup_124|Globigerinita|glutinata              47         784      1   1881    172.40         -   46
+  eukarya     Basetype_274|basegroup_123|Globigerinita|glutinata              47         786      1   1881    172.22         -   47
+  eukarya     Basetype_276|basegroup_141|Globigerinita|uvula                  49         835      1   1881    162.49         -   46
+  eukarya     Basetype_334|basegroup_209|Globigerinita|uvula                  49         836      1   1881    162.40         -   46
+  eukarya     Representative_2|basegroup_199|Neogallitellia|vivans            51         800      1   1881    170.77         -   45
+  eukarya     Representative_10|basegroup_77|Globigerinita|glutinata          49         790      1   1881    172.04         -   45
+#
+# Post-search info for CM 3: eukarya
+#
+# rnd  mod  alg  cfg   beta  bit sc cut  num hits  surv fract
+# ---  ---  ---  ---  -----  ----------  --------  ----------
+#   1  hmm  vit  loc      -       -1.00        68      0.4351
+#
+#    run time  (hr:min:sec)
+# -----------
+#    00:00:01

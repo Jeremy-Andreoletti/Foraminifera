@@ -1,0 +1,22 @@
+# ssu-draw :: draw SSU rRNA secondary structure diagrams
+# SSU-ALIGN 0.1.1 (Feb 2016)
+# Copyright (C) 2016 Howard Hughes Medical Institute
+# Freely distributed under the BSD open source license.
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# command: ssu-draw ../../3-Data_processed/Sequence_alignments/SSU-align/Mask_pf0.95_pt0.95/SSU-align_NonSpinose
+# date:    Wed Oct 30 17:50:34 2024
+#
+# Drawing secondary structure diagrams...
+#
+# alignment file name               structure diagram file                 # pages  tabular data file                        
+# --------------------------------  -------------------------------------  -------  -----------------------------------------
+  SSU-align_NonSpinose.eukarya.stk  SSU-align_NonSpinose.eukarya.pdf             9  SSU-align_NonSpinose.eukarya.drawtab     
+#
+# List of executed commands saved in:     SSU-align_NonSpinose.ssu-draw.log.
+# Output printed to the screen saved in:  SSU-align_NonSpinose.ssu-draw.sum.
+#
+# All output files created in directory ./../../3-Data_processed/Sequence_alignments/SSU-align/Mask_pf0.95_pt0.95/SSU-align_NonSpinose/
+#
+# CPU time:  00:00:00.48  (hh:mm:ss)
+# 
+# SSU-ALIGN-SUCCESS

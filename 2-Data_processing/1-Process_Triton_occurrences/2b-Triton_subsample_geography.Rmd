@@ -1,0 +1,243 @@
+---
+title: "Subsampling the Triton datase - Geographical rarefaction"
+output: html_notebook
+---
+
+```{r}
+library(divvy)
+library(ggplot2)
+library(gridExtra)
+#library(units)
+library(sf)
+library(terra)
+#library(vegan)
+#library(iNEXT)
+library(rnaturalearth)
+#library(rnaturalearthdata)
+```
+
+```{r}
+triton.ss.STT <- read.csv("../../3-Data_processed/Triton_occurrences/TritonDB_subsampled_STT_91253foss.csv", row.names = 1)
+head(triton.ss.STT)
+```
+
+# Inspect the dataset
+## Geographical data
+
+```{r}
+# Define coordinate columns
+xyCartes <- c('longitude','latitude')  # Longitude and Latitude columns
+xyCell   <- c('cellX','cellY')       # To store grid cell coordinates
+```
+
+```{r}
+# Initialize Equal Earth projection
+prj <- 'EPSG:8857'  # Equal Earth projection
+
+# Create an empty raster with Equal Earth projection and appropriate resolution
+# Adjust 'res' parameter as needed (e.g., 200000 meters ~ 2 degrees)
+rWorld <- rast()
+rPrj <- project(rWorld, prj, res = 50000)
+values(rPrj) <- 1:ncell(rPrj)
+```
+
+```{r}
+# Convert occurrence points to spatial features
+occurrences <- vect(triton.ss.STT, geom = xyCartes, crs = 'epsg:4326')
+occurrences_prj <- project(occurrences, prj)
+
+# Assign each occurrence to a grid cell
+triton.ss.STT$cell <- cells(rPrj, occurrences_prj)[, 'cell']
+triton.ss.STT[, xyCell] <- xyFromCell(rPrj, triton.ss.STT$cell)
+
+# Remove occurrences with NA cells (if any)
+triton.ss.STT <- triton.ss.STT[!is.na(triton.ss.STT$cell), ]
+```
+
+## Plotting
+
+```{r}
+# Ensure uniqueness of localities based on grid cells
+# This step is crucial to avoid inflating site numbers due to minor coordinate discrepancies
+triton.ss.STT_unique <- uniqify(triton.ss.STT, xyCell)
+
+# Convert unique occurrences to sf object for visualization
+triton.ss.STT_unique_sf <- st_as_sf(triton.ss.STT_unique, coords = xyCell, crs = prj)
+```
+
+```{r}
+# Load world map for plotting
+world <- ne_countries(scale = "medium", returnclass = "sf")
+
+# Visualize the current spatial distribution of subsampled data
+world_plot <- ggplot(data = world) +
+  theme_bw() +
+  geom_sf() +
+  geom_sf(data = triton.ss.STT_unique_sf, shape = 17, color = 'blue') +
+  labs(title = "Spatial Distribution of Subsampled Triton Fossils")
+
+print(world_plot)
+```
+
+# Perform Circular Subsampling Using 'cookies'
+## Circular subsampling
+Parameters:
+- iter: Number of iterations (e.g., 500)
+- nSite: Number of sites per subsample (e.g., 20)
+- r: Radius in kilometers (e.g., 1500 km)
+
+```{r}
+set.seed(123)  # For reproducibility
+circ_subsamples <- cookies(
+  dat = triton.ss.STT_unique,  
+  xy = xyCell,
+  iter = 200, 
+  nSite = 2,          # Adjust based on your dataset size and desired subsample size
+  r = 1500,           # Radius in kilometers
+  weight = TRUE,      # Probabilistically aggregate subsampling sites
+  crs = prj, 
+  output = 'full'     # Retrieve full occurrence data for each subsample
+)
+
+head(circ_subsamples[[1]])
+```
+
+```{r}
+# Visualize the first subsample on the world map
+first_subsample <- circ_subsamples[[sample(1:length(circ_subsamples), 1)]]
+subsample_sf <- st_as_sf(first_subsample, coords = xyCell, crs = prj)
+
+world_plot +
+  geom_sf(data = subsample_sf, shape = 17, color = 'red') +
+  labs(title = "First Circular Subsample of Triton Fossils")
+
+# Visualize the circular boundary around the seed location
+seed_location <- subsample_sf[1, ]
+buffer_radius <- 1500 * 1000  # Convert km to meters
+buffer <- st_buffer(seed_location, dist = buffer_radius)
+
+# Plot with buffer
+world_plot +
+  geom_sf(data = subsample_sf, shape = 17, color = 'red') +
+  geom_sf(data = buffer, fill = NA, color = 'red', size = 1) +
+  labs(title = "First Circular Subsample with Boundary")
+```
+
+# Combine All Sampled Sites
+
+```{r}
+# Combine all subsamples into a single data frame
+all_circ_subsamples <- do.call(rbind, circ_subsamples)
+
+# Ensure that the combined data frame has unique sites
+all_circ_unique <- uniqify(all_circ_subsamples, xyCell)
+
+# Extract unique sampled sites across all iterations
+sampled_sites <- all_circ_unique$cell
+```
+
+## Compare Geographical Distribution Before and After Subsampling
+
+```{r}
+# Identify sampled sites by their grid cells
+triton.ss.STT_unique_sf$sampled <- triton.ss.STT_unique_sf$cell %in% sampled_sites
+
+# Create a new column for color based on sampling
+triton.ss.STT_unique_sf$color <- ifelse(triton.ss.STT_unique_sf$sampled, "Sampled", "Not Sampled")
+
+# Plot the map with sampled sites in red and others in blue
+ggplot(data = world) +
+  theme_bw() +
+  geom_sf() +
+  geom_sf(data = triton.ss.STT_unique_sf, aes(color = color), shape = 17, alpha = 0.5) +
+  scale_color_manual(values = c("Sampled" = "red", "Not Sampled" = "blue")) +
+  labs(title = "Geographical Subsampling of Triton Fossils",
+       color = "Site Status") +
+  theme(legend.position = "bottom")
+```
+
+# Compare Latitude and Longitude Densities
+In this section, we will compare the density distributions of latitude and longitude between the original and subsampled Triton fossil datasets. This comparison helps assess how well the subsampling process has standardized the spatial distribution of fossil occurrences.
+
+```{r}
+# Calculate Density Estimates
+triton.ss.STT.Geo <- triton.ss.STT[triton.ss.STT$cell %in% sampled_sites,]
+
+density_original_lat <- density(triton.ss.STT$latitude, from = -90, to = 90, na.rm = TRUE)
+density_sampled_lat <- density(triton.ss.STT.Geo$latitude, from = -90, to = 90, na.rm = TRUE)
+
+density_original_long <- density(triton.ss.STT$longitude, from = -180, to = 180, na.rm = TRUE)
+density_sampled_long <- density(triton.ss.STT.Geo$longitude, from = -180, to = 180, na.rm = TRUE)
+```
+
+```{r fig.width=12, fig.asp=0.3}
+# Latitude Density Comparison
+p1 <- ggplot() +
+  geom_line(aes(x = density_original_lat$x, y = density_original_lat$y, color = "Original"), size = 1) +
+  geom_line(aes(x = density_sampled_lat$x, y = density_sampled_lat$y, color = "Sampled"), size = 1, linetype = "dashed") +
+  scale_color_manual(values = c("Original" = "blue", "Sampled" = "red")) +
+  labs(title = "Latitude Density Comparison",
+       x = "Latitude",
+       y = "Density",
+       color = "") +
+  theme_minimal()
+
+# Longitude Density Comparison
+p2 <- ggplot() +
+  geom_line(aes(x = density_original_long$x, y = density_original_long$y, color = "Original"), size = 1) +
+  geom_line(aes(x = density_sampled_long$x, y = density_sampled_long$y, color = "Sampled"), size = 1, linetype = "dashed") +
+  scale_color_manual(values = c("Original" = "blue", "Sampled" = "red")) +
+  labs(title = "Longitude Density Comparison",
+       x = "Longitude",
+       y = "Density",
+       color = "") +
+  theme_minimal()
+
+# Arrange both plots side by side
+grid.arrange(p1, p2, ncol = 2)
+```
+
+```{r}
+hist(sapply(na.omit(unique(triton.ss.STT$holeID)), function(holeID)triton.ss.STT[na.omit(triton.ss.STT$holeID == holeID),"latitude"][1]), breaks=40)
+hist(sapply(na.omit(unique(triton.ss.STT$holeID)), function(holeID)triton.ss.STT[na.omit(triton.ss.STT$holeID == holeID),"longitude"][1]), breaks=20)
+hist(sapply(na.omit(unique(triton.ss.STT.Geo$holeID)), function(holeID)triton.ss.STT.Geo[na.omit(triton.ss.STT.Geo$holeID == holeID),"latitude"][1]), breaks=40)
+hist(sapply(na.omit(unique(triton.ss.STT.Geo$holeID)), function(holeID)triton.ss.STT.Geo[na.omit(triton.ss.STT.Geo$holeID == holeID),"longitude"][1]), breaks=20)
+```
+
+
+# Extract all subsampled datasets
+# Each element in 'circ_subsamples' is a subsampled dataset
+
+```{r}
+# Combine all subsamples into a list of data frames
+all_circ_subsamples <- lapply(circ_subsamples, as.data.frame)
+```
+
+# Analyze Subsample Distributions (Optional)
+# For example, compare the latitudinal and longitudinal distributions
+
+```{r}
+# Function to calculate density for a subsample
+calculate_density <- function(subsample, type = c("lat", "long")){
+  type <- match.arg(type)
+  if(type == "lat"){
+    return(density(subsample$pal.lat, from = -90, to = 90, na.rm = TRUE))
+  } else {
+    return(density(subsample$pal.long, from = -180, to = 180, na.rm = TRUE))
+  }
+}
+```
+
+```{r}
+# Plot example density comparison
+par(mfrow = c(1,2))
+plot(calculate_density(triton.ss.STT_unique, "lat"), main = "Latitude Density", xlab = "Latitude", ylab = "Density")
+for(i in 1:100){
+  lines(calculate_density(all_circ_subsamples[[i]], "lat"), col = alpha("red", 0.3))
+}
+
+plot(calculate_density(triton.ss.STT_unique, "long"), main = "Longitude Density", xlab = "Longitude", ylab = "Density")
+for(i in 1:100){
+  lines(calculate_density(all_circ_subsamples[[i]], "long"), col = alpha("blue", 0.3))
+}
+```

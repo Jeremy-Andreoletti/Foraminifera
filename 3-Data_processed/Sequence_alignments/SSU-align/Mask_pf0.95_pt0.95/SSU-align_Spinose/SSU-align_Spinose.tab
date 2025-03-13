@@ -1,0 +1,411 @@
+# command:    ssu-cmsearch --hmm-cW 1.5 --no-null3 --noalign -T -1 --tab Data_processing/Aligned_sequences/SSU-align_Spinose/SSU-align_Spinose.tab --viterbi /usr/local/share/ssu-align-0.1.1/ssu-align-0p1.cm Data/Sequences_Morard/Basetypes_Spinose.fasta
+# date:       Tue Feb 14 15:43:45 2023
+# num seqs:   80
+# dbsize(Mb): 0.143294
+#
+# Pre-search info for CM 1: archaea
+#
+# rnd  mod  alg  cfg   beta  bit sc cut
+# ---  ---  ---  ---  -----  ----------
+#   1  hmm  vit  loc      -       -1.00
+#
+# CM: archaea
+#                                                                                    target coord   query coord                         
+#                                                                          ----------------------  ------------                         
+# model name  target name                                                       start        stop  start   stop    bit sc   E-value  GC%
+# ----------  -----------------------------------------------------------  ----------  ----------  -----  -----  --------  --------  ---
+  archaea     Basetype_3|basegroup_70|Globigerinella|siphonifera                  792         830      1   1508     25.12         -   62
+  archaea     Basetype_4|basegroup_65|Globigerinella|siphonifera                  792         830      1   1508     25.12         -   62
+  archaea     Basetype_5|basegroup_66|Orbulina|universa                           715         772      1   1508     28.79         -   64
+  archaea     Basetype_6|basegroup_11|Orbulina|universa                           715         772      1   1508     28.79         -   64
+  archaea     Basetype_7|basegroup_52|Globigerinoides|ruber-albus                 771         809      1   1508     25.12         -   62
+  archaea     Basetype_11|basegroup_5|Trilobatus|sacculifer                       801         837      1   1508     16.57         -   59
+  archaea     Basetype_12|basegroup_51|Globigerinoides|ruber-albus                766         804      1   1508     25.12         -   62
+  archaea     Basetype_64|basegroup_9|Globigerinella|siphonifera                  794         832      1   1508     25.12         -   62
+  archaea     Basetype_65|basegroup_10|Globigerinella|siphonifera                 784         822      1   1508     25.12         -   62
+  archaea     Basetype_66|basegroup_8|Globigerinoides|elongatus                   745         824      1   1508     43.74         -   59
+  archaea     Basetype_67|basegroup_7|Globigerina|bulloides                       762         798      1   1508     12.83         -   59
+  archaea     Basetype_67|basegroup_7|Globigerina|bulloides                       591         577      1   1508      0.18         -   33
+  archaea     Basetype_68|basegroup_15|Globigerina|bulloides                      755         791      1   1508     12.83         -   59
+  archaea     Basetype_68|basegroup_15|Globigerina|bulloides                      586         572      1   1508      0.18         -   40
+  archaea     Basetype_69|basegroup_17|Globigerina|bulloides                      760         796      1   1508     12.83         -   59
+  archaea     Basetype_69|basegroup_17|Globigerina|bulloides                      588         574      1   1508      0.18         -   33
+  archaea     Basetype_70|basegroup_16|Turborotalita|quinqueloba                  891         968      1   1508     26.66         -   50
+  archaea     Basetype_71|basegroup_81|Turborotalita|quinqueloba                  904         981      1   1508     25.24         -   50
+  archaea     Basetype_72|basegroup_20|Turborotalita|quinqueloba                  800         872      1   1508     20.93         -   49
+  archaea     Basetype_74|basegroup_29|Globigerinella|calida                      804         842      1   1508     25.12         -   62
+  archaea     Basetype_76|basegroup_31|Turborotalita|quinqueloba                  902         979      1   1508     25.24         -   50
+  archaea     Basetype_77|basegroup_38|Turborotalita|quinqueloba                  906         983      1   1508     25.24         -   50
+  archaea     Basetype_83|basegroup_39|Globigerina|bulloides                      756         792      1   1508     12.83         -   59
+  archaea     Basetype_83|basegroup_39|Globigerina|bulloides                      588         574      1   1508      0.18         -   47
+  archaea     Basetype_162|basegroup_186|Globigerinoides|elongatus                745         824      1   1508     43.74         -   59
+  archaea     Basetype_163|basegroup_187|Globoturborotalita|rubescens             770         827      1   1508     26.87         -   60
+  archaea     Basetype_163|basegroup_187|Globoturborotalita|rubescens             591         579      1   1508     -0.63         -   54
+  archaea     Basetype_164|basegroup_187|Globoturborotalita|rubescens             770         827      1   1508     26.87         -   60
+  archaea     Basetype_164|basegroup_187|Globoturborotalita|rubescens             591         579      1   1508     -0.63         -   54
+  archaea     Basetype_166|basegroup_187|Globoturborotalita|rubescens             770         827      1   1508     26.87         -   60
+  archaea     Basetype_166|basegroup_187|Globoturborotalita|rubescens             591         579      1   1508     -0.63         -   54
+  archaea     Basetype_167|basegroup_7|Globigerina|bulloides                      763         799      1   1508     12.83         -   59
+  archaea     Basetype_167|basegroup_7|Globigerina|bulloides                      592         578      1   1508      0.18         -   33
+  archaea     Basetype_172|basegroup_176|Turborotalita|humilis                    879         956      1   1508     27.41         -   49
+  archaea     Basetype_173|basegroup_115|Globigerina|bulloides                    751         787      1   1508     12.83         -   59
+  archaea     Basetype_175|basegroup_19|Globigerina|bulloides                     755         791      1   1508     12.83         -   59
+  archaea     Basetype_175|basegroup_19|Globigerina|bulloides                     586         572      1   1508      0.18         -   40
+  archaea     Basetype_176|basegroup_24|Globigerina|bulloides                     755         791      1   1508     12.83         -   59
+  archaea     Basetype_176|basegroup_24|Globigerina|bulloides                     586         572      1   1508      0.18         -   40
+  archaea     Basetype_177|basegroup_25|Globigerina|bulloides                     755         791      1   1508     12.83         -   59
+  archaea     Basetype_177|basegroup_25|Globigerina|bulloides                     586         572      1   1508      0.18         -   40
+  archaea     Basetype_179|basegroup_18|Globigerinoides|ruber-albus               766         804      1   1508     25.12         -   62
+  archaea     Basetype_197|basegroup_84|Hastigerina|pelagica                      793         831      1   1508     25.12         -   62
+  archaea     Basetype_198|basegroup_84|Hastigerina|pelagica                      791         829      1   1508     25.12         -   62
+  archaea     Basetype_199|basegroup_85|Hastigerina|pelagica                      375         818      1   1508     25.97         -   52
+  archaea     Basetype_200|basegroup_56|Hastigerina|pelagica                      899         937      1   1508     25.12         -   62
+  archaea     Basetype_201|basegroup_56|Hastigerina|pelagica                      897         935      1   1508     25.12         -   62
+  archaea     Basetype_202|basegroup_57|Hastigerina|pelagica                      796         834      1   1508     25.12         -   62
+  archaea     Basetype_204|basegroup_30|Globigerinella|siphonifera                795         833      1   1508     25.12         -   62
+  archaea     Basetype_205|basegroup_27|Globigerina|falconensis                   769         805      1   1508     23.76         -   62
+  archaea     Basetype_206|basegroup_4|Globigerinoides|ruber-ruber                352         816      1   1508     26.56         -   50
+  archaea     Basetype_238|basegroup_60|Globigerina|bulloides                     753         789      1   1508     12.83         -   59
+  archaea     Basetype_238|basegroup_60|Globigerina|bulloides                     591         568      1   1508     -0.62         -   42
+  archaea     Basetype_239|basegroup_21|Globigerinella|siphonifera                812         850      1   1508     25.12         -   62
+  archaea     Basetype_240|basegroup_76|Globigerinella|siphonifera                792         830      1   1508     25.12         -   62
+  archaea     Basetype_241|basegroup_74|Turborotalita|quinqueloba                 750         822      1   1508     20.93         -   49
+  archaea     Basetype_244|basegroup_21|Globigerinella|siphonifera                812         850      1   1508     25.12         -   62
+  archaea     Basetype_245|basegroup_2|Globigerinella|radians                     812         850      1   1508     25.12         -   62
+  archaea     Basetype_246|basegroup_12|Globigerinella|siphonifera                784         822      1   1508     25.12         -   62
+  archaea     Basetype_247|basegroup_111|Beella|digitata                          749         787      1   1508     25.12         -   62
+  archaea     Basetype_248|basegroup_42|Beella|digitata                           750         788      1   1508     25.12         -   62
+  archaea     Basetype_259|basegroup_35|Globigerina|bulloides                     754         790      1   1508     12.83         -   59
+  archaea     Basetype_259|basegroup_35|Globigerina|bulloides                     586         572      1   1508      0.18         -   40
+  archaea     Basetype_260|basegroup_34|Globigerina|bulloides                     758         794      1   1508     12.83         -   59
+  archaea     Basetype_260|basegroup_34|Globigerina|bulloides                     589         575      1   1508      0.18         -   47
+  archaea     Basetype_261|basegroup_3|Orbulina|universa                          734         790      1   1508     25.21         -   61
+  archaea     Basetype_262|basegroup_22|Globigerinella|siphonifera                793         831      1   1508     25.12         -   62
+  archaea     Basetype_266|basegroup_115|Globigerina|bulloides                    751         787      1   1508     12.83         -   59
+  archaea     Basetype_302|basegroup_127|Globigerina|bulloides                    763         799      1   1508     12.83         -   59
+  archaea     Basetype_302|basegroup_127|Globigerina|bulloides                    591         577      1   1508      0.18         -   40
+  archaea     Basetype_303|basegroup_126|Globigerina|bulloides                    763         799      1   1508     12.83         -   59
+  archaea     Basetype_303|basegroup_126|Globigerina|bulloides                    591         577      1   1508      0.18         -   40
+  archaea     Basetype_304|basegroup_128|Turborotalita|quinqueloba                913         990      1   1508     25.24         -   50
+  archaea     Basetype_305|basegroup_79|Globigerina|bulloides                     755         791      1   1508     12.83         -   59
+  archaea     Basetype_305|basegroup_79|Globigerina|bulloides                     586         572      1   1508      0.18         -   40
+  archaea     Basetype_306|basegroup_80|Turborotalita|quinqueloba                 905         982      1   1508     25.24         -   50
+  archaea     Basetype_307|basegroup_32|Globigerina|bulloides                     755         791      1   1508     12.83         -   59
+  archaea     Basetype_307|basegroup_32|Globigerina|bulloides                     586         572      1   1508      0.18         -   40
+  archaea     Basetype_308|basegroup_63|Turborotalita|quinqueloba                 912         989      1   1508     25.24         -   50
+  archaea     Basetype_309|basegroup_63|Turborotalita|quinqueloba                 911         988      1   1508     25.24         -   50
+  archaea     Basetype_325|basegroup_172|Globigerinoides|conglobatus              762         841      1   1508     31.00         -   58
+  archaea     Basetype_326|basegroup_13|Globigerinoides|elongatus                 745         824      1   1508     43.74         -   59
+  archaea     Basetype_327|basegroup_140|Globigerinoides|ruber-albus              771         809      1   1508     25.12         -   62
+  archaea     Basetype_328|basegroup_135|Globigerinoides|ruber-albus              771         809      1   1508     25.12         -   62
+  archaea     Basetype_329|basegroup_118|Globigerinoides|tenellus                 745         824      1   1508     47.46         -   60
+  archaea     Basetype_330|basegroup_177|Globigerinoides|tenellus                 745         824      1   1508     47.46         -   60
+  archaea     Basetype_331|basegroup_109|Globigerina|bulloides                    752         788      1   1508     12.83         -   59
+  archaea     Basetype_331|basegroup_109|Globigerina|bulloides                    590         567      1   1508     -0.62         -   42
+  archaea     Basetype_332|basegroup_116|Globigerina|bulloides                    753         789      1   1508     12.83         -   59
+  archaea     Basetype_332|basegroup_116|Globigerina|bulloides                    591         568      1   1508     -0.62         -   42
+  archaea     Basetype_333|basegroup_206|Sphaeroidinella|dehiscens                774         812      1   1508     25.12         -   62
+  archaea     Representative_1|basegroup_67|Globigerinoides|conglobatus           774         853      1   1508     31.00         -   58
+  archaea     Representative_8|basegroup_201|Globigerina|bulloides                711         791      1   1508     14.54         -   56
+  archaea     Representative_8|basegroup_201|Globigerina|bulloides                233         219      1   1508      0.16         -   47
+  archaea     Representative_9|basegroup_28|Globigerina|bulloides                 712         792      1   1508     14.54         -   56
+  archaea     Representative_9|basegroup_28|Globigerina|bulloides                 233         219      1   1508      0.16         -   47
+  archaea     Representative_11|basegroup_117|Globigerinella|siphonifera          792         830      1   1508     25.12         -   62
+  archaea     Representative_13|basegroup_112|Hastigerinella|digitata             822         860      1   1508     25.12         -   62
+  archaea     Representative_14|basegroup_203|Globigerinella|siphonifera          782         820      1   1508     25.12         -   62
+  archaea     Representative_15|basegroup_204|Globigerinoides|conglobatus         349         852      1   1508     32.63         -   49
+  archaea     Representative_16|basegroup_114|Globigerina|bulloides               704         784      1   1508     14.54         -   56
+  archaea     Representative_16|basegroup_114|Globigerina|bulloides               233         219      1   1508      0.16         -   47
+  archaea     Representative_17|basegroup_198|Globigerina|bulloides               709         789      1   1508     14.54         -   56
+  archaea     Representative_17|basegroup_198|Globigerina|bulloides               233         219      1   1508      0.16         -   47
+#
+# Post-search info for CM 1: archaea
+#
+# rnd  mod  alg  cfg   beta  bit sc cut  num hits  surv fract
+# ---  ---  ---  ---  -----  ----------  --------  ----------
+#   1  hmm  vit  loc      -       -1.00       104      0.0401
+#
+#    run time  (hr:min:sec)
+# -----------
+#    00:00:01
+#
+# Pre-search info for CM 2: bacteria
+#
+# rnd  mod  alg  cfg   beta  bit sc cut
+# ---  ---  ---  ---  -----  ----------
+#   1  hmm  vit  loc      -       -1.00
+#
+# CM: bacteria
+#                                                                                    target coord   query coord                         
+#                                                                          ----------------------  ------------                         
+# model name  target name                                                       start        stop  start   stop    bit sc   E-value  GC%
+# ----------  -----------------------------------------------------------  ----------  ----------  -----  -----  --------  --------  ---
+  bacteria    Basetype_3|basegroup_70|Globigerinella|siphonifera                  809         826      1   1582      5.82         -   61
+  bacteria    Basetype_3|basegroup_70|Globigerinella|siphonifera                  168         149      1   1582      3.64         -   35
+  bacteria    Basetype_4|basegroup_65|Globigerinella|siphonifera                  809         826      1   1582      5.82         -   61
+  bacteria    Basetype_4|basegroup_65|Globigerinella|siphonifera                  168         149      1   1582      3.64         -   35
+  bacteria    Basetype_5|basegroup_66|Orbulina|universa                           751         768      1   1582      5.82         -   61
+  bacteria    Basetype_6|basegroup_11|Orbulina|universa                           751         768      1   1582      5.82         -   61
+  bacteria    Basetype_7|basegroup_52|Globigerinoides|ruber-albus                 436         464      1   1582     12.81         -   59
+  bacteria    Basetype_11|basegroup_5|Trilobatus|sacculifer                       438         482      1   1582     27.00         -   58
+  bacteria    Basetype_11|basegroup_5|Trilobatus|sacculifer                       680         662      1   1582      0.33         -   37
+  bacteria    Basetype_12|basegroup_51|Globigerinoides|ruber-albus                432         460      1   1582     12.81         -   59
+  bacteria    Basetype_64|basegroup_9|Globigerinella|siphonifera                  811         828      1   1582      5.82         -   61
+  bacteria    Basetype_64|basegroup_9|Globigerinella|siphonifera                  168         149      1   1582      3.64         -   35
+  bacteria    Basetype_65|basegroup_10|Globigerinella|siphonifera                 801         818      1   1582      5.82         -   61
+  bacteria    Basetype_65|basegroup_10|Globigerinella|siphonifera                 165         145      1   1582      5.06         -   38
+  bacteria    Basetype_66|basegroup_8|Globigerinoides|elongatus                   803         820      1   1582      5.82         -   61
+  bacteria    Basetype_67|basegroup_7|Globigerina|bulloides                       413         438      1   1582     10.06         -   54
+  bacteria    Basetype_68|basegroup_15|Globigerina|bulloides                      411         436      1   1582     10.06         -   54
+  bacteria    Basetype_69|basegroup_17|Globigerina|bulloides                      411         436      1   1582     10.06         -   54
+  bacteria    Basetype_70|basegroup_16|Turborotalita|quinqueloba                  949         966      1   1582      5.82         -   61
+  bacteria    Basetype_71|basegroup_81|Turborotalita|quinqueloba                  962         979      1   1582      5.82         -   61
+  bacteria    Basetype_72|basegroup_20|Turborotalita|quinqueloba                  853         870      1   1582      5.82         -   61
+  bacteria    Basetype_72|basegroup_20|Turborotalita|quinqueloba                  139         124      1   1582      0.57         -   25
+  bacteria    Basetype_74|basegroup_29|Globigerinella|calida                      821         838      1   1582      5.82         -   61
+  bacteria    Basetype_74|basegroup_29|Globigerinella|calida                      573         560      1   1582     -0.48         -   43
+  bacteria    Basetype_76|basegroup_31|Turborotalita|quinqueloba                  960         977      1   1582      5.82         -   61
+  bacteria    Basetype_77|basegroup_38|Turborotalita|quinqueloba                  964         981      1   1582      5.82         -   61
+  bacteria    Basetype_83|basegroup_39|Globigerina|bulloides                      412         437      1   1582     10.06         -   54
+  bacteria    Basetype_162|basegroup_186|Globigerinoides|elongatus                803         820      1   1582      5.82         -   61
+  bacteria    Basetype_163|basegroup_187|Globoturborotalita|rubescens             461         486      1   1582      6.88         -   62
+  bacteria    Basetype_163|basegroup_187|Globoturborotalita|rubescens             612         577      1   1582      1.95         -   39
+  bacteria    Basetype_164|basegroup_187|Globoturborotalita|rubescens             461         486      1   1582      6.88         -   62
+  bacteria    Basetype_164|basegroup_187|Globoturborotalita|rubescens             612         577      1   1582      1.95         -   39
+  bacteria    Basetype_166|basegroup_187|Globoturborotalita|rubescens             461         486      1   1582      6.88         -   62
+  bacteria    Basetype_166|basegroup_187|Globoturborotalita|rubescens             612         577      1   1582      1.95         -   39
+  bacteria    Basetype_167|basegroup_7|Globigerina|bulloides                      414         439      1   1582     10.06         -   54
+  bacteria    Basetype_172|basegroup_176|Turborotalita|humilis                    937         954      1   1582      5.82         -   61
+  bacteria    Basetype_172|basegroup_176|Turborotalita|humilis                    222         187      1   1582      3.45         -   11
+  bacteria    Basetype_173|basegroup_115|Globigerina|bulloides                    768         785      1   1582      5.82         -   61
+  bacteria    Basetype_175|basegroup_19|Globigerina|bulloides                     411         436      1   1582     10.06         -   54
+  bacteria    Basetype_176|basegroup_24|Globigerina|bulloides                     411         436      1   1582     10.06         -   54
+  bacteria    Basetype_177|basegroup_25|Globigerina|bulloides                     411         436      1   1582     10.06         -   54
+  bacteria    Basetype_179|basegroup_18|Globigerinoides|ruber-albus               432         460      1   1582     12.81         -   59
+  bacteria    Basetype_197|basegroup_84|Hastigerina|pelagica                      441         485      1   1582     21.42         -   53
+  bacteria    Basetype_197|basegroup_84|Hastigerina|pelagica                      591         350      1   1582      0.39         -   48
+  bacteria    Basetype_198|basegroup_84|Hastigerina|pelagica                      439         483      1   1582     21.42         -   53
+  bacteria    Basetype_198|basegroup_84|Hastigerina|pelagica                      589         348      1   1582      0.39         -   48
+  bacteria    Basetype_199|basegroup_85|Hastigerina|pelagica                      422         466      1   1582     21.42         -   53
+  bacteria    Basetype_199|basegroup_85|Hastigerina|pelagica                      575         331      1   1582      0.39         -   50
+  bacteria    Basetype_200|basegroup_56|Hastigerina|pelagica                      916         933      1   1582      5.82         -   61
+  bacteria    Basetype_200|basegroup_56|Hastigerina|pelagica                      703         691      1   1582     -0.05         -   23
+  bacteria    Basetype_201|basegroup_56|Hastigerina|pelagica                      914         931      1   1582      5.82         -   61
+  bacteria    Basetype_201|basegroup_56|Hastigerina|pelagica                      701         689      1   1582     -0.05         -   23
+  bacteria    Basetype_202|basegroup_57|Hastigerina|pelagica                      444         488      1   1582     21.42         -   53
+  bacteria    Basetype_202|basegroup_57|Hastigerina|pelagica                      594         353      1   1582      0.39         -   48
+  bacteria    Basetype_204|basegroup_30|Globigerinella|siphonifera                812         829      1   1582      5.82         -   61
+  bacteria    Basetype_204|basegroup_30|Globigerinella|siphonifera                168         149      1   1582      3.64         -   35
+  bacteria    Basetype_205|basegroup_27|Globigerina|falconensis                   387         412      1   1582     13.58         -   58
+  bacteria    Basetype_206|basegroup_4|Globigerinoides|ruber-ruber                439         467      1   1582     12.81         -   59
+  bacteria    Basetype_206|basegroup_4|Globigerinoides|ruber-ruber                 38          22      1   1582      3.93         -   35
+  bacteria    Basetype_238|basegroup_60|Globigerina|bulloides                     407         432      1   1582     10.06         -   54
+  bacteria    Basetype_238|basegroup_60|Globigerina|bulloides                     569         548      1   1582     -0.63         -   41
+  bacteria    Basetype_239|basegroup_21|Globigerinella|siphonifera                829         846      1   1582      5.82         -   61
+  bacteria    Basetype_239|basegroup_21|Globigerinella|siphonifera                614         591      1   1582      1.51         -   29
+  bacteria    Basetype_240|basegroup_76|Globigerinella|siphonifera                809         826      1   1582      5.82         -   61
+  bacteria    Basetype_240|basegroup_76|Globigerinella|siphonifera                168         149      1   1582      3.64         -   35
+  bacteria    Basetype_241|basegroup_74|Turborotalita|quinqueloba                 803         820      1   1582      5.82         -   61
+  bacteria    Basetype_241|basegroup_74|Turborotalita|quinqueloba                 140         125      1   1582      0.57         -   25
+  bacteria    Basetype_244|basegroup_21|Globigerinella|siphonifera                829         846      1   1582      5.82         -   61
+  bacteria    Basetype_244|basegroup_21|Globigerinella|siphonifera                614         591      1   1582      1.51         -   29
+  bacteria    Basetype_245|basegroup_2|Globigerinella|radians                     829         846      1   1582      5.82         -   61
+  bacteria    Basetype_245|basegroup_2|Globigerinella|radians                     614         591      1   1582      1.51         -   29
+  bacteria    Basetype_246|basegroup_12|Globigerinella|siphonifera                801         818      1   1582      5.82         -   61
+  bacteria    Basetype_246|basegroup_12|Globigerinella|siphonifera                165         145      1   1582      5.06         -   38
+  bacteria    Basetype_247|basegroup_111|Beella|digitata                          766         783      1   1582      5.82         -   61
+  bacteria    Basetype_248|basegroup_42|Beella|digitata                           767         784      1   1582      5.82         -   61
+  bacteria    Basetype_259|basegroup_35|Globigerina|bulloides                     411         436      1   1582     10.06         -   54
+  bacteria    Basetype_260|basegroup_34|Globigerina|bulloides                     414         439      1   1582      9.21         -   50
+  bacteria    Basetype_261|basegroup_3|Orbulina|universa                          405         430      1   1582      9.06         -   62
+  bacteria    Basetype_261|basegroup_3|Orbulina|universa                          837         818      1   1582      0.14         -   40
+  bacteria    Basetype_262|basegroup_22|Globigerinella|siphonifera                810         827      1   1582      5.82         -   61
+  bacteria    Basetype_262|basegroup_22|Globigerinella|siphonifera                168         149      1   1582      3.64         -   35
+  bacteria    Basetype_266|basegroup_115|Globigerina|bulloides                    768         785      1   1582      5.82         -   61
+  bacteria    Basetype_302|basegroup_127|Globigerina|bulloides                    413         438      1   1582     10.06         -   54
+  bacteria    Basetype_303|basegroup_126|Globigerina|bulloides                    413         438      1   1582     10.06         -   54
+  bacteria    Basetype_304|basegroup_128|Turborotalita|quinqueloba                971         988      1   1582      5.82         -   61
+  bacteria    Basetype_305|basegroup_79|Globigerina|bulloides                     411         436      1   1582     10.06         -   54
+  bacteria    Basetype_306|basegroup_80|Turborotalita|quinqueloba                 963         980      1   1582      5.82         -   61
+  bacteria    Basetype_307|basegroup_32|Globigerina|bulloides                     411         436      1   1582     10.06         -   54
+  bacteria    Basetype_308|basegroup_63|Turborotalita|quinqueloba                 970         987      1   1582      5.82         -   61
+  bacteria    Basetype_309|basegroup_63|Turborotalita|quinqueloba                 969         986      1   1582      5.82         -   61
+  bacteria    Basetype_325|basegroup_172|Globigerinoides|conglobatus              440         468      1   1582     12.81         -   59
+  bacteria    Basetype_326|basegroup_13|Globigerinoides|elongatus                 803         820      1   1582      5.82         -   61
+  bacteria    Basetype_327|basegroup_140|Globigerinoides|ruber-albus              436         464      1   1582     12.81         -   59
+  bacteria    Basetype_328|basegroup_135|Globigerinoides|ruber-albus              436         464      1   1582     12.81         -   59
+  bacteria    Basetype_329|basegroup_118|Globigerinoides|tenellus                 803         820      1   1582      5.82         -   61
+  bacteria    Basetype_330|basegroup_177|Globigerinoides|tenellus                 803         820      1   1582      5.82         -   61
+  bacteria    Basetype_331|basegroup_109|Globigerina|bulloides                    407         432      1   1582     10.06         -   54
+  bacteria    Basetype_331|basegroup_109|Globigerina|bulloides                    568         547      1   1582     -0.63         -   41
+  bacteria    Basetype_332|basegroup_116|Globigerina|bulloides                    407         432      1   1582     10.06         -   54
+  bacteria    Basetype_332|basegroup_116|Globigerina|bulloides                    569         548      1   1582     -0.63         -   41
+  bacteria    Basetype_333|basegroup_206|Sphaeroidinella|dehiscens                424         468      1   1582     17.33         -   56
+  bacteria    Representative_1|basegroup_67|Globigerinoides|conglobatus           441         469      1   1582     12.81         -   59
+  bacteria    Representative_8|basegroup_201|Globigerina|bulloides                772         789      1   1582      5.82         -   61
+  bacteria    Representative_9|basegroup_28|Globigerina|bulloides                 773         790      1   1582      5.82         -   61
+  bacteria    Representative_11|basegroup_117|Globigerinella|siphonifera          809         826      1   1582      5.82         -   61
+  bacteria    Representative_11|basegroup_117|Globigerinella|siphonifera          168         149      1   1582      3.64         -   35
+  bacteria    Representative_13|basegroup_112|Hastigerinella|digitata             460         504      1   1582     21.42         -   53
+  bacteria    Representative_13|basegroup_112|Hastigerinella|digitata             614         591      1   1582     -0.81         -   38
+  bacteria    Representative_14|basegroup_203|Globigerinella|siphonifera          799         816      1   1582      5.82         -   61
+  bacteria    Representative_14|basegroup_203|Globigerinella|siphonifera          167         148      1   1582      3.64         -   35
+  bacteria    Representative_15|basegroup_204|Globigerinoides|conglobatus         441         469      1   1582      7.95         -   62
+  bacteria    Representative_16|basegroup_114|Globigerina|bulloides               765         782      1   1582      5.82         -   61
+  bacteria    Representative_17|basegroup_198|Globigerina|bulloides               770         787      1   1582      5.82         -   61
+#
+# Post-search info for CM 2: bacteria
+#
+# rnd  mod  alg  cfg   beta  bit sc cut  num hits  surv fract
+# ---  ---  ---  ---  -----  ----------  --------  ----------
+#   1  hmm  vit  loc      -       -1.00       113      0.0245
+#
+#    run time  (hr:min:sec)
+# -----------
+#    00:00:01
+#
+# Pre-search info for CM 3: eukarya
+#
+# rnd  mod  alg  cfg   beta  bit sc cut
+# ---  ---  ---  ---  -----  ----------
+#   1  hmm  vit  loc      -       -1.00
+#
+# CM: eukarya
+#                                                                                    target coord   query coord                         
+#                                                                          ----------------------  ------------                         
+# model name  target name                                                       start        stop  start   stop    bit sc   E-value  GC%
+# ----------  -----------------------------------------------------------  ----------  ----------  -----  -----  --------  --------  ---
+  eukarya     Basetype_3|basegroup_70|Globigerinella|siphonifera                   44         838      1   1881    135.65         -   42
+  eukarya     Basetype_4|basegroup_65|Globigerinella|siphonifera                   44         838      1   1881    135.65         -   42
+  eukarya     Basetype_5|basegroup_66|Orbulina|universa                            51         784      1   1881    150.92         -   49
+  eukarya     Basetype_6|basegroup_11|Orbulina|universa                            51         784      1   1881    159.19         -   49
+  eukarya     Basetype_7|basegroup_52|Globigerinoides|ruber-albus                  53         817      1   1881    155.03         -   48
+  eukarya     Basetype_11|basegroup_5|Trilobatus|sacculifer                        43         849      1   1881    117.17         -   46
+  eukarya     Basetype_12|basegroup_51|Globigerinoides|ruber-albus                 49         812      1   1881    149.98         -   47
+  eukarya     Basetype_64|basegroup_9|Globigerinella|siphonifera                   44         840      1   1881    135.47         -   43
+  eukarya     Basetype_65|basegroup_10|Globigerinella|siphonifera                  41         830      1   1881    131.12         -   44
+  eukarya     Basetype_66|basegroup_8|Globigerinoides|elongatus                    38         832      1   1881    152.34         -   47
+  eukarya     Basetype_66|basegroup_8|Globigerinoides|elongatus                   605         589      1   1881     -0.93         -   41
+  eukarya     Basetype_67|basegroup_7|Globigerina|bulloides                        47         799      1   1881     89.72         -   48
+  eukarya     Basetype_67|basegroup_7|Globigerina|bulloides                       464          54      1   1881      0.10         -   48
+  eukarya     Basetype_68|basegroup_15|Globigerina|bulloides                       45         792      1   1881     90.16         -   49
+  eukarya     Basetype_68|basegroup_15|Globigerina|bulloides                      462          52      1   1881      0.10         -   48
+  eukarya     Basetype_69|basegroup_17|Globigerina|bulloides                       45         797      1   1881     89.72         -   48
+  eukarya     Basetype_69|basegroup_17|Globigerina|bulloides                      462          52      1   1881      0.10         -   48
+  eukarya     Basetype_70|basegroup_16|Turborotalita|quinqueloba                   66         969      1   1881     79.65         -   41
+  eukarya     Basetype_70|basegroup_16|Turborotalita|quinqueloba                  193         184      1   1881      0.23         -   30
+  eukarya     Basetype_71|basegroup_81|Turborotalita|quinqueloba                   66         982      1   1881     78.76         -   40
+  eukarya     Basetype_71|basegroup_81|Turborotalita|quinqueloba                  181         158      1   1881     -0.72         -   33
+  eukarya     Basetype_72|basegroup_20|Turborotalita|quinqueloba                  125         873      1   1881     98.31         -   40
+  eukarya     Basetype_72|basegroup_20|Turborotalita|quinqueloba                  821         811      1   1881      0.35         -   27
+  eukarya     Basetype_74|basegroup_29|Globigerinella|calida                       47         850      1   1881    156.56         -   42
+  eukarya     Basetype_76|basegroup_31|Turborotalita|quinqueloba                   66         980      1   1881     78.94         -   40
+  eukarya     Basetype_76|basegroup_31|Turborotalita|quinqueloba                  181         158      1   1881     -0.72         -   33
+  eukarya     Basetype_77|basegroup_38|Turborotalita|quinqueloba                   66         984      1   1881     78.58         -   40
+  eukarya     Basetype_77|basegroup_38|Turborotalita|quinqueloba                  181         158      1   1881     -0.72         -   33
+  eukarya     Basetype_83|basegroup_39|Globigerina|bulloides                       46         793      1   1881     90.16         -   48
+  eukarya     Basetype_83|basegroup_39|Globigerina|bulloides                      463          53      1   1881      0.10         -   48
+  eukarya     Basetype_162|basegroup_186|Globigerinoides|elongatus                 38         832      1   1881    150.20         -   47
+  eukarya     Basetype_162|basegroup_186|Globigerinoides|elongatus                605         589      1   1881     -0.93         -   41
+  eukarya     Basetype_163|basegroup_187|Globoturborotalita|rubescens              44         827      1   1881    140.71         -   45
+  eukarya     Basetype_164|basegroup_187|Globoturborotalita|rubescens              44         827      1   1881    140.71         -   45
+  eukarya     Basetype_166|basegroup_187|Globoturborotalita|rubescens              44         827      1   1881    140.71         -   45
+  eukarya     Basetype_167|basegroup_7|Globigerina|bulloides                       48         800      1   1881     89.72         -   48
+  eukarya     Basetype_167|basegroup_7|Globigerina|bulloides                      465          55      1   1881      0.10         -   48
+  eukarya     Basetype_172|basegroup_176|Turborotalita|humilis                     57         957      1   1881     89.75         -   34
+  eukarya     Basetype_173|basegroup_115|Globigerina|bulloides                     44         788      1   1881     65.44         -   47
+  eukarya     Basetype_173|basegroup_115|Globigerina|bulloides                     83          51      1   1881     -0.06         -   55
+  eukarya     Basetype_175|basegroup_19|Globigerina|bulloides                      45         792      1   1881     90.16         -   49
+  eukarya     Basetype_175|basegroup_19|Globigerina|bulloides                     462          52      1   1881      0.10         -   48
+  eukarya     Basetype_176|basegroup_24|Globigerina|bulloides                      45         792      1   1881     90.16         -   49
+  eukarya     Basetype_176|basegroup_24|Globigerina|bulloides                     462          52      1   1881      0.10         -   48
+  eukarya     Basetype_177|basegroup_25|Globigerina|bulloides                      45         792      1   1881     90.16         -   49
+  eukarya     Basetype_177|basegroup_25|Globigerina|bulloides                     462          52      1   1881      0.10         -   48
+  eukarya     Basetype_179|basegroup_18|Globigerinoides|ruber-albus                49         812      1   1881    149.98         -   47
+  eukarya     Basetype_197|basegroup_84|Hastigerina|pelagica                       45         839      1   1881    160.18         -   50
+  eukarya     Basetype_198|basegroup_84|Hastigerina|pelagica                       45         837      1   1881    160.36         -   50
+  eukarya     Basetype_199|basegroup_85|Hastigerina|pelagica                       43         826      1   1881    161.11         -   51
+  eukarya     Basetype_200|basegroup_56|Hastigerina|pelagica                       72         945      1   1881    139.79         -   47
+  eukarya     Basetype_201|basegroup_56|Hastigerina|pelagica                       72         943      1   1881    139.97         -   47
+  eukarya     Basetype_202|basegroup_57|Hastigerina|pelagica                       45         842      1   1881    159.92         -   50
+  eukarya     Basetype_204|basegroup_30|Globigerinella|siphonifera                 44         841      1   1881    135.38         -   42
+  eukarya     Basetype_205|basegroup_27|Globigerina|falconensis                    40         815      1   1881    122.33         -   48
+  eukarya     Basetype_206|basegroup_4|Globigerinoides|ruber-ruber                 48         824      1   1881    145.82         -   48
+  eukarya     Basetype_206|basegroup_4|Globigerinoides|ruber-ruber                149         142      1   1881     -0.12         -   50
+  eukarya     Basetype_238|basegroup_60|Globigerina|bulloides                      44         790      1   1881     89.40         -   48
+  eukarya     Basetype_238|basegroup_60|Globigerina|bulloides                      83          51      1   1881     -0.06         -   52
+  eukarya     Basetype_239|basegroup_21|Globigerinella|siphonifera                 50         858      1   1881    153.62         -   44
+  eukarya     Basetype_239|basegroup_21|Globigerinella|siphonifera                 86          54      1   1881     -0.06         -   52
+  eukarya     Basetype_240|basegroup_76|Globigerinella|siphonifera                 44         838      1   1881    135.65         -   42
+  eukarya     Basetype_241|basegroup_74|Turborotalita|quinqueloba                 126         823      1   1881    102.85         -   40
+  eukarya     Basetype_241|basegroup_74|Turborotalita|quinqueloba                 771         761      1   1881      0.35         -   27
+  eukarya     Basetype_244|basegroup_21|Globigerinella|siphonifera                 50         858      1   1881    153.62         -   44
+  eukarya     Basetype_244|basegroup_21|Globigerinella|siphonifera                 86          54      1   1881     -0.06         -   52
+  eukarya     Basetype_245|basegroup_2|Globigerinella|radians                      50         858      1   1881    153.62         -   44
+  eukarya     Basetype_245|basegroup_2|Globigerinella|radians                      86          54      1   1881     -0.06         -   52
+  eukarya     Basetype_246|basegroup_12|Globigerinella|siphonifera                 41         830      1   1881    131.12         -   44
+  eukarya     Basetype_247|basegroup_111|Beella|digitata                           44         795      1   1881    168.01         -   44
+  eukarya     Basetype_248|basegroup_42|Beella|digitata                            45         796      1   1881    168.01         -   44
+  eukarya     Basetype_259|basegroup_35|Globigerina|bulloides                      45         791      1   1881     90.25         -   49
+  eukarya     Basetype_259|basegroup_35|Globigerina|bulloides                     462          52      1   1881      0.10         -   48
+  eukarya     Basetype_260|basegroup_34|Globigerina|bulloides                      48         795      1   1881     83.91         -   49
+  eukarya     Basetype_260|basegroup_34|Globigerina|bulloides                     465          55      1   1881      0.10         -   48
+  eukarya     Basetype_261|basegroup_3|Orbulina|universa                           61         802      1   1881    142.28         -   48
+  eukarya     Basetype_262|basegroup_22|Globigerinella|siphonifera                 37         839      1   1881    136.13         -   42
+  eukarya     Basetype_266|basegroup_115|Globigerina|bulloides                     44         788      1   1881     65.44         -   48
+  eukarya     Basetype_266|basegroup_115|Globigerina|bulloides                     83          51      1   1881     -0.06         -   55
+  eukarya     Basetype_302|basegroup_127|Globigerina|bulloides                     47         800      1   1881     90.18         -   48
+  eukarya     Basetype_302|basegroup_127|Globigerina|bulloides                    464          54      1   1881      0.10         -   48
+  eukarya     Basetype_303|basegroup_126|Globigerina|bulloides                     47         800      1   1881     90.18         -   48
+  eukarya     Basetype_303|basegroup_126|Globigerina|bulloides                    464          54      1   1881      0.10         -   48
+  eukarya     Basetype_304|basegroup_128|Turborotalita|quinqueloba                 66         991      1   1881     71.86         -   39
+  eukarya     Basetype_304|basegroup_128|Turborotalita|quinqueloba                181         158      1   1881     -0.72         -   33
+  eukarya     Basetype_305|basegroup_79|Globigerina|bulloides                      45         792      1   1881     90.16         -   49
+  eukarya     Basetype_305|basegroup_79|Globigerina|bulloides                     462          52      1   1881      0.10         -   48
+  eukarya     Basetype_306|basegroup_80|Turborotalita|quinqueloba                  66         983      1   1881     78.67         -   40
+  eukarya     Basetype_306|basegroup_80|Turborotalita|quinqueloba                 181         158      1   1881     -0.72         -   33
+  eukarya     Basetype_307|basegroup_32|Globigerina|bulloides                      45         792      1   1881     90.16         -   49
+  eukarya     Basetype_307|basegroup_32|Globigerina|bulloides                     462          52      1   1881      0.10         -   48
+  eukarya     Basetype_308|basegroup_63|Turborotalita|quinqueloba                  66         990      1   1881     78.05         -   39
+  eukarya     Basetype_308|basegroup_63|Turborotalita|quinqueloba                 181         158      1   1881     -0.72         -   33
+  eukarya     Basetype_309|basegroup_63|Turborotalita|quinqueloba                  66         989      1   1881     78.14         -   39
+  eukarya     Basetype_309|basegroup_63|Turborotalita|quinqueloba                 181         158      1   1881     -0.72         -   33
+  eukarya     Basetype_325|basegroup_172|Globigerinoides|conglobatus               43         849      1   1881    147.76         -   47
+  eukarya     Basetype_326|basegroup_13|Globigerinoides|elongatus                  38         832      1   1881    150.20         -   47
+  eukarya     Basetype_326|basegroup_13|Globigerinoides|elongatus                 605         589      1   1881     -0.93         -   41
+  eukarya     Basetype_327|basegroup_140|Globigerinoides|ruber-albus               53         817      1   1881    155.03         -   48
+  eukarya     Basetype_328|basegroup_135|Globigerinoides|ruber-albus               53         817      1   1881    155.03         -   48
+  eukarya     Basetype_329|basegroup_118|Globigerinoides|tenellus                  37         832      1   1881    159.51         -   47
+  eukarya     Basetype_329|basegroup_118|Globigerinoides|tenellus                 605         589      1   1881     -0.47         -   47
+  eukarya     Basetype_330|basegroup_177|Globigerinoides|tenellus                  37         832      1   1881    159.51         -   47
+  eukarya     Basetype_330|basegroup_177|Globigerinoides|tenellus                 605         589      1   1881     -0.47         -   47
+  eukarya     Basetype_331|basegroup_109|Globigerina|bulloides                     44         789      1   1881     89.49         -   48
+  eukarya     Basetype_331|basegroup_109|Globigerina|bulloides                     83          51      1   1881     -0.06         -   52
+  eukarya     Basetype_332|basegroup_116|Globigerina|bulloides                     44         790      1   1881     90.25         -   48
+  eukarya     Basetype_332|basegroup_116|Globigerina|bulloides                    458          51      1   1881      0.10         -   49
+  eukarya     Basetype_333|basegroup_206|Sphaeroidinella|dehiscens                 37         820      1   1881    155.58         -   46
+  eukarya     Representative_1|basegroup_67|Globigerinoides|conglobatus            43         861      1   1881    138.50         -   46
+  eukarya     Representative_1|basegroup_67|Globigerinoides|conglobatus           150         143      1   1881     -0.12         -   50
+  eukarya     Representative_8|basegroup_201|Globigerina|bulloides                 45         792      1   1881     53.77         -   48
+  eukarya     Representative_8|basegroup_201|Globigerina|bulloides                 84          52      1   1881     -0.06         -   52
+  eukarya     Representative_9|basegroup_28|Globigerina|bulloides                  45         793      1   1881     65.60         -   47
+  eukarya     Representative_9|basegroup_28|Globigerina|bulloides                  84          52      1   1881     -0.06         -   52
+  eukarya     Representative_11|basegroup_117|Globigerinella|siphonifera           44         838      1   1881    135.65         -   42
+  eukarya     Representative_13|basegroup_112|Hastigerinella|digitata             412         871      1   1881    116.50         -   48
+  eukarya     Representative_14|basegroup_203|Globigerinella|siphonifera           44         828      1   1881    136.54         -   43
+  eukarya     Representative_15|basegroup_204|Globigerinoides|conglobatus          43         860      1   1881    147.89         -   46
+  eukarya     Representative_15|basegroup_204|Globigerinoides|conglobatus         705         685      1   1881     -1.00         -   38
+  eukarya     Representative_16|basegroup_114|Globigerina|bulloides                45         785      1   1881     66.31         -   48
+  eukarya     Representative_16|basegroup_114|Globigerina|bulloides                84          52      1   1881     -0.06         -   52
+  eukarya     Representative_17|basegroup_198|Globigerina|bulloides                45         790      1   1881     65.86         -   48
+  eukarya     Representative_17|basegroup_198|Globigerina|bulloides                84          52      1   1881     -0.06         -   52
+#
+# Post-search info for CM 3: eukarya
+#
+# rnd  mod  alg  cfg   beta  bit sc cut  num hits  surv fract
+# ---  ---  ---  ---  -----  ----------  --------  ----------
+#   1  hmm  vit  loc      -       -1.00       124      0.4868
+#
+#    run time  (hr:min:sec)
+# -----------
+#    00:00:02
