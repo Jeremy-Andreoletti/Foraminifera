@@ -1,5 +1,13 @@
+1-Data_raw/Data_Morard/
 5-Analyses/
 6-Articles/
 .DS_Store # Ignore macOS system files
 1-Data_raw/TritonDB/triton.RData
 3-Data_processed/Triton_occurrences/TritonDB_trimmed_runif.csv
+3-Data_processed/Triton_occurrences/TritonDB_subsampled_STT_91253foss.csv
+3-Data_processed/Triton_occurrences/TritonDB_subsampled_STT_4642occurrences_Microperforate.csv
+3-Data_processed/Triton_occurrences/TritonDB_subsampled_STT_43817occurrences_Spinose.csv
+3-Data_processed/Triton_occurrences/TritonDB_subsampled_STT_39918occurrences_NonSpinose.csv
+3-Data_processed/Triton_occurrences/TritonDB_subsampled_STT_34846occurrences_NonSpinoseOnly.csv
+3-Data_processed/Triton_occurrences/TritonDB_subsampled_STT_28873occurrences_SpinoseOnly.csv
+3-Data_processed/Triton_occurrences/TritonDB_subsampled_STT_15195occurrences_MixedSpinose.csv
