@@ -1,0 +1,257 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(diversitree)
+library(ape)
+library(deSolve)
+for (f in list.files(path = "ProSSE/R", full.names = T)){
+  source(f)
+}
+
+library(phytools)
+library(TreeTools)
+library(ggtree)
+library(readxl)
+```
+
+# Standard ProSSE
+## Template
+
+```{r}
+# pars <- c(0.3,0.1,0.1)
+# while(T){
+#   tryCatch({
+#       phy <- tree.prosse(pars,max.t=15)
+#     }, error = function(e) {phy <- NULL})
+#   if (!is.null(phy)) break
+# }
+# phy$orig <- NULL
+# phy$hist <- NULL
+# lik <- make.prosse(phy)
+# p <- starting.point.prosse(phy,lik)
+# fit <- find.mle(lik,p,lower=c(0,0,0))
+# # plot(phy)
+# fit
+```
+
+## Functions
+
+```{r}
+process.tree <- function(i, tree_trace, pars_trace){
+  tree <- tree_trace[[i]]
+  
+  # Microperforates: Remove Candeina_nitida_IIa whose appearance within the Globigerinita glutinata clade is inconsistent with the taxonomy
+  tree <- drop.tip(tree, "Candeina_nitida_IIa")
+  
+  # Remove numerical errors in tip dates
+  invisible(tree <- force.ultrametric(tree, message=F))
+  
+  tree$node.label <- paste0("nd", 1:tree$Nnode)
+  # tree$root.depth <- max(castor::get_all_node_depths(tree))
+  tree$root.depth <- pars_trace$origin_time[i]
+
+  # Extract the morphospecies name
+  tree$species <- gsub("_I.*", "", tree$tip.label)
+  names(tree$species) <- tree$tip.label
+  
+  return(tree)
+}
+```
+
+```{r}
+fit.ProSSE <- function(tree){
+  prior <- make.prior.exponential(0.5)
+  # debugonce(make.prosse)
+  lik <- make.prosse(tree)
+  x.init <- starting.point.prosse(tree, lik)
+  print(lik(x.init))
+  # debugonce(all.branches.matrix.prosse)
+  mcmc_trace <- capture.output(res <- mcmc.prosse(lik=lik, tree=tree, species.name=c(), unknown.tip=c(), x.init=x.init,
+                    nstepsw=100, nsteps=1000, w=rep(1,3), prior=prior, lower=rep(0,3), upper=c(Inf,Inf,Inf)))
+  return(res)
+}
+```
+
+```{r}
+fit.ProSSE.replicates <- function(tree_trace, pars_trace, nRep = 10, seed = 123){
+  res <- list()
+  trees_replicates <- list()
+  set.seed(seed)
+  
+  # Get nRep replicates without error
+  for (i in sample(1:length(tree_trace))){
+    print(i)
+    tryCatch({
+      tree <- process.tree(i, tree_trace, pars_trace)
+      res[[length(res) + 1]] <- fit.ProSSE(tree)
+      trees_replicates[[length(trees_replicates) + 1]] <- tree
+    }, error = function(e) {})
+    
+    if (length(res) == nRep) break
+  }
+  return(list(prosse_fits = res, trees = trees_replicates))
+}
+```
+
+## Microperforates
+
+```{r fig.width=12, fig.asp=0.6}
+tree_traces_M <- lapply(list.files(path = "../../4-Phylogenetic_reconstruction/output", pattern = "forams_Microperforate_seed.*.trees", full.names = T), read.tree)
+pars_traces_M <- lapply(list.files(path = "../../4-Phylogenetic_reconstruction/output", pattern = "forams_Microperforate_seed.*.log", full.names = T), read.table, header = T)
+
+# Remove 10% burnin
+min_iteration <- max(pars_traces_M[[1]]$Iteration)/10
+pars_traces_M <- lapply(pars_traces_M, function(X)X[min_iteration:nrow(X),])
+tree_traces_M <- lapply(tree_traces_M, function(X)X[min_iteration:length(X)])
+
+# Merge replicate traces
+tree_trace_M <- Reduce(c, tree_traces_M)
+pars_trace_M <- Reduce(rbind, pars_traces_M)
+```
+
+```{r fig.width=10, fig.asp=0.6}
+plot(sample(tree_trace_M, 1), cex = 0.7, show.node.label=T)
+axisPhylo()
+```
+
+```{r}
+# i <- sample(1:length(tree_trace_M), 1)
+# tree <- process.tree(i, tree_trace_M, pars_trace_M)
+# debugonce(all.branches.matrix.prosse)
+# debugonce(make.cache.tree.prosse)
+# fit.ProSSE(tree)
+```
+
+```{r}
+outM <- fit.ProSSE.replicates(tree_trace_M, pars_trace_M)
+outM
+```
+
+```{r fig.width=12}
+prosse_fits_M <- outM$prosse_fits
+
+par(mfrow=c(2,3))
+for (i in 1:length(prosse_fits_M)) {
+  profiles.plot(prosse_fits_M[[i]][prosse_fits_M[[i]]$i>100,2:4], c("#56B4E9", "#F9AFAE", "palegreen3"), legend.pos="topright", main = paste("Replicate", i))
+}
+
+prosse_fits_M_merged <- Reduce(rbind, prosse_fits_M)
+profiles.plot(prosse_fits_M_merged[prosse_fits_M_merged$i>100,2:4], c("#56B4E9", "#F9AFAE", "palegreen3"), legend.pos="topright", main = "Merged")
+```
+
+```{r}
+write.table(prosse_fits_M_merged, "output/forams_Microperforate_prosse.out", row.names = F, sep = "\t")
+write.tree(Reduce(c, outM$trees), "output/forams_Microperforate.trees")
+```
+
+## Non-spinose
+
+```{r fig.width=12, fig.asp=0.6}
+tree_traces_NS <- lapply(list.files(path = "../../4-Phylogenetic_reconstruction/output", pattern = "forams_NonSpinose_seed.*.trees", full.names = T), read.tree)
+pars_traces_NS <- lapply(list.files(path = "../../4-Phylogenetic_reconstruction/output", pattern = "forams_NonSpinose_seed.*.log", full.names = T), read.table, header = T)
+
+# Remove 10% burnin
+min_iteration <- max(pars_traces_NS[[1]]$Iteration)/10
+pars_traces_NS <- lapply(pars_traces_NS, function(X)X[min_iteration:nrow(X),])
+tree_traces_NS <- lapply(tree_traces_NS, function(X)X[min_iteration:length(X)])
+
+tree_trace_NS <- Reduce(c, tree_traces_NS)
+pars_trace_NS <- Reduce(rbind, pars_traces_NS)
+```
+
+```{r fig.width=10, fig.asp=0.6}
+plot(sample(tree_trace_NS, 1), cex = 0.7, show.node.label=T)
+axisPhylo()
+```
+
+```{r}
+outNS <- fit.ProSSE.replicates(tree_trace_NS, pars_trace_NS)
+outNS
+```
+
+```{r fig.width=12}
+prosse_fits_NS <- outNS$prosse_fits
+
+par(mfrow=c(2,3))
+for (i in 1:length(prosse_fits_NS)) {
+  profiles.plot(prosse_fits_NS[[i]][prosse_fits_NS[[i]]$i>100,2:4], c("#56B4E9", "#F9AFAE", "palegreen3"), legend.pos="topright", main = paste("Replicate", i))
+}
+
+prosse_fits_NS_merged <- Reduce(rbind, prosse_fits_NS)
+profiles.plot(prosse_fits_NS_merged[prosse_fits_NS_merged$i>100,2:4], c("#56B4E9", "#F9AFAE", "palegreen3"), legend.pos="topright", main = "Merged")
+```
+
+```{r}
+write.table(prosse_fits_NS_merged, "output/forams_NonSpinose_prosse.out", row.names = F, sep = "\t")
+write.tree(Reduce(c, outNS$trees), "output/forams_NonSpinose.trees")
+```
+
+## Spinose
+
+```{r fig.width=12, fig.asp=0.6}
+tree_traces_S <- lapply(list.files(path = "../../4-Phylogenetic_reconstruction/output", pattern = "forams_Spinose_seed.*.trees", full.names = T), read.tree)
+pars_traces_S <- lapply(list.files(path = "../../4-Phylogenetic_reconstruction/output", pattern = "forams_Spinose_seed.*.log", full.names = T), read.table, header = T)
+
+# Remove 10% burnin
+min_iteration <- max(pars_traces_S[[1]]$Iteration)/10
+pars_traces_S <- lapply(pars_traces_S, function(X)X[min_iteration:nrow(X),])
+tree_traces_S <- lapply(tree_traces_S, function(X)X[min_iteration:length(X)])
+
+tree_trace_S <- Reduce(c, tree_traces_S)
+pars_trace_S <- Reduce(rbind, pars_traces_S)
+```
+
+```{r fig.width=10, fig.asp=0.6}
+plot(sample(tree_trace_S, 1), cex = 0.7, show.node.label=T)
+axisPhylo()
+```
+
+```{r}
+outS <- fit.ProSSE.replicates(tree_trace_S, pars_trace_S)
+outS
+```
+
+```{r fig.width=12}
+prosse_fits_S <- outS$prosse_fits
+
+par(mfrow=c(2,3))
+for (i in 1:length(prosse_fits_S)) {
+  profiles.plot(prosse_fits_S[[i]][prosse_fits_S[[i]]$i>100,2:4], c("#56B4E9", "#F9AFAE", "palegreen3"), legend.pos="topright", main = paste("Replicate", i))
+}
+
+prosse_fits_S_merged <- Reduce(rbind, prosse_fits_S)
+profiles.plot(prosse_fits_S_merged[prosse_fits_S_merged$i>100,2:4], c("#56B4E9", "#F9AFAE", "palegreen3"), legend.pos="topright", main = "Merged")
+```
+
+```{r}
+write.table(prosse_fits_S_merged, "output/forams_Spinose_prosse.out", row.names = F, sep = "\t")
+write.tree(Reduce(c, outS$trees), "output/forams_Spinose.trees")
+```
+
+# All groups
+
+```{r fig.width=10, fig.asp=0.3}
+par(mfrow=c(1,3), mar=c(4,1,2,0.5))
+profiles.plot(prosse_fits_S_merged[prosse_fits_S_merged$i>100,2:4], c("#56B4E9", "#F9AFAE", "palegreen3"), legend.pos="topright", main = "Spinose", ylab = "",  yaxt = "n")
+profiles.plot(prosse_fits_NS_merged[prosse_fits_NS_merged$i>100,2:4], c("#56B4E9", "#F9AFAE", "palegreen3"), legend.pos="topright", main = "Non-Spinose", ylab = "",  yaxt = "n")
+profiles.plot(prosse_fits_M_merged[prosse_fits_M_merged$i>100,2:4], c("#56B4E9", "#F9AFAE", "palegreen3"), legend.pos="topright", main = "Microperforates", ylab = "",  yaxt = "n")
+invisible(dev.print(pdf, 'Images/ProSSE_all_rates.pdf'))
+
+pdf(file = "Images/ProSSE_Spinose.pdf", width=4, height = 4)
+par(mfrow=c(1,1), mar=c(4,0.5,0.5,1))
+profiles.plot(prosse_fits_S_merged[prosse_fits_S_merged$i>100,2:4], c("#56B4E9", "#F9AFAE", "palegreen3"), legend.pos="topright", main = "", ylab = "",  yaxt = "n", opacity = 0.4)
+invisible(dev.off())
+
+pdf(file = "Images/ProSSE_NonSpinose.pdf", width=4, height = 4)
+par(mfrow=c(1,1), mar=c(4,0.5,0.5,1))
+profiles.plot(prosse_fits_NS_merged[prosse_fits_NS_merged$i>100,2:4], c("#56B4E9", "#F9AFAE", "palegreen3"), legend.pos="topright", main = "", ylab = "",  yaxt = "n", opacity = 0.4)
+invisible(dev.off())
+
+pdf(file = "Images/ProSSE_Microperforates.pdf", width=4, height = 4)
+par(mfrow=c(1,1), mar=c(4,0.5,0.5,1))
+profiles.plot(prosse_fits_M_merged[prosse_fits_M_merged$i>100,2:4], c("#56B4E9", "#F9AFAE", "palegreen3"), legend.pos="topright", main = "", ylab = "",  yaxt = "n", opacity = 0.4)
+invisible(dev.off())
+```

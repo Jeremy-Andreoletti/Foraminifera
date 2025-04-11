@@ -20,6 +20,15 @@
 4-Phylogenetic_reconstruction/output/forams_Spinose_seed1.trees
 4-Phylogenetic_reconstruction/output/forams_Spinose_seed2.trees
 4-Phylogenetic_reconstruction/2-Convergence_checks.nb.html
-5-Analyses/
+#5-Analyses/
+5-Analyses/1-ProSSE/ProSSE
+5-Analyses/1-ProSSE/ProSSE_Forams.nb.html
+5-Analyses/1-ProSSE/ProSSE_Tests.nb.html
+5-Analyses/1-ProSSE/ProSSE_Tests.Rmd
+5-Analyses/2-GeoSSE
+5-Analyses/3-ESSE
+5-Analyses/4-OBDD/outputs
+5-Analyses/4-OBDD/Images
+5-Analyses/4-OBDD/Animations
 6-Articles/
 .DS_Store # Ignore macOS system files

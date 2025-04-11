@@ -1,0 +1,478 @@
+---
+title: "2-PGLS_correlations"
+output: html_document
+date: "`r Sys.Date()`"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Overview
+
+This R Markdown script automates PL-MANOVA analyses across multiple models and seed replicates. We assume:
+
+- A functional data file (Excel) containing predictor information per species.
+- Multiple models, each with multiple seed replicates.
+- Each seed replicate has a **tree** (`*.tre`) and **tip-rates** (`*_tiprates.csv`).
+- Penalized-Likelihood MANOVA (PL-MANOVA) is performed with birth/death rates as responses and functional predictors.
+
+```{r libraries}
+library(readxl)
+library(ape)
+library(mvMORPH)  # For mvgls & manova.gls (PL-MANOVA)
+library(dplyr)
+library(tidyr)
+library(stringr)
+library(ggplot2)
+```
+
+## 1. Read Data
+
+Functional data
+
+```{r}
+functional_df <- read_xlsx("../../1-Data_raw/Functional_data/IF functional data.xlsx")
+functional_df <- type.convert(functional_df, as.is=F)
+#functional_df$eco <- as.factor(functional_df$eco)
+#functional_df$mph <- as.factor(functional_df$mph)
+
+ecogroup_correspondance <- c("1"="Symbiotic SML", "2"="Asymbiotic SML", "3"="Thermocline", "4"="Sub-thermocline", "5"="High latitude", "6"="High productivity")
+morphogroup_correspondance <- c("1"="S-flat", "2"="S-globular", "3"="S-globular, supplementary apertures", "4"="S-spherical", "5"="S-clavate", "6"="S-planispiral","7"="NS-globular", "8"="NS-globular, keeled", "9"="NS-planispiral", "10"="NS-tubulospinate", "11"="NS-keeled spines", "12"="NS-turborotaliform, keeled", "13"="NS-turborotaliform, non-keeled", "14"="NS-globorotaliform, keeled", "15"="NS-globorotaliform, anguloconical", "16"="NS-globorotaliform, non-keeled", "17"="NS-muricate, acarininiform", "18"="NS-muricocarinate, keeled", "19"="NS-muricocarinate, anguloconical")
+
+functional_df$eco <- as.factor(ecogroup_correspondance[functional_df$eco])
+functional_df$mph <- as.factor(morphogroup_correspondance[functional_df$mph])
+
+# Corrections
+functional_df[functional_df$specName == "Globorotaloides hexagonus",]$mph <- morphogroup_correspondance[7] # spinose to non-spinose
+functional_df[functional_df$specName == "Sphaeroidinella dehiscens",]$mph <- morphogroup_correspondance[2] # non-spinose to spinose
+functional_df[functional_df$specName == "Sphaeroidinellopsis kochi",]$mph <- morphogroup_correspondance[2] # non-spinose to spinose
+
+# Simplifications
+functional_df$mph_simplified <- gsub(",.*", "", functional_df$mph)
+#functional_df$mph_simplified <- gsub("^S-spherical|^S-globular", "S-spherical-globular", functional_df$mph_simplified)
+functional_df$mph_simplified <- gsub("^S-flat|^S-clavate", "S-flat-clavate", functional_df$mph_simplified)
+functional_df$mph_simplified <- gsub("NS-turborotaliform|NS-globorotaliform", "NS-rotaliform", functional_df$mph_simplified)
+functional_df$mph_simplified <- as.factor(functional_df$mph_simplified)
+functional_df$mph_keeled <- grepl(", keeled", functional_df$mph)
+functional_df$mph_aperture <- grepl("supplementary aperture", functional_df$mph)
+
+summary(functional_df)
+```
+
+```{r}
+# Updated taxonomy
+## Spinose
+functional_df$specName <- gsub("Globigerinoides ruber \\(white\\)", "Globigerinoides ruber-albus", functional_df$specName)
+functional_df$specName <- gsub("Globigerinoides ruber \\(pink\\)", "Globigerinoides ruber-ruber", functional_df$specName)
+functional_df$specName[functional_df$specName == "Globigerinoides ruber"] <- "Globigerinoides ruber-albus"
+functional_df$specName <- gsub("Beella megastoma", "Beella digitata", functional_df$specName)
+functional_df$specName <- gsub("Globoturborotalita tenella", "Globigerinoides tenellus", functional_df$specName)
+functional_df$specName <- gsub("Trilobatus immaturus", "Trilobatus sacculifer", functional_df$specName)
+functional_df$specName <- gsub("Trilobatus quadrilobatus", "Trilobatus sacculifer", functional_df$specName)
+functional_df$specName <- gsub("Trilobatus trilobus", "Trilobatus sacculifer", functional_df$specName)
+functional_df$specName <- gsub("Turborotalita cristata", "Turborotalita humilis", functional_df$specName)
+
+## Non-spinose
+functional_df$specName <- gsub("Truncorotalia", "Globorotalia", functional_df$specName)
+functional_df$specName <- gsub("Menardella", "Globorotalia", functional_df$specName)
+functional_df$specName <- gsub("Hirsutella", "Globorotalia", functional_df$specName)
+functional_df$specName <- gsub("Globoconella", "Globorotalia", functional_df$specName)
+functional_df$specName <- gsub("Globorotalia theyeri", "Globorotalia eastropacia", functional_df$specName)
+functional_df$specName <- gsub("Globorotalia oceanica", "Globorotalia crassaformis", functional_df$specName)
+functional_df$specName <- gsub("Globorotalia excelsa", "Globorotalia truncatulinoides", functional_df$specName)
+functional_df$specName <- gsub("Globorotalia pachytheca", "Globorotalia truncatulinoides", functional_df$specName)
+functional_df$specName <- gsub("Globorotalia bermudezi", "Globorotalia scitula", functional_df$specName)
+functional_df$specName <- gsub("Globorotalia menardii", "Globorotalia cultrata", functional_df$specName)
+#functional_df$specName <- gsub("Pulleniatina finalis", "Pulleniatina obliquiloculata", functional_df$specName)
+
+# Microperforate
+functional_df$specName <- gsub("Tenuitella iota", "Tenuitellita iota", functional_df$specName)
+functional_df$specName <- gsub("Globigerinita parkerae", "Tenuitellita fleisheri", functional_df$specName)
+functional_df$specName <- gsub("Tenuitella parkerae", "Tenuitellita parkerae", functional_df$specName)
+
+# Independent planktonic origin
+functional_df$specName <- gsub("Gallitellia vivans", "Neogallitellia vivans", functional_df$specName)
+functional_df$specName <- gsub("Streptochilus globigerum", "Bolivina variabilis", functional_df$specName)
+```
+
+```{r}
+Foram_ancestry_table_alb_newTaxo <- read.csv("../../3-Data_processed/Morphospecies_phylogenies/Foram_ancestry_table_alb_newTaxo.csv")
+
+get_last_species_name <- function(label, taxonomy){
+  return (sapply(strsplit(taxonomy[taxonomy$Lineage.code == label, ]$Species.in.lineage, "-"), last))
+}
+get_last_species_name("T100", Foram_ancestry_table_alb_newTaxo)
+```
+
+
+## 2. Identify Model-Seed Files
+
+```{r}
+tree_files <- list.files("outputs", pattern = "\\.tre$", full.names = TRUE)
+
+df_files <- data.frame(tree_path = tree_files, stringsAsFactors = FALSE)
+df_files$key <- df_files$tree_path %>% basename() %>% str_remove("\\.tre$")
+df_files$tiprates_path <- file.path("outputs", paste0(df_files$key, "_tiprates.csv"))
+df_files <- df_files[!grepl("Microperforate", df_files$tree_path),]
+df_files
+```
+
+## 3. Loop Over All Model-Seed Replicates
+
+```{r}
+all_results <- list()
+for (i in seq_len(nrow(df_files))) {
+  cat("\n\n=== Processing:", df_files$key[i], "===\n")
+  
+  tree_path <- df_files$tree_path[i]
+  tiprates_path <- df_files$tiprates_path[i]
+  if (!file.exists(tree_path) || !file.exists(tiprates_path)) next
+  
+  tree_i <- read.tree(tree_path)
+  tip_rates_df <- read.csv(tiprates_path, stringsAsFactors = FALSE)
+  
+  # Replace tip labels by species names
+  if (tree_i$tip.label[1] %in% Foram_ancestry_table_alb_newTaxo$Lineage.code){
+    tree_i$tip.label <- sapply(tree_i$tip.label, get_last_species_name, Foram_ancestry_table_alb_newTaxo)
+    tip_rates_df$tip_label <- sapply(tip_rates_df$tip_label, get_last_species_name, Foram_ancestry_table_alb_newTaxo)
+  }
+  
+  # Match species names to combine the datasets
+  tip_rates_df$Species <- gsub("\\_", " ", gsub("\\[.*", "", tip_rates_df$tip_label))
+  # if (any(grepl("Ia", tip_rates_df$Species))){
+  #   functional_df$Species <- paste(functional_df$specName, "Ia")
+  # }else{
+  #   functional_df$Species <- functional_df$specName
+  # }
+  tree_i$tip.label <- gsub("\\_", " ", tree_i$tip.label)
+  
+  # Taxonomic update
+  tree_i$tip.label <- gsub("Globorotalia menardii Ia", "Globorotalia cultrata IIa", tree_i$tip.label)
+  tip_rates_df$Species <- gsub("Globorotalia menardii Ia", "Globorotalia cultrata IIa", tip_rates_df$Species)
+  tree_i$tip.label <- gsub("Globorotalia menardii", "Globorotalia cultrata", tree_i$tip.label)
+  tip_rates_df$Species <- gsub("Globorotalia menardii", "Globorotalia cultrata", tip_rates_df$Species)
+  
+  # # Remove cryptic species
+  # cryptic_species <- grep("II|V|b$|c$|d$|e$", tree_i$tip.label, value = T)
+  # tree_i <- drop.tip(tree_i, tip = cryptic_species)
+  # tip_rates_df <- tip_rates_df[!(tip_rates_df$Species %in% cryptic_species),]
+  
+  #tip_rates_df$Species[!(tip_rates_df$Species %in% functional_df$Species)]
+  
+  tip_rates_df$Morphospecies <- gsub(" I.*| V.*", "", tip_rates_df$Species)
+  functional_df$Morphospecies <- functional_df$specName
+
+  # combined_df <- merge(tip_rates_df, functional_df, by = "Species")
+  combined_df <- merge(tip_rates_df, functional_df, by = "Morphospecies")
+  combined_df <- combined_df[match(tree_i$tip.label, combined_df$Species), ]
+  
+  Rates <- as.matrix(combined_df[, c("birth_rate", "death_rate")]) ; rownames(Rates) <- combined_df$Species
+  Log_area = combined_df$`log area` ; names(Log_area) <- combined_df$Species
+  Ecogroup = combined_df$eco ; names(Ecogroup) <- combined_df$Species
+  Morphogroup = combined_df$mph ; names(Morphogroup) <- combined_df$Species
+  Morphogroup_simplified = combined_df$mph_simplified ; names(Morphogroup_simplified) <- combined_df$Species
+  Keeled = combined_df$mph_keeled ; names(Morphogroup) <- combined_df$Species
+  Suplementary_aperture = combined_df$mph_aperture ; names(Morphogroup) <- combined_df$Species
+  data <- list(Rates = Rates, 
+               Log_area = Log_area,
+               Ecogroup = Ecogroup, 
+               Morphogroup = Morphogroup, 
+               Morphogroup_simplified = Morphogroup_simplified, 
+               Keeled = Keeled, 
+               Suplementary_aperture = Suplementary_aperture)
+  
+  # Remove species with missing data
+  na_species <- sapply(data$Ecogroup, is.na) | sapply(data$Morphogroup_simplified, is.na) | sapply(data$Log_area, is.na)
+  data$Rates <- data$Rates[!na_species,]
+  data$Log_area <- data$Log_area[!na_species]
+  data$Ecogroup <- droplevels(data$Ecogroup[!na_species])
+  data$Morphogroup <- droplevels(data$Morphogroup[!na_species])
+  data$Morphogroup_simplified <- droplevels(data$Morphogroup_simplified[!na_species])
+  data$Keeled <- data$Keeled[!na_species]
+  data$Suplementary_aperture <- data$Suplementary_aperture[!na_species]
+  tree_i <- drop.tip(tree_i, tip = names(which(na_species)))
+  
+  if (length(data$Rates) > 0){
+    cat("   Fitting Penalized-Likelihood MANOVA...\n")
+    if (any(data$Keeled)){
+      fit_pl <- mvgls(log(Rates) ~ Log_area + Ecogroup + Morphogroup_simplified + Keeled, data = data, tree = tree_i, model = "BM", method = "PL-LOOCV")
+      # X <- model.matrix(Rates ~ Ecogroup + Morphogroup_simplified + Keeled, data = data)
+    }else{
+      fit_pl <- mvgls(log(Rates) ~ Log_area + Ecogroup + Morphogroup_simplified, data = data, tree = tree_i, model = "BM", method = "PL-LOOCV")
+      # X <- model.matrix(Rates ~ Ecogroup + Morphogroup_simplified, data = data)
+    }
+    # # Check the rank
+    # qrX <- qr(X)
+    # cat("Rank:", qrX$rank, "out of", ncol(X), "columns\n")
+    # if (qrX$rank < ncol(X)) {
+    #   cat("The design matrix is not full rank. Some predictors are redundant.\n")
+    # }
+    
+    manova_res <- manova.gls(fit_pl, test="Pillai", type="II", nperm=999, nbcores=3L)
+    cat("   === MANOVA Results for", df_files$key[i], "===\n")
+    print(manova_res)
+  }else{
+    cat("   No data\n")
+    fit_pl <- NA
+    manova_res <- NA
+  }
+  
+  all_results[[df_files$key[i]]] <- list(fit = fit_pl, manova_res = manova_res)
+}
+save(all_results, file = "MANOVA_Results_Functional_groups.Rdata")
+cat("\n\n=== All model-seed replicates processed ===\n")
+```
+
+## 4. Plot and summarize Results
+
+```{r, fig.width=12, fig.asp=0.4}
+# Create a summary data frame from all_results
+manova_summary <- do.call(rbind, lapply(names(all_results), function(key) {
+  res <- all_results[[key]]$manova_res
+  # Skip if res is a single NA value
+  if (is.atomic(res) && length(res) == 1 && is.na(res)) {
+    return(NULL)
+  }
+  # Skip if required components are missing
+  if (!all(c("terms", "stat", "pvalue") %in% names(res))) {
+    return(NULL)
+  }
+  data.frame(
+    Predictor    = res$terms,
+    Statistic = res$stat,
+    pvalue    = res$pvalue,
+    model = str_remove_all(key, "OBDD\\_Forams\\_|\\_50000000iter.*"),
+    seed = str_extract(key, "seed\\d+$"),
+    stringsAsFactors = FALSE
+  )
+}))
+manova_summary$model <- ifelse(grepl("_sampledAncestors", manova_summary$model),
+                         paste0("Fossil_", sub("_sampledAncestors", "", manova_summary$model)),
+                         paste0("Extant_", manova_summary$model))
+
+manova_summary <- manova_summary %>%
+  mutate(phylo_type = ifelse(grepl("Extant", model), "Molecular Species Phylogenies", "Morphospecies Phylogenies"),
+         model_simplified = sub("Extant_", "", model),
+         model_simplified = sub("Fossil_", "", model_simplified),
+         model_simplified = sub("Only", " Only", model_simplified),
+         model_simplified = sub("Mixed", "Mixed ", model_simplified),
+         model_simplified = sub("NonSpinose", "Non-Spinose", model_simplified))
+
+manova_summary$Predictor <- gsub("_simplified", "", manova_summary$Predictor)
+manova_summary$Predictor <- gsub("Log_area", "Size", manova_summary$Predictor)
+manova_summary$Predictor <- gsub("Keeled", "Keel", manova_summary$Predictor)
+manova_summary$Predictor <- factor(manova_summary$Predictor, 
+                                   levels = c('Ecogroup', 'Morphogroup', 'Size', 'Keel'))
+manova_summary$model_simplified <- factor(manova_summary$model_simplified, 
+                                   levels = c('Spinose', 'Non-Spinose', 'Spinose Only', 'Non-Spinose Only', 'Mixed Spinose'))
+
+write.csv(manova_summary, file="MANOVA_Summary_Functional_groups.csv", row.names = FALSE)
+
+# Plot: Distribution of p-values per predictor of diversification rates, faceted by Model
+p <- ggplot(manova_summary, aes(x = Predictor, y = pvalue)) +
+  #geom_boxplot(aes(fill = Predictor)) +
+  geom_point(alpha=0.5, shape = "+", size=5) +
+  scale_colour_manual(values=c("#009E73", "#E69F00", "#0072B2", "#CC79A7")) +
+  geom_hline(yintercept = 0.05, linetype = 3) +
+  ggh4x::facet_nested(. ~ phylo_type + model_simplified, scales = "free", space = "free") +
+  labs(x = "Predictors of diversification rates", y = "p-value") +
+  ylim(0, 1) +
+  theme_bw() +
+  theme(legend.position = "none") +
+  theme(axis.text.x = element_text(angle = 25, vjust = 1, hjust=1))
+
+ggsave("Images/MANOVA_Functional_groups.pdf", width = 8, height = 3)
+p + ggtitle("Distribution of p-values per Predictor by Model")
+```
+
+```{r, fig.width=12, fig.asp=1.5}
+# Initialize a list to store prediction summaries for each fit
+pred_list <- list()
+
+# Loop over each key in all_results
+for (key in names(all_results)) {
+  cat(key, "\n")
+  fit_obj <- all_results[[key]]$fit
+  if (is.atomic(fit_obj) && length(fit_obj) == 1 && is.na(fit_obj)) next
+  
+  variables_rare <- gsub("Ecogroup|Morphogroup_simplified", "", names(which(colSums(fit_obj$variables$X) < 3)))
+  # variables_rare <- ""
+  if (any(grepl("Keeled", fit_obj$formula))){
+    newdata <- expand.grid(
+      Log_area                = quantile(functional_df$`log area`, c(0.1, 0.5, 0.9), na.rm=T),
+      Ecogroup                = fit_obj$xlevels$Ecogroup[!(fit_obj$xlevels$Ecogroup %in% variables_rare)],
+      Morphogroup_simplified  = fit_obj$xlevels$Morphogroup_simplified[!(fit_obj$xlevels$Morphogroup_simplified %in% variables_rare)],
+      Keeled                  = c(FALSE, TRUE),
+      stringsAsFactors        = FALSE
+    )
+  }else{
+    newdata <- expand.grid(
+      Log_area                = quantile(functional_df$`log area`, c(0.1, 0.5, 0.9), na.rm=T),
+      Ecogroup                = fit_obj$xlevels$Ecogroup[!(fit_obj$xlevels$Ecogroup %in% variables_rare)],
+      Morphogroup_simplified  = fit_obj$xlevels$Morphogroup_simplified[!(fit_obj$xlevels$Morphogroup_simplified %in% variables_rare)],
+      stringsAsFactors        = FALSE
+    )
+  }
+  
+  newdata <- newdata %>%
+    mutate(
+      Ecogroup               = factor(Ecogroup),
+      Morphogroup_simplified = factor(Morphogroup_simplified)
+  )
+  
+  preds <- as.data.frame(predict(fit_obj, newdata = newdata))
+  
+  preds <- newdata %>%
+    mutate(
+      birth_rate_pred   = exp(preds$birth_rate),
+      death_rate_pred   = exp(preds$death_rate),
+      net_diversification = birth_rate_pred - death_rate_pred,
+      model = str_remove_all(key, "OBDD\\_Forams\\_|\\_50000000iter.*"),
+      seed  = str_extract(key, "seed\\d+$")
+    )
+  
+  if (!("Keeled" %in% names(preds))) preds$Keeled <- FALSE
+  
+  # Combine the two prediction sets for this model
+  pred_list[[key]] <- preds
+}
+
+# Combine predictions from all models into a single data frame
+pred_summary <- do.call(rbind, pred_list)
+pred_summary$model <- ifelse(grepl("_sampledAncestors", pred_summary$model),
+                         paste0("Fossil_", sub("_sampledAncestors", "", pred_summary$model)),
+                         paste0("Extant_", pred_summary$model))
+```
+
+```{r, fig.width=12, fig.asp=0.8}
+# Reshape to long format so that birth_rate and death_rate predictions are in one column
+pred_long <- pred_summary %>%
+  # Create a new factor "Size" from the Log_area quantiles
+  mutate(Size = factor(case_when(
+    Log_area == sort(unique(Log_area))[1] ~ "Small",
+    Log_area == sort(unique(Log_area))[2] ~ "Medium",
+    Log_area == sort(unique(Log_area))[3] ~ "Large"
+  ), levels = c("Small", "Medium", "Large"))) %>%
+  # Convert Keeled (logical) into a character factor
+  mutate(Keel = ifelse(Keeled, "Keeled", "Non-keeled")) %>%
+  mutate(Ecogroup = gsub("Symbiotic SML", "Surface (symbiotic)", Ecogroup)) %>%
+  mutate(Ecogroup = gsub("Asymbiotic SML", "Surface (asymbiotic)", Ecogroup)) %>%
+  # Pivot the rate columns into a long format
+  pivot_longer(
+    cols = c(birth_rate_pred, death_rate_pred),
+    names_to = c("rate", ".value"),
+    names_pattern = "(birth_rate|death_rate)_(.*)"
+  ) %>%
+  # Now pivot the group columns (Ecogroup, Morphogroup_simplified, Keeled)
+  pivot_longer(
+    cols = c(Ecogroup, Morphogroup_simplified, Keel, Size),
+    names_to = "Group",
+    values_to = "group_value"
+  )
+pred_long$Group <- gsub("_simplified", "", pred_long$Group)
+
+# Reorder
+pred_long$group_value <- factor(pred_long$group_value, 
+                                levels = c('Surface (asymbiotic)', 'Surface (symbiotic)', 'Thermocline', 'Sub-thermocline', 'High productivity', 'High latitude', 
+                                           'NS-globular', 'NS-muricate', 'NS-muricocarinate', 'NS-rotaliform', 'NS-tubulospinate', 'S-flat-clavate', 'S-globular', 'S-planispiral', 
+                                           'Small', 'Medium', 'Large', 
+                                           'Keeled', 'Non-keeled'))
+pred_long$Group <- factor(pred_long$Group, 
+                          levels = c('Ecogroup', 'Morphogroup', 'Size', 'Keel'))
+
+pred_long <- pred_long %>%
+  mutate(phylo_type = ifelse(grepl("Extant", model), "Molecular Species Phylogenies", "Morphospecies Phylogenies"),
+         model_simplified = sub("Extant_", "", model),
+         model_simplified = sub("Fossil_", "", model_simplified),
+         model_simplified = sub("Only", " Only", model_simplified),
+         model_simplified = sub("Mixed", "Mixed ", model_simplified),
+         model_simplified = sub("NonSpinose", "Non-Spinose", model_simplified))
+pred_long$model_simplified <- factor(pred_long$model_simplified, 
+                                   levels = c('Spinose', 'Non-Spinose', 'Spinose Only', 'Non-Spinose Only', 'Mixed Spinose'))
+
+# Plot the predicted rates
+p_pred <- ggplot(pred_long, aes(x = group_value, y = pred)) +
+  geom_boxplot(aes(fill = rate), outlier.size = 0.5, outlier.alpha = 0.5) + 
+  scale_fill_manual(values=c("#56B4E9", "#F9AFAE")) +
+  scale_y_log10() +
+  #facet_grid(model ~ Group, scales = "free", space='free') +
+  ggh4x::facet_nested(phylo_type + model_simplified ~ Group, scales = "free", space='free_x') +
+  labs(x = "Level", y = "Predicted Rates", fill = "Rate Type") +
+  theme_bw() +
+  theme(legend.position = "bottom") +
+  theme(axis.text.x = element_text(angle = 50, hjust = 1))
+
+ggsave("Images/Predicted_Rates.pdf", p_pred, width = 8, height = 9)
+p_pred + ggtitle("Predicted Birth and Death Rates")
+```
+
+```{r, fig.width=12, fig.asp=0.8}
+# Plot the predicted net-diversification rates
+p_pred <- ggplot(pred_long, aes(x = group_value, y = net_diversification)) +
+  geom_boxplot(fill="#009E73") + 
+  geom_hline(yintercept = 0, linetype = 3, lwd=0.3) +
+  ggh4x::facet_nested(phylo_type + model_simplified ~ Group, scales = "free", space='free_x') +
+  labs(x = "Level", y = "Predicted Rate") +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 50, hjust = 1))
+
+ggsave("Images/Predicted_Rates_NetDiversification.pdf", p_pred, width = 8, height = 9)
+p_pred + ggtitle("Predicted Birth and Death Rates")
+```
+
+```{r fig.width=10, fig.asp=1.2}
+okabe_ito <- c("#CC79A7", "#999999", "#000000", "#56B4E9", "#E69F00", "#009E73", "#0072B2", "#F0E442", "#D55E00", "#F9AFAE")
+
+# Get models
+models <- grep("seed0", names(all_results)[!sapply(all_results, anyNA)], value = TRUE)
+
+# Loop over each seed
+par(mar=c(0,0,2,0))
+layout(mat = matrix(1:(length(models)*3), ncol = 3, byrow = T))
+# layout(mat = matrix(c(1:3,1:3,4:9,7:9,10:15,13:15), ncol = 3, byrow = T))
+for (model in rev(models)) {
+  fit_obj <- all_results[[model]]$fit
+  model <- gsub("OBDD_Forams_|_50000000.*", "", model)
+  model <- ifelse(grepl("_sampledAncestors", model), paste0("Morphospecies_", sub("_sampledAncestors", "", model)), paste0("Molecular_", model))
+
+  # Skip if the fit object is NA
+  if (is.atomic(fit_obj) && length(fit_obj) == 1 && is.na(fit_obj)) next
+  
+  tree <- fit_obj$variables$tree
+  # Match functional data to the tree tip order.
+  tree_data <- functional_df[match(gsub(" I.*| V.*", "", tree$tip.label), functional_df$Morphospecies), ]
+  if (any(is.na(tree_data$Morphospecies))) {
+    warning("Some species in the tree were not found in functional_df for model: ", model)
+  }
+  
+  # -------------------------------
+  # Plot tree colored by ecogroup
+  eco_levels <- levels(tree_data$eco)
+  eco_colors <- setNames(okabe_ito[seq_along(eco_levels)], eco_levels)
+  tip_colors_eco <- eco_colors[as.character(tree_data$eco)]
+  plot(tree, tip.color = tip_colors_eco,
+       main = model, cex = 0.5)
+  legend("topright", legend = names(eco_colors), fill = eco_colors, cex = 0.5, title = "Ecogroup", title.cex = 0.8)
+  
+  # -------------------------------
+  # Plot tree colored by morphogroup
+  morpho_levels <- sort(unique(tree_data$mph_simplified))
+  morpho_colors <- setNames(rev(okabe_ito)[seq_along(morpho_levels)], morpho_levels)
+  tip_colors_morpho <- morpho_colors[as.character(tree_data$mph_simplified)]
+  plot(tree, tip.color = tip_colors_morpho,
+       main = model, cex = 0.5)
+  legend("topright", legend = names(morpho_colors), fill = morpho_colors, cex = 0.5, title = "Morphogroup", title.cex = 0.8)
+  
+  # -------------------------------
+  # Plot tree colored by keel
+  keel_levels <- c(T,F)
+  keel_colors <- setNames(okabe_ito[seq_along(keel_levels)], keel_levels)
+  tip_colors_morpho <- keel_colors[as.character(tree_data$mph_keeled)]
+  plot(tree, tip.color = tip_colors_morpho,
+       main = model, cex = 0.5)
+  legend("topright", legend = names(keel_colors), fill = keel_colors, cex = 0.5, title = "Keeled", title.cex = 0.8)
+}
+
+invisible(dev.print(pdf, "Images/Functional_groups_on_trees.pdf"))
+```
