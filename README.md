@@ -1,6 +1,8 @@
 # Overview
 This project focuses on studying the diversification dynamics of planktonic foraminifera using various macroevolutionary models. Key goals include understanding cryptic speciation and leveraging both fossil and molecular data to reconstruct evolutionary patterns. The models used include Protracted Birth-Death (PBD), Occurrence Birth-Death Diffusion (OBDD), and GeoSSE.
 
+Some files are too large for this repository, including the Triton database (which can be found at https://doi.org/10.6084/m9.figshare.c.5242154.v4), and others that can be regenerated with `2-Data_processing` scripts.
+
 # Directory Structure and Description
 ## 1-Data_raw
 Contains the raw datasets, including:
