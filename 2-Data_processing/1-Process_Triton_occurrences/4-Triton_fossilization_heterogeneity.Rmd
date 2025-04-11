@@ -1134,7 +1134,7 @@ for (r in seq_len(nrow(smooth_tab))) {
     }
     # Map known names if needed
     if (grepl("rel\\.abun", mapped_factor)) {
-      mapped_factor <- "\\makecell[l]{Relative\\\\ \\;abundance}"
+      mapped_factor <- "Relative abundance"
     } else if (grepl("pal.long\\.var", mapped_factor)) {
       mapped_factor <- "\\makecell[l]{Paleolongitudinal\\\\ \\;spread}"
       level_str     <- ""

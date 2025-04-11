@@ -1,8 +1,9 @@
 1-Data_raw/Data_Morard/
-5-Analyses/
-6-Articles/
-.DS_Store # Ignore macOS system files
 1-Data_raw/TritonDB/triton.RData
+2-Data_processing/1-Process_Triton_occurrences/3-Triton_diversification_rates.html
+2-Data_processing/1-Process_Triton_occurrences/4-Triton_fossilization_heterogeneity.nb.html
+2-Data_processing/1-Process_Triton_occurrences/.Rhistory
+2-Data_processing/2-Process_Aze_phylogeny/1-Aze_phylogeny.nb.html
 3-Data_processed/Triton_occurrences/TritonDB_trimmed_runif.csv
 3-Data_processed/Triton_occurrences/TritonDB_subsampled_STT_91253foss.csv
 3-Data_processed/Triton_occurrences/TritonDB_subsampled_STT_4642occurrences_Microperforate.csv
@@ -11,3 +12,14 @@
 3-Data_processed/Triton_occurrences/TritonDB_subsampled_STT_34846occurrences_NonSpinoseOnly.csv
 3-Data_processed/Triton_occurrences/TritonDB_subsampled_STT_28873occurrences_SpinoseOnly.csv
 3-Data_processed/Triton_occurrences/TritonDB_subsampled_STT_15195occurrences_MixedSpinose.csv
+4-Phylogenetic_reconstruction/output/forams_Microperforate_seed0.trees
+4-Phylogenetic_reconstruction/output/forams_Microperforate_seed1.trees
+4-Phylogenetic_reconstruction/output/forams_NonSpinose_seed0.trees
+4-Phylogenetic_reconstruction/output/forams_NonSpinose_seed1.trees
+4-Phylogenetic_reconstruction/output/forams_Spinose_seed0.trees
+4-Phylogenetic_reconstruction/output/forams_Spinose_seed1.trees
+4-Phylogenetic_reconstruction/output/forams_Spinose_seed2.trees
+4-Phylogenetic_reconstruction/2-Convergence_checks.nb.html
+5-Analyses/
+6-Articles/
+.DS_Store # Ignore macOS system files

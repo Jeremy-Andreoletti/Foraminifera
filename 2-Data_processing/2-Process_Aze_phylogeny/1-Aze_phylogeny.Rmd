@@ -184,7 +184,6 @@ drawPhylo (Foram_phylogeny_aLb_updated, tmScl=berggren95, addTimeLine="classic",
 
 ```{r}
 Foram_phylo_updated <- buildApe(Foram_phylogeny_aLb_updated)
-#Foram_phylo_updated$tip.label <- sapply(Foram_phylo_updated$tip.label, function(lab)Foram_ancestry_table_alb_updated[Foram_ancestry_table_alb_updated$`Lineage code` == lab,]$`Species in lineage`)
 plot(Foram_phylo_updated, cex = 0.4)
 ```
 
@@ -443,7 +442,6 @@ for (i in sample(1:nrow(triton.ss), size=min(nbF*2, nrow(triton.ss)), replace=F)
 }
 ```
 
-
 ```{r fig.width=20, fig.asp = .8}
 p <- ggtree(Foram_phylo_updated) +  geom_tiplab(size=2.5) + geom_nodelab(size=2) + theme_tree2()
 q <- ggtree(Foram_phylo_fossils) + 
@@ -486,7 +484,7 @@ ggtree(Foram_phylo_fossils_reconstructed) +
   geom_tiplab(size=2.5, color="blue") +
   geom_nodelab(size=2, 
                nudge_y=as.numeric(list("FALSE"=0,"TRUE"=0.5)[as.character(grepl("F",c(Foram_phylo_fossils_reconstructed$node.label)))]), 
-               colour=as.character(list("FALSE"='black',"TRUE"="red")[as.character(grepl("F",c(Foram_phylo_fossils_reconstructed$node.label)))]))
+               colour=as.character(list("FALSE"='black',"TRUE"="darkred")[as.character(grepl("F",c(Foram_phylo_fossils_reconstructed$node.label)))]))
 ```
 
 ```{r}
@@ -523,28 +521,77 @@ lineage_info <- Foram_ancestry_table_alb_newTaxo %>%
   left_join(wall_textures, by="Genus")
 
 # Combine tip labels with lineage info
-tip_data <- data.frame(label = Foram_phylo_updated$tip.label, stringsAsFactors = FALSE) %>%
+tip_data <- data.frame(label = Foram_phylo_fossils$tip.label, stringsAsFactors = FALSE) %>%
   left_join(lineage_info, by = c("label" = "Lineage code"))
 
 # Plot the tree and color tips by Morphology
 # Add last species names to extant tips only (End date == 0)
-p <- ggtree(Foram_phylo_updated) %<+% tip_data +
-  geom_tippoint(aes(color=Morphology), size=2) + 
-  geom_tiplab(aes(label = ifelse(`End date` == 0, Last_species, "")), size=2, hjust=-0.05) + 
-  xlim_tree(6) +
-  scale_color_manual(values = c("Spinose" = "salmon", "Non-spinose" = "cyan3")) +
-  theme_tree2()
+# p <- ggtree(Foram_phylo_fossils) %<+% tip_data +
+#   geom_tippoint(aes(color=Morphology), size=2) + 
+#   geom_tiplab(aes(label = ifelse(`End date` == 0, Last_species, "")), size=2, hjust=-0.05) + 
+#   xlim_tree(6) +
+#   scale_color_manual(values = c("Spinose" = "salmon", "Non-spinose" = "cyan3")) +
+#   theme_tree2() + 
+#   theme(legend.position = "inside", legend.position.inside = c(0.8,0.6), legend.title = element_text(size = 15), legend.text = element_text(size=13))
 
-q <- ggtree(Foram_phylo_updated) %<+% tip_data +
-  geom_tippoint(aes(color=Morphology), size=2) + 
-  geom_tiplab(aes(label = Last_species), size=2, hjust=-0.05) + 
-  xlim_tree(6) +
-  scale_color_manual(values = c("Spinose" = "salmon", "Non-spinose" = "cyan3")) +
-  theme_tree2()
+node_NSonly <- length(Foram_phylo_fossils$tip.label) + which(Foram_phylo_fossils$node.label == "N198")
+node_MixedS <- length(Foram_phylo_fossils$tip.label) + which(Foram_phylo_fossils$node.label == "N182")
+node_Sonly <- length(Foram_phylo_fossils$tip.label)  + which(Foram_phylo_fossils$node.label == "N257")
+tree_height <- max(nodeHeights(Foram_phylo_fossils))
 
-ggsave("../../3-Data_processed/Morphospecies_phylogenies/Images/Foram_phylo_walltexture.png", revts(q), width = 12, height = 14)
-revts(p)
-revts(q)
+p <- ggtree(Foram_phylo_fossils)
+# For each node, count how many times it appears as a parent and flag non-tip nodes with exactly one child as sampled ancestors
+p$data$sampledAncestor <- !d$isTip & (sapply(d$node, function(x) sum(d$parent == x)) == 1)
+q <- p %<+% tip_data +
+  # Non-Spinose only
+  geom_hilight(node = node_NSonly, fill =  "cyan3", alpha = 0.3, type="gradient") +
+  annotate("Label", label = "Non-Spinose Only", x=14, y=179, colour = "cyan4", size = unit(7, "pt"), fill=NA) +
+  # Mixed Spinose
+  geom_hilight(node = node_MixedS, fill = "#7DA7A0FF", alpha = 0.3, type="gradient") +
+  annotate("Label", label = "Mixed Spinose", x=13.5, y=100, colour = "#7E90A0FF", size = unit(7, "pt"), fill=NA) +
+  # Spinose only
+  geom_hilight(node = node_Sonly, fill = "salmon", alpha = 0.3, type="gradient") +
+  annotate("Label", label = "Spinose Only", x=12, y=56, colour = "salmon4", size = unit(7, "pt"), fill=NA) +
+  geom_tippoint(aes(color = Morphology), size = 2) + 
+  geom_tiplab(aes(label = ifelse(`End date` == 0, Last_species, "")), size = 2, hjust = -0.05) + 
+  geom_point2(aes(subset = !isTip & sampledAncestor), shape = "I", size = 2, color = "darkred") +
+  xlim_tree(75) +
+  scale_x_continuous(breaks = seq(tree_height, -1, by = -10), labels = function(x) tree_height - x) +
+  scale_color_manual(values = c("Spinose" = "salmon", "Non-spinose" = "cyan3")) +
+  theme_tree2() + 
+  theme(legend.position = "inside", legend.position.inside =  c(0.9,0.57), legend.title = element_text(size = 15), legend.text = element_text(size = 13))
+
+r <- p %<+% tip_data +
+  # Non-Spinose only
+  geom_hilight(node = node_NSonly, fill =  "cyan3", alpha = 0.3, type="gradient") +
+  annotate("Label", label = "Non-Spinose Only", x=14, y=179, colour = "cyan4", size = unit(7, "pt"), fill=NA) +
+  # Mixed Spinose
+  geom_hilight(node = node_MixedS, fill = "#7DA7A0FF", alpha = 0.3, type="gradient") +
+  annotate("Label", label = "Mixed Spinose", x=13.5, y=100, colour = "#7E90A0FF", size = unit(7, "pt"), fill=NA) +
+  # Spinose only
+  geom_hilight(node = node_Sonly, fill = "salmon", alpha = 0.3, type="gradient") +
+  annotate("Label", label = "Spinose Only", x=12, y=56, colour = "salmon4", size = unit(7, "pt"), fill=NA) +
+  geom_tippoint(aes(color=Morphology), size=2) + 
+  geom_tiplab(aes(label = Last_species), size=2, hjust=-0.05) +
+  geom_point2(aes(subset = (!isTip & sampledAncestor)), shape = "I", size = 2, color = "darkred") +
+  xlim_tree(75) +
+  scale_x_continuous(breaks = seq(tree_height, -1, by = -10), labels = function(x) tree_height - x) +
+  scale_color_manual(values = c("Spinose" = "salmon", "Non-spinose" = "cyan3")) +
+  theme_tree2() + 
+  theme(legend.position = "inside", legend.position.inside = c(0.9,0.57), legend.title = element_text(size = 15), legend.text = element_text(size=13))
+
+ggsave("../../3-Data_processed/Morphospecies_phylogenies/Images/Foram_phylo_walltexture.pdf", r, width = 12, height = 14)
+q
+r
+```
+
+```{r}
+# Create a ggtree object and extract its data
+p <- ggtree(Foram_phylo_fossils)
+
+# For each node, count how many times it appears as a parent and flag non-tip nodes with exactly one child as sampled ancestors
+p$data$child_count <- sapply(d$node, function(x) sum(d$parent == x))
+p$data$sampledAncestor <- !d$isTip & (d$child_count == 1)
 ```
 
 ```{r fig.width=10, fig.asp=0.8}
@@ -569,7 +616,8 @@ p1 <- ggtree(Phylo_NonSpinoseOnly) %<+% Phylo_NonSpinoseOnly_data +
   xlim_tree(8) +
   scale_color_manual(values = c("Spinose" = "salmon", "Non-spinose" = "cyan3")) +
   geom_tiplab(aes(label = Last_species), size=2, hjust=-0.05) + 
-  theme_tree2() +
+  theme_tree2() + 
+  theme(legend.position = "inside", legend.position.inside = c(0.8,0.15), legend.title = element_text(size = 15), legend.text = element_text(size=13)) +
   ggtitle("Clade of exclusively non-spinose foraminifera")
 
 p2 <- ggtree(Phylo_SpinoseOnly) %<+% Phylo_SpinoseOnly_data +
@@ -578,7 +626,8 @@ p2 <- ggtree(Phylo_SpinoseOnly) %<+% Phylo_SpinoseOnly_data +
   xlim_tree(8) +
   scale_color_manual(values = c("Spinose" = "salmon", "Non-spinose" = "cyan3")) +
   geom_tiplab(aes(label = Last_species), size=2, hjust=-0.05) + 
-  theme_tree2() +
+  theme_tree2() + 
+  theme(legend.position = "inside", legend.position.inside = c(0.8,0.15), legend.title = element_text(size = 15), legend.text = element_text(size=13)) +
   ggtitle("Clade of exclusively spinose foraminifera")
 
 p3 <- ggtree(Phylo_MixedSpinose) %<+% Phylo_MixedSpinose_data +
@@ -587,7 +636,8 @@ p3 <- ggtree(Phylo_MixedSpinose) %<+% Phylo_MixedSpinose_data +
   xlim_tree(8) +
   scale_color_manual(values = c("Spinose" = "salmon", "Non-spinose" = "cyan3")) +
   geom_tiplab(aes(label = Last_species), size=2, hjust=-0.05) + 
-  theme_tree2() +
+  theme_tree2() + 
+  theme(legend.position = "inside", legend.position.inside = c(0.8,0.8), legend.title = element_text(size = 15), legend.text = element_text(size=13)) +
   ggtitle("Clade of mixed spinose and non-spinose foraminifera")
 
 # Print the plots
@@ -618,7 +668,8 @@ q <- ggtree(Foram_phylo_fossils) %<+% tip_data +
                colour=as.character(list("FALSE"='black',"TRUE"="red")[as.character(grepl("F",c(Foram_phylo_fossils$node.label)))])) + 
   xlim_tree(6) +
   scale_color_manual(values = c("Spinose" = "salmon", "Non-spinose" = "cyan3")) +
-  theme_tree2()
+  theme_tree2() + 
+  theme(legend.position = "inside", legend.position.inside = c(0.8,0.6), legend.title = element_text(size = 15), legend.text = element_text(size=13))
 
 ggsave("../../3-Data_processed/Morphospecies_phylogenies/Images/Foram_phylo_sampledAncestors_walltexture.png", revts(q), width = 12, height = 14)
 revts(q)

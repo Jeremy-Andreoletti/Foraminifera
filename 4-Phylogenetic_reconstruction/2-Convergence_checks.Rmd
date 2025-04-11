@@ -23,7 +23,7 @@ plotEssSplits(output_S, breaks=10)
 ## Non-Spinose
 
 ```{r}
-output_NS <- checkConvergence(list_files = list.files("/Volumes/data/Forams/4-Phylogenetic_reconstruction/output/", pattern = "forams_NonSpinose.*.trees", full.names = T), control = makeControl(burnin = 0.1))
+output_NS <- checkConvergence(list_files = list.files("/Volumes/data/Forams/4-Phylogenetic_reconstruction/output", pattern = "forams_NonSpinose.*.trees", full.names = T), control = makeControl(burnin = 0.1))
 output_NS
 ```
 
