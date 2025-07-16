@@ -4,7 +4,7 @@
 # Freely distributed under the BSD open source license.
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # command: ssu-mask -a --stk2afa ../../3-Data_processed/Sequence_alignments/SSU-align/Mask_pf0.95_pt0.95/SSU-align_NonSpinose/SSU-align_NonSpinose.eukarya.mask.stk
-# date:    Wed Oct 30 17:50:33 2024
+# date:    Tue May 27 11:45:37 2025
 
 Printing global hask key as read from ssu.pm:
 
@@ -41,43 +41,43 @@ Global hash key: ps2pdf               value: ps2pdf
 Global hash key: ssu-align            value: ssu-align
 Global hash key: ssu-merge            value: ssu-merge
 
-Executing:      ssu-esl-alimask -h > /dev/null  2> ssutmp0erraa58150
+Executing:      ssu-esl-alimask -h > /dev/null  2> ssutmp0erraa72296
 Returned:       0
 Output (STDOUT) sent to /dev/null.
 Output (STDERR): ***NONE***
 
-About to remove file (ssutmp0erraa58150) with perl's unlink function ... done.
+About to remove file (ssutmp0erraa72296) with perl's unlink function ... done.
 
-Executing:      ssu-esl-alimanip -h > /dev/null  2> ssutmp1erraa58150
+Executing:      ssu-esl-alimanip -h > /dev/null  2> ssutmp1erraa72296
 Returned:       0
 Output (STDOUT) sent to /dev/null.
 Output (STDERR): ***NONE***
 
-About to remove file (ssutmp1erraa58150) with perl's unlink function ... done.
+About to remove file (ssutmp1erraa72296) with perl's unlink function ... done.
 
-Executing:      ssu-esl-ssdraw -h > /dev/null  2> ssutmp2erraa58150
+Executing:      ssu-esl-ssdraw -h > /dev/null  2> ssutmp2erraa72296
 Returned:       0
 Output (STDOUT) sent to /dev/null.
 Output (STDERR): ***NONE***
 
-About to remove file (ssutmp2erraa58150) with perl's unlink function ... done.
+About to remove file (ssutmp2erraa72296) with perl's unlink function ... done.
 
-Executing:      ssu-esl-reformat -h > /dev/null  2> ssutmp3erraa58150
+Executing:      ssu-esl-reformat -h > /dev/null  2> ssutmp3erraa72296
 Returned:       0
 Output (STDOUT) sent to /dev/null.
 Output (STDERR): ***NONE***
 
-About to remove file (ssutmp3erraa58150) with perl's unlink function ... done.
+About to remove file (ssutmp3erraa72296) with perl's unlink function ... done.
 
-Executing:      ssu-esl-reformat -o SSU-align_NonSpinose.eukarya.mask.afa --small --informat pfam afa ../../3-Data_processed/Sequence_alignments/SSU-align/Mask_pf0.95_pt0.95/SSU-align_NonSpinose/SSU-align_NonSpinose.eukarya.mask.stk > ssutmp4outaa58150  2> ssutmp4erraa58150
+Executing:      ssu-esl-reformat -o SSU-align_NonSpinose.eukarya.mask.afa --small --informat pfam afa ../../3-Data_processed/Sequence_alignments/SSU-align/Mask_pf0.95_pt0.95/SSU-align_NonSpinose/SSU-align_NonSpinose.eukarya.mask.stk > ssutmp4outaa72296  2> ssutmp4erraa72296
 Returned:       0
 Output (STDOUT): ***NONE***
 Output (STDERR): ***NONE***
 
-About to remove file (ssutmp4outaa58150) with perl's unlink function ... done.
+About to remove file (ssutmp4outaa72296) with perl's unlink function ... done.
 
-About to remove file (ssutmp4erraa58150) with perl's unlink function ... done.
+About to remove file (ssutmp4erraa72296) with perl's unlink function ... done.
 
-Mer 30 oct 2024 17:50:34 CET
-Darwin bdmac19.ens.fr 23.6.0 Darwin Kernel Version 23.6.0: Mon Jul 29 21:14:30 PDT 2024; root:xnu-10063.141.2~1/RELEASE_ARM64_T6000 arm64
+Mar 27 mai 2025 11:45:38 CEST
+Darwin bdmac19.ens.fr 24.5.0 Darwin Kernel Version 24.5.0: Tue Apr 22 19:54:49 PDT 2025; root:xnu-11417.121.6~2/RELEASE_ARM64_T6000 arm64
 # SSU-ALIGN-SUCCESS

@@ -79,8 +79,8 @@ q <- ggplot(triton[triton$Speciation<66 & triton$Extinction>0,], aes(x=(Speciati
     axis.text = element_text(size = 11)
   )
 
-ggsave("Images/Lifetime_occurrence_distribution.pdf", p + ggtitle("Raw Triton database"), width = 4, height = 3)
-ggsave("Images/Lifetime_occurrence_distribution_extinct.pdf", q + ggtitle("Raw Triton database, extinct species"), width = 4, height = 3)
+ggsave("Images/Fig1C_Lifetime_occurrence_distribution.pdf", p + ggtitle("Raw Triton database"), width = 4, height = 3)
+ggsave("Images/Fig1C_Lifetime_occurrence_distribution_extinct.pdf", q + ggtitle("Raw Triton database, extinct species"), width = 4, height = 3)
 
 p + ggtitle("Distribution of occurrence counts over the species range (Triton database)")
 q + ggtitle("Distribution of occurrence counts over the species range (Triton database, extinct species)")
@@ -130,7 +130,7 @@ q <- ggplot(triton.ss[triton.ss$Speciation<66 & triton.ss$Extinction>0,],
   )
 
 ggsave("Images/Lifetime_occurrence_distribution_subsampled.pdf", p + ggtitle("Subsampled Triton database"), width = 4, height = 3)
-ggsave("Images/Lifetime_occurrence_distribution_subsampled_extinct.pdf", q + ggtitle("Subsampled Triton database, extinct"), width = 4, height = 3)
+ggsave("Images/Fig1C_Lifetime_occurrence_distribution_subsampled_extinct.pdf", q + ggtitle("Subsampled Triton database, extinct"), width = 4, height = 3)
 p + ggtitle("Distribution of occurrence counts over the species range (subsampled Triton database)")
 q + ggtitle("Distribution of occurrence counts over the species range (subsampled Triton database, extinct)")
 ```
@@ -475,49 +475,49 @@ p <- grid.arrange(
     stat_smooth(formula=y~s(x), method = "gam", method.args=list(family=Gamma(link = "log"))) +
     scale_x_continuous(name = "Species median paleolatitude") +
     scale_y_continuous(name = "Fossil sampling rate (per Myr)") +
-    ggtitle("Fossil sampling heterogeneity") +
+    ggtitle("Predictor: paleolatitude") +
     theme(legend.position = "none"),
   ggplot(sampling_heterogeneity, aes(x=pal.long, y=sampling_rate, fill=pal.long)) +
     geom_point() +
     stat_smooth(formula=y~s(x), method = "gam", method.args=list(family=Gamma(link = "log"))) +
     scale_x_continuous(name = "Species median paleolongitude") +
     scale_y_continuous(name = "Fossil sampling rate (per Myr)") +
-    ggtitle("Fossil sampling heterogeneity") +
+    ggtitle("Predictor: paleolongitude") +
     theme(legend.position = "none"),
   ggplot(sampling_heterogeneity[sampling_heterogeneity$rel.abun<18,], aes(x=rel.abun, y=sampling_rate, fill=rel.abun)) +
     geom_point() +
     stat_smooth(formula=y~s(x), method = "gam", method.args=list(family=Gamma(link = "log"))) +
     scale_x_continuous(name = "Species mean relative abundance") +
     scale_y_continuous(name = "Fossil sampling rate (per Myr)") +
-    ggtitle("Fossil sampling heterogeneity") +
+    ggtitle("Predictor: relative abundance") +
     theme(legend.position = "none"),
   ggplot(sampling_heterogeneity, aes(x=age, y=sampling_rate, fill=age)) +
     geom_point() +
     stat_smooth(formula=y~s(x), method = "gam", method.args=list(family=Gamma(link = "log"))) +
     scale_x_continuous(name = "Species age") +
     scale_y_continuous(name = "Fossil sampling rate (per Myr)") +
-    ggtitle("Fossil sampling heterogeneity") +
+    ggtitle("Predictor: age") +
     theme(legend.position = "none"),
   ggplot(sampling_heterogeneity, aes(x=sample.depth, y=sampling_rate, fill=sample.depth)) +
     geom_point() +
     stat_smooth(formula=y~s(x), method = "gam", method.args=list(family=Gamma(link = "log"))) +
     scale_x_continuous(name = "Sample depth") +
     scale_y_continuous(name = "Fossil sampling rate (per Myr)") +
-    ggtitle("Fossil sampling heterogeneity") +
+    ggtitle("Predictor: sample depth") +
     theme(legend.position = "none"), 
   ggplot(sampling_heterogeneity, aes(x=pal.absLat.var, y=sampling_rate, fill=sample.depth)) +
     geom_point() +
     stat_smooth(formula=y~s(x), method = "gam", method.args=list(family=Gamma(link = "log"))) +
-    scale_x_continuous(name = "Plaeolatitudinal spread") +
+    scale_x_continuous(name = "Paleolatitudinal spread") +
     scale_y_continuous(name = "Fossil sampling rate (per Myr)") +
-    ggtitle("Fossil sampling heterogeneity") +
+    ggtitle("Predictor: paleolat. spread") +
     theme(legend.position = "none"), 
   ggplot(sampling_heterogeneity, aes(x=pal.long.var, y=sampling_rate, fill=sample.depth)) +
     geom_point() +
     stat_smooth(formula=y~s(x), method = "gam", method.args=list(family=Gamma(link = "log"))) +
     scale_x_continuous(name = "Plaeolongitudinal spread") +
     scale_y_continuous(name = "Fossil sampling rate (per Myr)") +
-    ggtitle("Fossil sampling heterogeneity") +
+    ggtitle("Predictor: plaeolong. spread") +
     theme(legend.position = "none"), 
   nrow=2)
 ggsave("Images/Annex_Plot_continuous_variables.pdf", p, width = 12, height = 6)
@@ -650,22 +650,77 @@ p <- grid.arrange(
 ggsave("Images/Annex_Plot_functional_groups.pdf", p, width = 10, height = 3.5)
 ```
 
-```{r}
-summary(lm(sampling_rate~relevel(morphogroup, ref = "2"), data=sampling_heterogeneity))
-anova(lm(sampling_rate~morphogroup, data=sampling_heterogeneity))
+Simplify to avoid groups with few datapoints.
+
+```{r, fig.asp=0.4, fig.width=12}
+sampling_heterogeneity <- sampling_heterogeneity %>% 
+  mutate(
+    morphogroup_simplified = case_when(
+      morphogroup %in% c(1, 5, 6)    ~ "S_flat_clavate_planispiral",
+      morphogroup %in% 2:4           ~ "S_globular_spherical",
+      morphogroup %in% 7:8           ~ "NS_globular",
+      morphogroup %in% 9:11          ~ "NS_spinate_planispiral",
+      morphogroup %in% 12:16         ~ "NS_rotaliform",
+      morphogroup %in% 17:19         ~ "NS_muricate",
+      morphogroup =="Microperforate" ~ "Microperforate",
+      TRUE                           ~ "NA"
+    ) %>% factor(levels = c("NA", "S_globular_spherical", "S_flat_clavate_planispiral", "NS_globular", "NS_muricate", "NS_rotaliform", "NS_spinate_planispiral", "Microperforate"))
+  )
+
+# sampling_heterogeneity$morphogroup_simplified2 <- sampling_heterogeneity$morphogroup_simplified
+# sampling_heterogeneity$morphogroup_simplified2 <- gsub("^S.*", "Spinose", sampling_heterogeneity$morphogroup_simplified2)
+# sampling_heterogeneity$morphogroup_simplified2 <- gsub("^NS.*", "NonSpinose", sampling_heterogeneity$morphogroup_simplified2)
+
+sampling_heterogeneity <- sampling_heterogeneity %>% 
+  mutate(
+    ecogroup_simplified = case_when(
+      ecogroup ==1 ~ "Symbiotic_SML",
+      ecogroup ==2 ~ "Asymbiotic_SML",
+      ecogroup ==3 ~ "Thermocline",
+      ecogroup ==4 ~ "Sub_thermocline",
+      TRUE         ~ "NA"
+    ) %>% factor(levels = c("NA", "Asymbiotic_SML", "Symbiotic_SML", "Sub_thermocline", "Thermocline"))
+  )
+
+# sampling_heterogeneity <- sampling_heterogeneity %>%
+#   mutate(
+#     morphogroup_simplified = relevel(morphogroup_simplified, ref = "S_globular_spherical"),
+#     ecogroup_simplified    = relevel(ecogroup_simplified,    ref = "Asymbiotic_SML")
+#   )
+
+p <- grid.arrange(
+  ggplot(sampling_heterogeneity, aes(x=morphogroup_simplified, y=sampling_rate, fill=morphogroup_simplified)) +
+    geom_boxplot(varwidth=T, outlier.shape=NA) + 
+    geom_jitter(color="black", size=0.4, alpha=0.5, width = 0.2) +
+    scale_x_discrete(name = "Morphogroups") +
+    scale_y_log10(name = "Fossil sampling rate (per Myr)") +
+    ggtitle("Heterogeneity in fossil sampling") +
+    theme(legend.position = "none", axis.text.x = element_text(angle = 20, vjust = 0.95, hjust=1)),
+  ggplot(sampling_heterogeneity, aes(x=ecogroup_simplified, y=sampling_rate, fill=ecogroup_simplified)) +
+    geom_boxplot(varwidth=T, outlier.shape=NA) + 
+    geom_jitter(color="black", size=0.4, alpha=0.5, width = 0.2) +
+    scale_x_discrete(name = "Ecogroups") +
+    scale_y_log10(name = "Fossil sampling rate (per Myr)") +
+    ggtitle("Heterogeneity in fossil sampling") +
+    theme(legend.position = "none", axis.text.x = element_text(angle = 20, vjust = 0.95, hjust=1)), nrow=1, widths=c(8,4))
+ggsave("Images/Annex_Plot_simplified_functional_groups.pdf", p, width = 10, height = 3.5)
 ```
 
 ```{r}
-summary(lm(sampling_rate~relevel(ecogroup, ref = "1"), data=sampling_heterogeneity))
-anova(lm(sampling_rate~ecogroup, data=sampling_heterogeneity))
+summary(lm(sampling_rate~relevel(morphogroup_simplified, ref = "NA"), data=sampling_heterogeneity))
+anova(lm(sampling_rate~morphogroup_simplified, data=sampling_heterogeneity))
+```
+
+```{r}
+summary(lm(sampling_rate~relevel(ecogroup_simplified, ref = "NA"), data=sampling_heterogeneity))
+anova(lm(sampling_rate~ecogroup_simplified, data=sampling_heterogeneity))
 ```
 
 Correlations between categorical factors
 
-```{r warning=FALSE}
+```{r}
 library(DescTools)
 vars <- sampling_heterogeneity[c(15,16,18,19)]
-vars$morphogroup <- as.factor(as.character(vars$morphogroup))
 names_vars <- names(vars)
 
 # Compute Cramér's V values
@@ -719,70 +774,61 @@ dev.off()
 -> A Gamma family seems to be a better fit
 
 ```{r, fig.asp=0.6, fig.width=12}
-sampling_heterogeneity_GLM_cont <- glm(sampling_rate ~ rel.abun + abs(pal.lat) + pal.long + age + sample.depth + pal.absLat.var + pal.long.var,
-                                       data   = sampling_heterogeneity[sampling_heterogeneity$rel.abun<25,],
-                                       family = Gamma(link = "log"))
-sampling_heterogeneity_GLM <- glm(sampling_rate ~ rel.abun + abs(pal.lat) + pal.long + age + sample.depth + pal.absLat.var + pal.long.var + reason + age.calc + morphogroup + ecogroup,
+sampling_heterogeneity_GLM <- glm(sampling_rate ~ rel.abun + abs(pal.lat) + pal.long + age + sample.depth + pal.absLat.var + pal.long.var + reason + age.calc + morphogroup_simplified + ecogroup_simplified,
                                   data   = sampling_heterogeneity[sampling_heterogeneity$rel.abun<25,],
                                   family = Gamma(link = "log"))
 
-summary(sampling_heterogeneity_GLM_cont)
 summary(sampling_heterogeneity_GLM)
 
-plot_model(sampling_heterogeneity_GLM_cont, grid.breaks = c(0.5, 1, 20))
 plot_model(sampling_heterogeneity_GLM, grid.breaks = 10^(-2:1))
 ```
 
 ```{r, fig.asp=0.4, fig.width=12, warning=FALSE}
-sampling_heterogeneity_GAM <- gam(sampling_rate ~ s(pal.lat, pal.long, bs = "sos", k=40) + s(rel.abun, k=3) + s(pal.absLat.var, k=3) + s(pal.long.var, k=3) + te(age, sample.depth, k=4)
-                                                  + reason + age.calc + morphogroup + ecogroup, 
+sampling_heterogeneity_GAM <- gam(sampling_rate ~ s(pal.lat, pal.long, bs = "sos", k=50) + s(rel.abun, k=3) + s(pal.absLat.var, k=3) + s(pal.long.var, k=3) + s(sample.depth, k=3)
+                                                  + reason + age.calc + morphogroup_simplified + ecogroup_simplified, 
                                   data   = sampling_heterogeneity[sampling_heterogeneity$rel.abun<25,],
                                   family = Gamma(link = "log"), method = "REML", select=T)
 summary(sampling_heterogeneity_GAM)
 
 par(mfrow = c(2,5), mar = c(4, 3, 2, 0) + 0.1, mgp = c(2.2, 0.7, 0))
-for (i in 1:4) plot(sampling_heterogeneity_GAM, pages=0, residuals=TRUE, select=i, se=2, ylim=c(-5,1.5), theta=0, phi=90, ylab="")  ## show partial residuals
-vis.gam(sampling_heterogeneity_GAM, view=c("age", "sample.depth"), n.grid = 7, ylab="\n\nsample depth")
-for (i in 1:4) plot(sampling_heterogeneity_GAM, pages=0, seWithMean=TRUE, select=i, se=2, shade=T, theta=180, phi=90, ylab="")
-vis.gam(sampling_heterogeneity_GAM, view=c("sample.depth", "age"), n.grid = 7, ylab="\n\nage")
-
-pdf("Images/Sampling_heterogeneity_GAM.pdf", width = 12, height = 5)
-par(mfrow = c(2,5), mar = c(4, 3, 2, 0) + 0.1, mgp = c(2.2, 0.7, 0))
-for (i in 1:4) plot(sampling_heterogeneity_GAM, pages=0, residuals=TRUE, select=i, se=2, ylim=c(-5,1.5), theta=0, phi=90, ylab="")  ## show partial residuals
-vis.gam(sampling_heterogeneity_GAM, view=c("age", "sample.depth"), n.grid = 7, ylab="\n\nsample depth")
-for (i in 1:4) plot(sampling_heterogeneity_GAM, pages=0, seWithMean=TRUE, select=i, se=2, shade=T, theta=180, phi=90, ylab="")
-vis.gam(sampling_heterogeneity_GAM, view=c("sample.depth", "age"), n.grid = 7, ylab="\n\nage")
-dev.off()
+for (i in 1:5) plot(sampling_heterogeneity_GAM, pages=0, residuals=TRUE, select=i, se=2, ylim=c(-3,1.5), theta=0, phi=90, ylab="")  ## show partial residuals
+# vis.gam(sampling_heterogeneity_GAM, view=c("age", "sample.depth"), n.grid = 15, lwd=0.5, ylab="\n\nsample depth")
+for (i in 1:5) plot(sampling_heterogeneity_GAM, pages=0, seWithMean=TRUE, select=i, se=2, shade=T, theta=180, phi=90, ylab="")
+# vis.gam(sampling_heterogeneity_GAM, view=c("sample.depth", "age"), n.grid = 15, lwd=0.5, ylab="\n\nage")
 ```
 
 ```{r, fig.asp=0.4, fig.width=12, warning=FALSE}
-pdf("Images/Sampling_heterogeneity_GAM.pdf", width = 8, height = 2.5)
+pdf("Images/Fig2A_Sampling_heterogeneity_GAM.pdf", width = 12, height = 3.5)
 layout(matrix(c(1, 2, 3, 4, 5,
-                6, 2, 3, 4, 7), 
+                6, 2, 3, 4, 5), 
               nrow = 2, byrow = TRUE))
 
-par(mar = c(1, 1, 1, 0.5), mgp = c(2.2, 0.7, 0))
-plot(sampling_heterogeneity_GAM, pages=0, residuals=TRUE, select=1, theta=0, phi=90, ylab="", lwd=0.3)
+par(mar = c(0.5, 0.5, 0.5, 0.5), mgp = c(2.2, 0.7, 0))
+plot(sampling_heterogeneity_GAM, pages=0, residuals=TRUE, seWithMean=TRUE, select=1, theta=0, phi=90, ylab="", lwd=0.3)
 
-par(mar = c(3.5, 2.7, 1, 0), mgp = c(1.7, 0.5, 0))
-plot(sampling_heterogeneity_GAM, pages=0, residuals=TRUE, shade=T, select=2, se=2, cex.lab=1.2, 
-     ylim=c(-5,1.5), theta=0, phi=90, xlab="Relative abundance", ylab="Partial effect of the predictor")
+par(mar = c(3.5, 3.3, 1, 0), mgp = c(2, 0.5, 0))
+plot(sampling_heterogeneity_GAM, pages=0, residuals=TRUE, shade=T, select=2, se=2, cex.lab=1.8, 
+     ylim=c(-3,1.5), theta=0, phi=90, xlab="Relative abundance", ylab="Partial effect of the predictor")
 
-par(mar = c(3.5, 2, 1, 0.5), mgp = c(1.7, 0.5, 0))
-plot(sampling_heterogeneity_GAM, pages=0, residuals=TRUE, shade=T, select=3, se=2, cex.lab=1.2, 
-     ylim=c(-5,1.5), yaxt = "n", theta=0, phi=90, xlab="Latitudinal spread", ylab="")
+par(mar = c(3.5, 2, 1, 0.5), mgp = c(2, 0.5, 0))
+plot(sampling_heterogeneity_GAM, pages=0, residuals=TRUE, shade=T, select=3, se=2, cex.lab=1.8, 
+     ylim=c(-3,1.5), yaxt = "n", theta=0, phi=90, xlab="Latitudinal spread", ylab="")
 
-par(mar = c(3.5, 1.5, 1, 1), mgp = c(1.7, 0.5, 0))
-plot(sampling_heterogeneity_GAM, pages=0, residuals=TRUE, shade=T, select=4, se=2, cex.lab=1.2, 
-     ylim=c(-5,1.5), yaxt = "n", theta=0, phi=90, xlab="Longitudinal spread", ylab="")
+par(mar = c(3.5, 1.5, 1, 0.5), mgp = c(2, 0.5, 0))
+plot(sampling_heterogeneity_GAM, pages=0, residuals=TRUE, shade=T, select=4, se=2, cex.lab=1.8, 
+     ylim=c(-3,1.5), yaxt = "n", theta=0, phi=90, xlab="Longitudinal spread", ylab="")
 
-par(mar = c(1, 0, 0.5, 0))
-vis.gam(sampling_heterogeneity_GAM, view=c("age", "sample.depth"), n.grid = 7, 
-        ylab="\nDepth", xlab="Age", zlab="Partial effect", cex.lab=1.2)
+par(mar = c(3.5, 1.5, 1, 1), mgp = c(2, 0.5, 0))
+plot(sampling_heterogeneity_GAM, pages=0, residuals=TRUE, shade=T, select=5, se=2, cex.lab=1.8, 
+     ylim=c(-3,1.5), yaxt = "n", theta=0, phi=90, xlab="Sample Depth", ylab="")
 
+# par(mar = c(1, 0, 0.5, 0))
+# vis.gam(sampling_heterogeneity_GAM, view=c("age", "sample.depth"), n.grid = 7,
+#         ylab="\nDepth", xlab="Age", zlab="Partial effect", cex.lab=1.2)
+# 
 plot(sampling_heterogeneity_GAM, pages=0, residuals=TRUE, select=1, theta=180, phi=90, ylab="", lwd=0.3)
-vis.gam(sampling_heterogeneity_GAM, view=c("sample.depth", "age"), n.grid = 7, 
-        ylab="\nAge", xlab="Depth", zlab="Partial effect", cex.lab=1.2)
+# vis.gam(sampling_heterogeneity_GAM, view=c("sample.depth", "age"), n.grid = 7, 
+#         ylab="\nAge", xlab="Depth", zlab="Partial effect", cex.lab=1.2)
 dev.off()
 ```
 
@@ -792,25 +838,22 @@ cbind(AIC(sampling_heterogeneity_GLM, sampling_heterogeneity_GAM),
 
 grid.arrange(plot_model(sampling_heterogeneity_GLM, type="pred", terms = c("pal.lat"))+geom_point(),
              plot_model(sampling_heterogeneity_GLM, type="pred", terms = c("pal.long"))+geom_point(),
-             plot_model(sampling_heterogeneity_GLM, type="pred", terms = c("age", "age.calc"))+geom_point(),
+             plot_model(sampling_heterogeneity_GLM, type="pred", terms = c("pal.absLat.var", "age.calc"))+geom_point(),
              plot_model(sampling_heterogeneity_GLM, type="pred", terms = c("sample.depth", "reason"))+geom_point(),
-             plot_model(sampling_heterogeneity_GLM, type="pred", terms = c("rel.abun", "ecogroup"))+geom_point(),
-             plot_model(sampling_heterogeneity_GLM, type="pred", terms = c("pal.long.var", "morphogroup"))+geom_point(), nrow=2)
+             plot_model(sampling_heterogeneity_GLM, type="pred", terms = c("rel.abun", "ecogroup_simplified"))+geom_point(),
+             plot_model(sampling_heterogeneity_GLM, type="pred", terms = c("pal.long.var", "morphogroup_simplified"))+geom_point(), nrow=2)
 
 grid.arrange(plot_model(sampling_heterogeneity_GAM, type="pred", terms = c("pal.lat"))+geom_point(),
              plot_model(sampling_heterogeneity_GAM, type="pred", terms = c("pal.long"))+geom_point(),
-             plot_model(sampling_heterogeneity_GAM, type="pred", terms = c("age", "age.calc"))+geom_point(),
+             plot_model(sampling_heterogeneity_GAM, type="pred", terms = c("pal.absLat.var", "age.calc"))+geom_point(),
              plot_model(sampling_heterogeneity_GAM, type="pred", terms = c("sample.depth", "reason"))+geom_point(),
-             plot_model(sampling_heterogeneity_GAM, type="pred", terms = c("rel.abun", "ecogroup"))+geom_point(),
-             plot_model(sampling_heterogeneity_GAM, type="pred", terms = c("pal.long.var", "morphogroup"))+geom_point(), nrow=2)
+             plot_model(sampling_heterogeneity_GAM, type="pred", terms = c("rel.abun", "ecogroup_simplified"))+geom_point(),
+             plot_model(sampling_heterogeneity_GAM, type="pred", terms = c("pal.long.var", "morphogroup_simplified"))+geom_point(), nrow=2)
 ```
 
 ```{r fig.asp=0.3, fig.width=15, echo = FALSE, eval = FALSE}
 ## run some basic model checks, including checking
 ## smoothing basis dimensions...
-par(mfrow=c(1,4))
-gam.check(sampling_heterogeneity_GAM, rep = 100)
-lines(range(sampling_heterogeneity$sampling_rate), range(sampling_heterogeneity$sampling_rate), col="red")
 
 pdf("Images/Annex_GAM_model_checks.pdf", width = 8.2, height = 2.4)
 par(mfrow=c(1,4))
@@ -819,27 +862,28 @@ lines(range(sampling_heterogeneity$sampling_rate), range(sampling_heterogeneity$
 dev.off()
 ```
 
-## Remove nonsignificant variables
+Analysis of the Variance Inflation Factor (VIF)
 
-```{r, fig.asp=0.5, fig.width=12}
-sampling_heterogeneity_GLM_simplified <- glm(sampling_rate ~ rel.abun + abs(pal.lat) + sample.depth + pal.long.var + age.calc + morphogroup + ecogroup,
-                                             data   = sampling_heterogeneity[sampling_heterogeneity$rel.abun<25,],
-                                             family = Gamma(link = "log"))
+```{r}
+performance::check_collinearity(sampling_heterogeneity_GLM)
+```
 
-sampling_heterogeneity_GAM_simplified <- gam(sampling_rate ~ s(pal.lat, pal.long, bs = "sos", k=30) + s(rel.abun, k=3) + s(pal.absLat.var, k=3) + s(pal.long.var, k=3) + te(age, sample.depth, k=4)
-                                                             + reason + age.calc, 
-                                             data   = sampling_heterogeneity[sampling_heterogeneity$rel.abun<25,],
-                                             family = Gamma(link = "log"), method = "REML", select=T)
 
-cbind(AIC(sampling_heterogeneity_GLM, sampling_heterogeneity_GLM_simplified, sampling_heterogeneity_GAM, sampling_heterogeneity_GAM_simplified),
-      BIC=BIC(sampling_heterogeneity_GLM, sampling_heterogeneity_GLM_simplified, sampling_heterogeneity_GAM, sampling_heterogeneity_GAM_simplified)[,2])
+```{r}
+performance::check_collinearity(sampling_heterogeneity_GAM)
+cat("\n\n\n")
+performance::check_concurvity(sampling_heterogeneity_GAM)
+```
+
+```{r}
+1/(1-concurvity(sampling_heterogeneity_GAM))
 ```
 
 ## Deviance partitioning
 
 Derive the respective contribution of all the predictors to the explained variance.
 
-```{r}
+```{r, fig.width=10}
 sampling_heterogeneity_GAM.hp <- gam.hp(sampling_heterogeneity_GAM, type="dev")
 sampling_heterogeneity_GAM.hp
 
@@ -857,7 +901,7 @@ sampling_heterogeneity_GAM.deviancePart <- sampling_heterogeneity_GAM.deviancePa
     grepl("pal\\.long\\.var", predictor)     ~ "Paleolongitudinal\nspread",
     grepl("pal\\.absLat\\.var", predictor)   ~ "Paleolatitudinal\nspread",
     grepl("rel\\.abun",       predictor)     ~ "Relative\nabundance",
-    grepl("age,sample\\.depth", predictor)   ~ "Age &\nSample depth",
+    grepl("sample\\.depth", predictor)   ~ "Sample depth",
     grepl("age\\.calc", predictor)           ~ "Dating\nmethod",
     grepl("reason", predictor)               ~ "Sampling\nreason",
     grepl("morphogroup", predictor)          ~ "Morphogroup",
@@ -867,16 +911,16 @@ sampling_heterogeneity_GAM.deviancePart <- sampling_heterogeneity_GAM.deviancePa
   )) %>%
   mutate(label = forcats::fct_relevel(
     label,
-    "Morphogroup",
-    "Ecogroup",
     "Paleolatitude &\nPaleolongitude",
     "Paleolongitudinal\nspread",
     "Paleolatitudinal\nspread",
     "Residuals",
-    "Age &\nSample depth",
+    "Sample depth",
     "Dating\nmethod",
     "Sampling\nreason",
-    "Relative\nabundance"
+    "Relative\nabundance",
+    "Morphogroup",
+    "Ecogroup"
   )) %>%
   arrange(label) %>% 
   mutate(csum = rev(cumsum(rev(deviance))), 
@@ -884,10 +928,11 @@ sampling_heterogeneity_GAM.deviancePart <- sampling_heterogeneity_GAM.deviancePa
          pos = if_else(is.na(pos), deviance/2, pos))
 
 custom_palette <- c(
-  "darkolivegreen3", "green4", 
+  
   "#80b1d3", "cornflowerblue", "lightblue", 
   "#d9d9d9", "peachpuff3", 
-  "#bebada", "mediumpurple", "#ccebc5"
+  "#bebada", "mediumpurple", 
+  "#ccebc5", "darkolivegreen3", "green4"
 )
 
 p <- ggplot(sampling_heterogeneity_GAM.deviancePart, aes(x = "", y = deviance, 
@@ -895,7 +940,7 @@ p <- ggplot(sampling_heterogeneity_GAM.deviancePart, aes(x = "", y = deviance,
   geom_bar(stat = "identity", width = 0.7, color = "white") +
   coord_polar("y", clip = "off") +
   ggrepel::geom_label_repel(aes(y = pos, label = label),
-                            size = 6, nudge_x = 0.5, force = 500) +
+                            size = 6, nudge_x = 0.5, force = 100) +
   scale_fill_manual(values = custom_palette) +
   theme_void() +
   theme(
@@ -903,7 +948,7 @@ p <- ggplot(sampling_heterogeneity_GAM.deviancePart, aes(x = "", y = deviance,
     plot.margin = margin(5, -100, -10, -100)
   )
 
-ggsave("Images/Deviance_partitionning.pdf", p, width = 6, height = 6)
+ggsave("Images/Fig2C_Deviance_partitionning.pdf", p, width = 6, height = 6)
 p
 ```
 
@@ -1065,7 +1110,7 @@ for (group in names(grouped_terms)) {
     }
     
     # Show "Groups 1 to 19" or "Groups 1 to 6"
-    group_label <- if (group == "Ecogroup") "Groups 1 to 6" else "Groups 1 to 19"
+    group_label <- "Non-significant"
     
     cat(group, " & ", group_label, " & ", dev_exp_display, " & ", p_range, " \\\\\n", sep = "")
   }
@@ -1117,10 +1162,10 @@ for (r in seq_len(nrow(smooth_tab))) {
     mapped_factor  <- "Paleogeography"
     level_str      <- ""
     search_pattern <- "pal.lat,pal.long"
-  } else if (term_name == "te(age,sample.depth)") {
-    mapped_factor  <- "\\makecell[l]{Age \\& Sample\\\\ \\;depth}"
+  } else if (term_name == "s(sample.depth)") {
+    mapped_factor  <- "\\makecell[l]{Sample depth}"
     level_str      <- ""
-    search_pattern <- "age,sample.depth"
+    search_pattern <- "sample.depth"
   } else {
     # Remove s(...) or te(...) wrapper
     inner <- gsub("^(s|te)\\((.*)\\)$", "\\2", term_name)
@@ -1170,6 +1215,130 @@ cat("\\hline\n")
 cat("\\end{tabular}\n")
 
 sink()
+```
 
+# Alternative analysis without relative abundance
+
+```{r, fig.asp=0.4, fig.width=12, warning=FALSE}
+sampling_heterogeneity_GAM_rmAbundance <- gam(sampling_rate ~ s(pal.lat, pal.long, bs = "sos", k=50) + s(pal.absLat.var, k=3) + s(pal.long.var, k=3) + s(sample.depth, k=3)
+                                                  + reason + age.calc + morphogroup_simplified + ecogroup_simplified, 
+                                  data   = sampling_heterogeneity[sampling_heterogeneity$rel.abun<25,],
+                                  family = Gamma(link = "log"), method = "REML", select=T)
+summary(sampling_heterogeneity_GAM_rmAbundance)
+
+par(mfrow = c(2,4), mar = c(4, 3, 2, 0) + 0.1, mgp = c(2.2, 0.7, 0))
+for (i in 1:4) plot(sampling_heterogeneity_GAM_rmAbundance, pages=0, residuals=TRUE, select=i, se=2, ylim=c(-3,1.5), theta=0, phi=90, ylab="")  ## show partial residuals
+for (i in 1:4) plot(sampling_heterogeneity_GAM_rmAbundance, pages=0, seWithMean=TRUE, select=i, se=2, shade=T, theta=180, phi=90, ylab="")
+
+pdf("Images/Annex_Sampling_heterogeneity_GAM_rmAbundance.pdf", width = 12, height = 5)
+par(mfrow = c(2,4), mar = c(4, 3, 2, 0) + 0.1, mgp = c(2.2, 0.7, 0))
+for (i in 1:5) plot(sampling_heterogeneity_GAM_rmAbundance, pages=0, residuals=TRUE, select=i, se=2, ylim=c(-3,1.5), theta=0, phi=90, ylab="")  ## show partial residuals
+for (i in 1:5) plot(sampling_heterogeneity_GAM_rmAbundance, pages=0, seWithMean=TRUE, select=i, se=2, shade=T, theta=180, phi=90, ylab="")
+dev.off()
+```
+
+```{r, fig.asp=0.4, fig.width=12, warning=FALSE}
+pdf("Images/Annex_Sampling_heterogeneity_GAM_rmAbundance.pdf", width = 10, height = 4)
+layout(matrix(c(1, 2, 3, 4,
+                5, 2, 3, 4), 
+              nrow = 2, byrow = TRUE))
+
+par(mar = c(0.5, 0.5, 0.5, 0.5), mgp = c(2.2, 0.7, 0))
+plot(sampling_heterogeneity_GAM_rmAbundance, pages=0, residuals=TRUE, seWithMean=TRUE, select=1, theta=0, phi=90, ylab="", lwd=0.3)
+
+par(mar = c(3.5, 3.2, 1, 0.5), mgp = c(2, 0.5, 0))
+plot(sampling_heterogeneity_GAM_rmAbundance, pages=0, residuals=TRUE, shade=T, select=2, se=2, cex.lab=1.7, 
+     ylim=c(-3,1.5), theta=0, phi=90, xlab="Latitudinal spread", ylab="Partial effect of the predictor")
+
+par(mar = c(3.5, 1.5, 1, 0.5), mgp = c(2, 0.5, 0))
+plot(sampling_heterogeneity_GAM_rmAbundance, pages=0, residuals=TRUE, shade=T, select=3, se=2, cex.lab=1.7, 
+     ylim=c(-3,1.5), yaxt = "n", theta=0, phi=90, xlab="Longitudinal spread", ylab="")
+
+par(mar = c(3.5, 1.5, 1, 1), mgp = c(2, 0.5, 0))
+plot(sampling_heterogeneity_GAM_rmAbundance, pages=0, residuals=TRUE, shade=T, select=4, se=2, cex.lab=1.7, 
+     ylim=c(-3,1.5), yaxt = "n", theta=0, phi=90, xlab="Sample Depth", ylab="")
+
+plot(sampling_heterogeneity_GAM_rmAbundance, pages=0, residuals=TRUE, select=1, theta=180, phi=90, ylab="", lwd=0.3)
+dev.off()
+```
+
+```{r fig.asp=0.3, fig.width=15, echo = FALSE, eval = FALSE}
+par(mfrow=c(1,4))
+gam.check(sampling_heterogeneity_GAM_rmAbundance, rep = 100)
+```
+
+Analysis of the Variance Inflation Factor (VIF)
+
+```{r}
+performance::check_collinearity(sampling_heterogeneity_GAM_rmAbundance)
+cat("\n\n\n")
+performance::check_concurvity(sampling_heterogeneity_GAM_rmAbundance)
+```
+
+```{r, fig.width=10}
+sampling_heterogeneity_GAM_rmAbundance.hp <- gam.hp(sampling_heterogeneity_GAM_rmAbundance, type="dev")
+sampling_heterogeneity_GAM_rmAbundance.hp
+
+plot(sampling_heterogeneity_GAM_rmAbundance.hp)
+```
+
+```{r, fig.width=20, warning=F, message=F}
+sampling_heterogeneity_GAM_rmAbundance.deviancePart <- sampling_heterogeneity_GAM_rmAbundance.hp$hierarchical.partitioning[,"Individual"]
+sampling_heterogeneity_GAM_rmAbundance.deviancePart <- c(sampling_heterogeneity_GAM_rmAbundance.deviancePart, residuals = 1-sum(sampling_heterogeneity_GAM_rmAbundance.deviancePart))
+sampling_heterogeneity_GAM_rmAbundance.deviancePart <- data.frame(deviance = sampling_heterogeneity_GAM_rmAbundance.deviancePart, predictor=names(sampling_heterogeneity_GAM_rmAbundance.deviancePart))
+
+sampling_heterogeneity_GAM_rmAbundance.deviancePart <- sampling_heterogeneity_GAM_rmAbundance.deviancePart %>%
+  mutate(label = case_when(
+    grepl("pal\\.lat,pal\\.long", predictor) ~ "Paleolatitude &\nPaleolongitude",
+    grepl("pal\\.long\\.var", predictor)     ~ "Paleolongitudinal\nspread",
+    grepl("pal\\.absLat\\.var", predictor)   ~ "Paleolatitudinal\nspread",
+    grepl("sample\\.depth", predictor)       ~ "Sample depth",
+    grepl("age\\.calc", predictor)           ~ "Dating\nmethod",
+    grepl("reason", predictor)               ~ "Sampling\nreason",
+    grepl("morphogroup", predictor)          ~ "Morphogroup",
+    grepl("ecogroup", predictor)             ~ "Ecogroup",
+    predictor == "residuals"                 ~ "Residuals",
+    TRUE                                     ~ predictor     # fallback
+  )) %>%
+  mutate(label = forcats::fct_relevel(
+    label,
+    "Paleolatitude &\nPaleolongitude",
+    "Paleolongitudinal\nspread",
+    "Paleolatitudinal\nspread",
+    "Residuals",
+    "Sample depth",
+    "Dating\nmethod",
+    "Sampling\nreason",
+    "Morphogroup",
+    "Ecogroup"
+  )) %>%
+  arrange(label) %>% 
+  mutate(csum = rev(cumsum(rev(deviance))), 
+         pos = deviance/2 + lead(csum, 1),
+         pos = if_else(is.na(pos), deviance/2, pos))
+
+custom_palette <- c(
+  
+  "#80b1d3", "cornflowerblue", "lightblue", 
+  "#d9d9d9", "peachpuff3", 
+  "#bebada", "mediumpurple", 
+  "darkolivegreen3", "green4"
+)
+
+p <- ggplot(sampling_heterogeneity_GAM_rmAbundance.deviancePart, aes(x = "", y = deviance, 
+                                      fill = label)) +
+  geom_bar(stat = "identity", width = 0.7, color = "white") +
+  coord_polar("y", clip = "off") +
+  ggrepel::geom_label_repel(aes(y = pos, label = label),
+                            size = 6, nudge_x = 0.5, force = 100) +
+  scale_fill_manual(values = custom_palette) +
+  theme_void() +
+  theme(
+    legend.position = "none",
+    plot.margin = margin(5, -100, -10, -100)
+  )
+
+ggsave("Images/Annex_Deviance_partitionning_rmAbundance.pdf", p, width = 6, height = 6)
+p
 ```
 

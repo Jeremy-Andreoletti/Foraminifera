@@ -8,7 +8,8 @@ library(convenience)
 ```
 
 # Full alignment
-## Spinose
+## OBD dating
+### Spinose
 
 ```{r}
 output_S <- checkConvergence(list_files = list.files("/Volumes/data/Forams/4-Phylogenetic_reconstruction/output/", pattern = "forams_Spinose.*.trees", full.names = T), control = makeControl(burnin = 0.7))
@@ -20,7 +21,7 @@ plotEssSplits(output_S, breaks=10)
 #plotEssSplits(output_S, per_run = T, breaks = 10)
 ```
 
-## Non-Spinose
+### Non-Spinose
 
 ```{r}
 output_NS <- checkConvergence(list_files = list.files("/Volumes/data/Forams/4-Phylogenetic_reconstruction/output", pattern = "forams_NonSpinose.*.trees", full.names = T), control = makeControl(burnin = 0.1))
@@ -28,11 +29,11 @@ output_NS
 ```
 
 ```{r fig.width=12, fig.asp=0.4}
-plotEssSplits(output_NS, breaks = 10)
+plotEssSplits(output_NS, breaks = 20, )
 #plotEssSplits(output_NS, per_run = T, breaks = 20)
 ```
 
-## Microperforate
+### Microperforate
 
 ```{r}
 output_M <- checkConvergence(list_files = list.files("/Volumes/data/Forams/4-Phylogenetic_reconstruction/output/", pattern = "forams_Microperforate.*.trees", full.names = T), control = makeControl(burnin = 0.05))
@@ -45,7 +46,8 @@ plotEssSplits(output_M, breaks=20)
 ```
 
 # Conservative trimming
-## Spinose
+## OBD dating
+### Spinose
 
 ```{r}
 output_S <- checkConvergence(list_files = list.files("/Volumes/data/Forams/4-Phylogenetic_reconstruction/output_pf95_pt95/", pattern = "forams_Spinose.*.trees", full.names = T), control = makeControl(burnin = 0.7))
@@ -57,7 +59,7 @@ plotEssSplits(output_S, breaks=10)
 #plotEssSplits(output_S, per_run = T, breaks = 10)
 ```
 
-## Non-Spinose
+### Non-Spinose
 
 ```{r}
 output_NS <- checkConvergence(list_files = list.files("/Volumes/data/Forams/4-Phylogenetic_reconstruction/output_pf95_pt95/", pattern = "forams_NonSpinose.*.trees", full.names = T), control = makeControl(burnin = 0.1))
@@ -69,7 +71,7 @@ plotEssSplits(output_NS)
 #plotEssSplits(output_NS, per_run = T, breaks = 20)
 ```
 
-## Microperforate
+### Microperforate
 
 ```{r}
 output_M <- checkConvergence(list_files = list.files("/Volumes/data/Forams/4-Phylogenetic_reconstruction/output_pf95_pt95/", pattern = "forams_Microperforate.*.trees", full.names = T), control = makeControl(burnin = 0.05))
@@ -81,8 +83,46 @@ plotEssSplits(output_M, breaks=20)
 #plotEssSplits(output_M, per_run = T, breaks=20)
 ```
 
+## OBD + Node dating
+### Spinose
+
+```{r}
+output_S <- checkConvergence(list_files = list.files("/Volumes/data/Forams/4-Phylogenetic_reconstruction/output_pf95_pt95_nodeDating/", pattern = "forams_Spinose.*.trees", full.names = T), control = makeControl(burnin = 0.1))
+output_S
+```
+
+```{r fig.width=12, fig.asp=0.4}
+plotEssSplits(output_S, breaks=10)
+#plotEssSplits(output_S, per_run = T, breaks = 10)
+```
+
+### Non-Spinose
+
+```{r}
+output_NS <- checkConvergence(list_files = list.files("/Volumes/data/Forams/4-Phylogenetic_reconstruction/output_pf95_pt95_nodeDating/", pattern = "forams_NonSpinose.*.trees", full.names = T), control = makeControl(burnin = 0.1))
+output_NS
+```
+
+```{r fig.width=12, fig.asp=0.4}
+plotEssSplits(output_NS)
+#plotEssSplits(output_NS, per_run = T, breaks = 20)
+```
+
+### Microperforate
+
+```{r}
+output_M <- checkConvergence(list_files = list.files("/Volumes/data/Forams/4-Phylogenetic_reconstruction/output_pf95_pt95_nodeDating/", pattern = "forams_Microperforate.*.trees", full.names = T), control = makeControl(burnin = 0.05))
+output_M
+```
+
+```{r fig.width=12, fig.asp=0.4}
+plotEssSplits(output_M, breaks=20)
+#plotEssSplits(output_M, per_run = T, breaks=20)
+```
+
 # Liberal trimming
-## Spinose
+## OBD dating
+### Spinose
 
 ```{r}
 output_S <- checkConvergence(list_files = list.files("/Volumes/data/Forams/4-Phylogenetic_reconstruction/output_pf5_pt5/", pattern = "forams_Spinose.*.trees", full.names = T), control = makeControl(burnin = 0.7))
@@ -91,10 +131,9 @@ output_S
 
 ```{r fig.width=12, fig.asp=0.4}
 plotEssSplits(output_S, breaks=10)
-plotEssSplits(output_S, per_run = T, breaks = 10)
 ```
 
-## Non-Spinose
+### Non-Spinose
 
 ```{r}
 output_NS <- checkConvergence(list_files = list.files("/Volumes/data/Forams/4-Phylogenetic_reconstruction/output_pf5_pt5/", pattern = "forams_NonSpinose.*.trees", full.names = T), control = makeControl(burnin = 0.1))
@@ -106,7 +145,7 @@ plotEssSplits(output_NS)
 plotEssSplits(output_NS, per_run = T, breaks = 20)
 ```
 
-## Microperforate
+### Microperforate
 
 ```{r}
 output_M <- checkConvergence(list_files = list.files("/Volumes/data/Forams/4-Phylogenetic_reconstruction/output_pf5_pt5/", pattern = "forams_Microperforate.*.trees", full.names = T), control = makeControl(burnin = 0.05))
@@ -114,7 +153,41 @@ output_M
 ```
 
 ```{r fig.width=12, fig.asp=0.4}
-plotEssSplits(output_M, breaks=20)
-#plotEssSplits(output_M, per_run = T, breaks=20)
+plotEssSplits(output_M, breaks=50)
+```
+
+## OBD + Node dating
+### Spinose
+
+```{r}
+output_S <- checkConvergence(list_files = list.files("/Volumes/data/Forams/4-Phylogenetic_reconstruction/output_pf5_pt5_nodeDating/", pattern = "forams_Spinose.*.trees", full.names = T), control = makeControl(burnin = 0.1))
+output_S
+```
+
+```{r fig.width=12, fig.asp=0.4}
+plotEssSplits(output_S, breaks=10)
+```
+
+### Non-Spinose
+
+```{r}
+output_NS <- checkConvergence(list_files = list.files("/Volumes/data/Forams/4-Phylogenetic_reconstruction/output_pf5_pt5_nodeDating/", pattern = "forams_NonSpinose.*.trees", full.names = T), control = makeControl(burnin = 0.1))
+output_NS
+```
+
+```{r fig.width=12, fig.asp=0.4}
+plotEssSplits(output_NS)
+plotEssSplits(output_NS, per_run = T, breaks = 20)
+```
+
+### Microperforate
+
+```{r}
+output_M <- checkConvergence(list_files = list.files("/Volumes/data/Forams/4-Phylogenetic_reconstruction/output_pf5_pt5_nodeDating/", pattern = "forams_Microperforate.*.trees", full.names = T), control = makeControl(burnin = 0.05))
+output_M
+```
+
+```{r fig.width=12, fig.asp=0.4}
+plotEssSplits(output_M, breaks=50)
 ```
 

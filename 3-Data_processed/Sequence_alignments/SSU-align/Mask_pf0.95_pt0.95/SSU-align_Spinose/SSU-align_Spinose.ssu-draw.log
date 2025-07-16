@@ -4,7 +4,7 @@
 # Freely distributed under the BSD open source license.
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # command: ssu-draw ../../3-Data_processed/Sequence_alignments/SSU-align/Mask_pf0.95_pt0.95/SSU-align_Spinose
-# date:    Wed Oct 30 17:50:26 2024
+# date:    Tue May 27 11:45:34 2025
 
 Printing global hask key as read from ssu.pm:
 
@@ -41,33 +41,33 @@ Global hash key: ps2pdf               value: ps2pdf
 Global hash key: ssu-align            value: ssu-align
 Global hash key: ssu-merge            value: ssu-merge
 
-Executing:      ssu-esl-ssdraw -h > /dev/null  2> ../ssutmp0erraa58027
+Executing:      ssu-esl-ssdraw -h > /dev/null  2> ../ssutmp0erraa72196
 Returned:       0
 Output (STDOUT) sent to /dev/null.
 Output (STDERR): ***NONE***
 
-About to remove file (../ssutmp0erraa58027) with perl's unlink function ... done.
+About to remove file (../ssutmp0erraa72196) with perl's unlink function ... done.
 
-Executing:      ssu-esl-ssdraw -d --dint --span --mask ../../3-Data_processed/Sequence_alignments/SSU-align/Mask_pf0.95_pt0.95/SSU-align_Spinose/SSU-align_Spinose.eukarya.mask --ifile ../../3-Data_processed/Sequence_alignments/SSU-align/Mask_pf0.95_pt0.95/SSU-align_Spinose/SSU-align_Spinose.eukarya.ifile --no-cnt --small --tabfile ../../3-Data_processed/Sequence_alignments/SSU-align/Mask_pf0.95_pt0.95/SSU-align_Spinose/SSU-align_Spinose.eukarya.drawtab ../../3-Data_processed/Sequence_alignments/SSU-align/Mask_pf0.95_pt0.95/SSU-align_Spinose/SSU-align_Spinose.eukarya.stk /usr/local/share/ssu-align-0.1.1/ssu-align-0p1.ps ../../3-Data_processed/Sequence_alignments/SSU-align/Mask_pf0.95_pt0.95/SSU-align_Spinose/SSU-align_Spinose.eukarya.ps > SSU-align_Spinose.eukarya.ssdraw  2> ../ssutmp1erraa58027
+Executing:      ssu-esl-ssdraw -d --dint --span --mask ../../3-Data_processed/Sequence_alignments/SSU-align/Mask_pf0.95_pt0.95/SSU-align_Spinose/SSU-align_Spinose.eukarya.mask --ifile ../../3-Data_processed/Sequence_alignments/SSU-align/Mask_pf0.95_pt0.95/SSU-align_Spinose/SSU-align_Spinose.eukarya.ifile --no-cnt --small --tabfile ../../3-Data_processed/Sequence_alignments/SSU-align/Mask_pf0.95_pt0.95/SSU-align_Spinose/SSU-align_Spinose.eukarya.drawtab ../../3-Data_processed/Sequence_alignments/SSU-align/Mask_pf0.95_pt0.95/SSU-align_Spinose/SSU-align_Spinose.eukarya.stk /usr/local/share/ssu-align-0.1.1/ssu-align-0p1.ps ../../3-Data_processed/Sequence_alignments/SSU-align/Mask_pf0.95_pt0.95/SSU-align_Spinose/SSU-align_Spinose.eukarya.ps > SSU-align_Spinose.eukarya.ssdraw  2> ../ssutmp1erraa72196
 Returned:       0
 Output (STDOUT) saved in file SSU-align_Spinose.eukarya.ssdraw.
 Output (STDERR): ***NONE***
 
-About to remove file (../ssutmp1erraa58027) with perl's unlink function ... done.
+About to remove file (../ssutmp1erraa72196) with perl's unlink function ... done.
 
 About to remove file (SSU-align_Spinose.eukarya.ssdraw) with perl's unlink function ... done.
 
-Executing:      ps2pdf ../../3-Data_processed/Sequence_alignments/SSU-align/Mask_pf0.95_pt0.95/SSU-align_Spinose/SSU-align_Spinose.eukarya.ps ../../3-Data_processed/Sequence_alignments/SSU-align/Mask_pf0.95_pt0.95/SSU-align_Spinose/SSU-align_Spinose.eukarya.pdf > ../ssutmp2outaa58027  2> ../ssutmp2erraa58027
+Executing:      ps2pdf ../../3-Data_processed/Sequence_alignments/SSU-align/Mask_pf0.95_pt0.95/SSU-align_Spinose/SSU-align_Spinose.eukarya.ps ../../3-Data_processed/Sequence_alignments/SSU-align/Mask_pf0.95_pt0.95/SSU-align_Spinose/SSU-align_Spinose.eukarya.pdf > ../ssutmp2outaa72196  2> ../ssutmp2erraa72196
 Returned:       0
 Output (STDOUT): ***NONE***
 Output (STDERR): ***NONE***
 
-About to remove file (../ssutmp2outaa58027) with perl's unlink function ... done.
+About to remove file (../ssutmp2outaa72196) with perl's unlink function ... done.
 
-About to remove file (../ssutmp2erraa58027) with perl's unlink function ... done.
+About to remove file (../ssutmp2erraa72196) with perl's unlink function ... done.
 
 About to remove file (../../3-Data_processed/Sequence_alignments/SSU-align/Mask_pf0.95_pt0.95/SSU-align_Spinose/SSU-align_Spinose.eukarya.ps) with perl's unlink function ... done.
 
-Mer 30 oct 2024 17:50:26 CET
-Darwin bdmac19.ens.fr 23.6.0 Darwin Kernel Version 23.6.0: Mon Jul 29 21:14:30 PDT 2024; root:xnu-10063.141.2~1/RELEASE_ARM64_T6000 arm64
+Mar 27 mai 2025 11:45:34 CEST
+Darwin bdmac19.ens.fr 24.5.0 Darwin Kernel Version 24.5.0: Tue Apr 22 19:54:49 PDT 2025; root:xnu-11417.121.6~2/RELEASE_ARM64_T6000 arm64
 # SSU-ALIGN-SUCCESS

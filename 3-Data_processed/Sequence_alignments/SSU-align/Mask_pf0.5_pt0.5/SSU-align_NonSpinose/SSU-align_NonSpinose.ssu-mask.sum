@@ -4,7 +4,7 @@
 # Freely distributed under the BSD open source license.
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # command: ssu-mask --pf 0.5 --pt 0.5 ../../3-Data_processed/Sequence_alignments/SSU-align/Mask_pf0.5_pt0.5/SSU-align_NonSpinose
-# date:    Wed Oct 30 17:50:34 2024
+# date:    Tue May 27 11:45:38 2025
 #
 # Masking alignments based on posterior probabilities...
 #
@@ -24,6 +24,6 @@
 #
 # All output files created in directory ./../../3-Data_processed/Sequence_alignments/SSU-align/Mask_pf0.5_pt0.5/SSU-align_NonSpinose/
 #
-# CPU time:  00:00:00.29  (hh:mm:ss)
+# CPU time:  00:00:00.83  (hh:mm:ss)
 # 
 # SSU-ALIGN-SUCCESS

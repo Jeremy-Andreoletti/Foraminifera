@@ -117,26 +117,25 @@ legend("top", inset=c(0.01,0.01), legend=c("raw SIB", "corrected SIB"), col=c("b
 100 iterations of Shareholder Quorum Subsampling (SQS).
 
 ```{r message=FALSE, warning=FALSE}
-sqsMyrBinsPlot <- subsample(triton_divDyn, bin="MyrBin", tax="species", coll="holeID", q=0.7, iter=500, ref="holeID", singleton="ref", type="sqs", duplicates=FALSE, excludeDominant=TRUE, largestColl =TRUE, output="dist", na.rm=TRUE)
+sqsMyrBinsPlot <- subsample(triton_divDyn, bin="MyrBin", tax="species", coll="holeID", q=0.7, iter=100, ref="holeID", singleton="ref", type="sqs", duplicates=FALSE, excludeDominant=TRUE, largestColl =TRUE, output="dist", na.rm=TRUE)
 ```
 
 Diversity trends, using raw data, expert estimates (from the speciation and extinction dates in Triton) and mean of the SQS trials.
 
 ```{r fig.asp=0.6, fig.width=10}
-tsplot(stages, shading="short", boxes=c("short", "sys"), boxes.col=c("col", "systemCol"), xlim=c(66,0), ylim=c(0,120), labels.args=list(cex=0.7))
-title("Comparison between estimates of foram richness trends")
-lines(sampMyrBin$MyrBin, ddMyrBins$divCSIB, col="darkgreen", lwd=2)
-lines(time_points, expertLTT, col="purple", lwd=2)
+tsplot(stages, shading="short", boxes=c("short", "sys"), boxes.col=c("col", "systemCol"), xlim=c(66,0), ylim=c(0,120), labels.args=list(cex=0.7), ylab="Range-through diversity")
+title("Comparison between estimates of foraminifera richness trends")
+lines(sampMyrBin$MyrBin, ddMyrBins$divRT, col="darkgreen", lwd=2)
 
 # loop through all trial results
-for(i in 1:ncol(sqsMyrBinsPlot$divCSIB)){
-  lines(sampMyrBin$MyrBin, sqsMyrBinsPlot$divCSIB[,i], col="#00000005", lwd=1)
-}
-legend("topleft", bg="white", legend=c("raw data (CSIB)", "experts' LTT", "SQS trials"), col=c("darkgreen", "purple", "#00000088"), lwd=3, inset=c(0.01, 0.01, 0.01))
+shades(sampMyrBin$MyrBin, sqsMyrBinsPlot$divRT, col="palegreen4")
+legend("topleft", bg="white", legend=c("raw data", "experts' LTT", "SQS trials"), col=c("darkgreen", "orchid4", "palegreen4"), lwd=3, inset=c(0.01, 0.01, 0.01))
 
 #the mean of the trial results
-meanSQS <- rowMeans(sqsMyrBinsPlot$divCSIB, na.rm = T)
-lines(sampMyrBin$MyrBin, meanSQS, col="black", lwd=2)
+meanSQS <- rowMeans(sqsMyrBinsPlot$divRT, na.rm = T)
+lines(sampMyrBin$MyrBin, meanSQS, col="palegreen4", lwd=2)
+
+lines(time_points, expertLTT, col="orchid4", lwd=2)
 ```
 
 Several methods to compute diversification rates, by increasing reliability (note that some give negative rates).

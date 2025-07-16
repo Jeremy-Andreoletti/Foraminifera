@@ -4,7 +4,7 @@
 # Freely distributed under the BSD open source license.
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # command: ssu-mask -a --stk2afa ../../3-Data_processed/Sequence_alignments/SSU-align/Mask_pf0.95_pt0.95/SSU-align_Microperforates/SSU-align_Microperforates.eukarya.stk
-# date:    Mon Dec  9 11:37:03 2024
+# date:    Tue May 27 11:36:23 2025
 #
 # Converting Stockholm alignments to aligned FASTA...
 #
@@ -17,6 +17,6 @@
 #
 # All output files created in the current working directory.
 #
-# CPU time:  00:00:00.13  (hh:mm:ss)
+# CPU time:  00:00:00.08  (hh:mm:ss)
 # 
 # SSU-ALIGN-SUCCESS

@@ -54,7 +54,7 @@ phylotools::dat2fasta(Spinose_SSUalign_seq_pf5_pt5_unique, outfile = "../../3-Da
 NonSpinose_SSUalign_seq <- phylotools::read.fasta("../../3-Data_processed/Sequence_alignments/SSU-align/Mask_pf0.95_pt0.95/SSU-align_NonSpinose/SSU-align_NonSpinose.eukarya.afa")
 NonSpinose_SSUalign_seq <- NonSpinose_SSUalign_seq[order(NonSpinose_SSUalign_seq$seq.name),]
 NonSpinose_SSUalign_seq
-NonSpinose_SSUalign_seq_pf95_pt95 <- phylotools::read.fasta("../../3-Data_processed/Sequence_alignments/SSU-align/Mask_pf0.5_pt0.5/SSU-align_NonSpinose/SSU-align_NonSpinose.eukarya.mask.afa")
+NonSpinose_SSUalign_seq_pf95_pt95 <- phylotools::read.fasta("../../3-Data_processed/Sequence_alignments/SSU-align/Mask_pf0.95_pt0.95/SSU-align_NonSpinose/SSU-align_NonSpinose.eukarya.mask.afa")
 NonSpinose_SSUalign_seq_pf95_pt95 <- NonSpinose_SSUalign_seq_pf95_pt95[order(NonSpinose_SSUalign_seq_pf95_pt95$seq.name),]
 NonSpinose_SSUalign_seq_pf95_pt95
 NonSpinose_SSUalign_seq_pf5_pt5 <- phylotools::read.fasta("../../3-Data_processed/Sequence_alignments/SSU-align/Mask_pf0.5_pt0.5/SSU-align_NonSpinose/SSU-align_NonSpinose.eukarya.mask.afa")
@@ -100,7 +100,7 @@ phylotools::dat2fasta(NonSpinose_SSUalign_seq_pf5_pt5_unique, outfile = "../../3
 Microperforate_SSUalign_seq <- phylotools::read.fasta("../../3-Data_processed/Sequence_alignments/SSU-align/Mask_pf0.95_pt0.95/SSU-align_Microperforates/SSU-align_Microperforates.eukarya.afa")
 Microperforate_SSUalign_seq <- Microperforate_SSUalign_seq[order(Microperforate_SSUalign_seq$seq.name),]
 Microperforate_SSUalign_seq
-Microperforate_SSUalign_seq_pf95_pt95 <- phylotools::read.fasta("../../3-Data_processed/Sequence_alignments/SSU-align/Mask_pf0.5_pt0.5/SSU-align_Microperforates/SSU-align_Microperforates.eukarya.mask.afa")
+Microperforate_SSUalign_seq_pf95_pt95 <- phylotools::read.fasta("../../3-Data_processed/Sequence_alignments/SSU-align/Mask_pf0.95_pt0.95/SSU-align_Microperforates/SSU-align_Microperforates.eukarya.mask.afa")
 Microperforate_SSUalign_seq_pf95_pt95 <- Microperforate_SSUalign_seq_pf95_pt95[order(Microperforate_SSUalign_seq_pf95_pt95$seq.name),]
 Microperforate_SSUalign_seq_pf95_pt95
 Microperforate_SSUalign_seq_pf5_pt5 <- phylotools::read.fasta("../../3-Data_processed/Sequence_alignments/SSU-align/Mask_pf0.5_pt0.5/SSU-align_Microperforates/SSU-align_Microperforates.eukarya.mask.afa")

@@ -11,6 +11,7 @@ knitr::opts_chunk$set(echo = FALSE)
 library("ggplot2")
 library("raster")
 library("terra")
+library("divDyn")
 ```
 
 # Load occurrence dataset
@@ -19,8 +20,7 @@ library("terra")
 triton <- read.csv("../../3-Data_processed/Triton_occurrences/TritonDB_trimmed_runif.csv", row.names=1)
 ```
 
-# Occurrences and lineages through time
-## Raw data
+# Occurrences and lineages through time (raw data)
 
 `OTT` measures the number of occurrences at each time point directly from their ages. `expertLTT` and `empiricalLTT` capture lineage counts, with the former based on speciation and extinction dates, while the latter depends on observations (first and last appearances).
 
@@ -45,7 +45,7 @@ points(time_points, empiricalLTT, pch=19, cex=0.5, col="plum3")
 lines(time_points, expertLTT, col="orchid4", lwd=2)
 ```
 
-## Standardized counts and subsampling
+# LTT subsampling
 
 Standardize the number of occurrences by the number of lineages, and subsample to erase the sampling bias. Subsampling is done by calculating the probability for each row, interpolating for time points between values, and subsampling accordingly.
 
@@ -83,7 +83,6 @@ expertLTT.ss <- sapply(time_points, function(ti)length(unique(triton.ss[triton.s
 empiricalLTT.ss <- sapply(time_points, function(ti)length(unique(triton.ss[abs(triton.ss$age_runif - ti) <= diff(time_points)[1]/2,]$species)))
 ```
 
-
 ```{r fig.asp=0.4, fig.width=12}
 par(mfrow=c(1,2))
 plot(time_points, OTT/empiricalLTT, log="y", ylim=c(1,1000), type="l", col="dodgerblue4", main="Number of occurrences per lineage through time")
@@ -95,6 +94,39 @@ lines(time_points, rep(sOTT_ref, length(time_points)))
 ```
 
 One problem with this method is that it requires having a comprehensive and reliable estimate of the number of lineages through time from experts, which is not available for most clades.
+
+# SQS subsampling
+
+```{r}
+data(stages)
+```
+
+```{r}
+# Assign each occurrence to a bin
+triton$bin <- round(triton$age_runif)
+
+# Run SQS subsampling
+sqs09_out <- subsample(triton, tax = "species", bin = "bin", type = "sqs", q = 0.9, output = "dist", coll="holeID", ref="holeID", 
+                       singleton="ref", excludeDominant = TRUE, largestColl = TRUE, na.rm = T, iter = 100)
+sqs06_out <- subsample(triton, tax = "species", bin = "bin", type = "sqs", q = 0.6, output = "dist", coll="holeID", ref="holeID", 
+                       singleton="ref", excludeDominant = TRUE, largestColl = TRUE, na.rm = T, iter = 100)
+sqs03_out <- subsample(triton, tax = "species", bin = "bin", type = "sqs", q = 0.3, output = "dist", coll="holeID", ref="holeID", 
+                       singleton="ref", excludeDominant = TRUE, largestColl = TRUE, na.rm = T, iter = 100)
+```
+
+```{r fig.asp=0.6, fig.width=10}
+tsplot(stages, shading="short", boxes=c("short", "sys"), boxes.col=c("col", "systemCol"), xlim=c(66,0), ylim=c(0,120), ylab="Range-through diversity", labels.args=list(cex=0.7))
+shades(sqs09_out$bin[,1], sqs09_out$divRT, col="darkgreen")
+shades(sqs06_out$bin[,1], sqs06_out$divRT, col="palegreen4")
+shades(sqs03_out$bin[,1], sqs03_out$divRT, col="palegreen3")
+lines(time_points, expertLTT, col="orchid4", lwd=2)
+
+legend("topleft", bg="white", legend=c("SQS (0.9)", "SQS (0.6)", "SQS (0.3)"), col=c("darkgreen", "palegreen4", "palegreen3"), lty=c(1,1,1), lwd=c(2,2,2))
+
+invisible(dev.print(pdf, "Images/Annex_SQS_diversity.pdf"))
+```
+
+These SQS diversity curves don't seem to be a great match to the reference LTT.
 
 # Geographic subsampling
 ## Null model of fossil sampling based on plate technotics
@@ -502,6 +534,27 @@ lines(time_points, HTT.ss.STT, col = "palegreen4")
 points(time_points, HTT.ss.STT, pch = 19, cex = 0.5, col = "palegreen4")
 ```
 
+
+```{r fig.asp=0.5, fig.width=12}
+par(mfrow = c(1, 2), mar = c(4, 4, 3, 4) + 0.1)
+
+# Plot samples through time before and after subsampling
+plot(loess.smooth(time_points, STT, span = 0.2), type = "l", lwd = 1, col = "dodgerblue4", log="y", ylim=c(10,1000),
+     main = "Samples Through Time after Subsampling", xlim = rev(range(range(time_points))), xlab = "Time (Ma)", ylab = "Number of Sediment Samples")
+points(time_points, STT, pch = 19, cex = 0.5, col = alpha("dodgerblue4", 0.3))
+
+# Plot occurrences through time before and after subsampling
+plot(loess.smooth(time_points, OTT, span = 0.2), type = "l", lwd = 1, col = "dodgerblue4", log = "y",
+     main = "Occurrences Through Time after Subsampling", xlim = rev(range(range(time_points))), xlab = "Time (Ma)", ylab = paste0("Number of occurrences"))
+points(time_points, OTT, pch = 19, cex = 0.5, col = alpha("dodgerblue4", 0.3))
+par(new = TRUE)
+plot(time_points, expertLTT, type = "l", col = "orchid4", lwd = 3, xlim = rev(range(range(time_points))),
+     axes = FALSE, ylim=c(10,10000), xlab = "", ylab = "", log = "y")
+axis(4, col = "orchid4", col.axis = "orchid4", las = 1, labels = c("10","20","50","100"), at = c(10,20,50,100))
+mtext("Number of lineages", side = 4, line = 3, adj = 0.02, col = "orchid4")
+
+invisible(dev.print(pdf, "Images/OTT.pdf", width=8))
+```
 
 ```{r fig.asp=0.5, fig.width=12}
 par(mfrow = c(1, 2), mar = c(4, 4, 3, 4) + 0.1)

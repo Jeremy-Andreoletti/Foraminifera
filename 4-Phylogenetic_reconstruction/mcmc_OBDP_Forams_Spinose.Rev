@@ -9,7 +9,8 @@
 #
 ############################################################################################
 
-seed(12345)
+seed_nb <- args[1]
+seed(seed_nb)
 
 #######################
 # Reading in the Data #
@@ -35,10 +36,7 @@ for (i in 1:n_occ){
 }
 
 # Molecular alignment for extant species
-# seq <- readDiscreteCharacterData("../3-Data_processed/Aligned_sequences/Bali-Phy/Spinose/Spinose_BaliPhy_alignment_morphospecies.fasta")
-# seq <- readDiscreteCharacterData("../3-Data_processed/Aligned_sequences/Bali-Phy/Spinose/Spinose_BaliPhy_alignment_species.fasta")
-# seq <- readDiscreteCharacterData("../3-Data_processed/Sequence_alignments/SSU-align/Spinose_SSU-align_alignment_species.fasta")
-seq <- readDiscreteCharacterData("../3-Data_processed/Sequence_alignments/SSU-align/Spinose_SSU-align_alignment_species_pf5_pt5.fasta")
+seq <- readDiscreteCharacterData("../3-Data_processed/Sequence_alignments/SSU-align/Spinose_SSU-align_alignment_species.fasta")
 seq.addMissingTaxa( taxa )
 
 ################################################################################################
@@ -49,6 +47,7 @@ seq.addMissingTaxa( taxa )
 speciation_rate ~ dnExponential(2)
 extinction_rate ~ dnExponential(2)
 speciation_rate.setValue(0.5)
+extinction_rate.setValue(0.48)
 
 # Specify a scale move on the speciation_rate parameter #
 # This move will be applied with 3 different tuning values (lambda) to help improve mixing # 
@@ -131,7 +130,7 @@ obd_dist = dnOBDP(origin          = origin_time,
                   maxHiddenLin    = N, 
                   condition       = cond, 
                   taxa            = taxa,
-                  occurrence_ages = occurrence_ages, 
+                  occurrence_ages = occurrence_sample, 
                   useMt           = useMt,
                   verbose         = verbose)
 
@@ -164,7 +163,7 @@ constraints = v(genus_Globigerinella, genus_Turborotalita, family_Hastigerinidae
 obd_tree ~ dnConstrainedTopology(obd_dist, constraints=constraints)
 # obd_tree ~ obd_dist
 
-# trace_previous_run = readTreeTrace("output_pf5_pt5/forams_Spinose_previousMCMC.trees", burnin=0.0)
+# trace_previous_run = readTreeTrace("output/forams_Spinose_previousMCMC.trees", burnin=0.0)
 # obd_tree.setValue(trace_previous_run.getTree(1))
 
 # Specify moves on the tree and node times #
@@ -259,10 +258,10 @@ monitors = VectorMonitors()
 
 # Create a vector of monitors #
 # 1. for the full model #
-monitors.append( mnModel(filename="output_pf5_pt5/forams_Spinose.log", printgen=1) )
+monitors.append( mnModel(filename="output/forams_Spinose_seed" + seed_nb + ".log", printgen=1) )
 
 # 2. the tree #
-monitors.append( mnFile(filename="output_pf5_pt5/forams_Spinose.trees", printgen=1, obd_tree) )
+monitors.append( mnFile(filename="output/forams_Spinose_seed" + seed_nb + ".trees", printgen=1, obd_tree) )
 
 # 3. and a few select parameters to be printed to the screen #
 monitors.append( mnScreen(printgen=100, origin_time) )
@@ -271,26 +270,26 @@ monitors.append( mnScreen(printgen=100, origin_time) )
 mymcmc = mcmc(mymodel, monitors, moves, nruns=1)
 
 # Run the MCMC #
-#mymcmc.run(generations=100, checkpointInterval=10, checkpointFile="output_pf5_pt5/forams.state")
+#mymcmc.run(generations=100, checkpointInterval=10, checkpointFile="output/forams.state")
 
-# state = readDelimitedDataFile("output_pf5_pt5/forams.state")
-# write(state[1][1], filename="output_pf5_pt5/forams.state")
+# state = readDelimitedDataFile("output/forams.state")
+# write(state[1][1], filename="output/forams.state")
 # for (i in range(2, state[1].size())){
-#   write("", state[1][i], filename="output_pf5_pt5/forams.state", append=TRUE)
+#   write("", state[1][i], filename="output/forams.state", append=TRUE)
 # }
-# write("\n", tree_init, filename="output_pf5_pt5/forams.state", append=TRUE, separator="")
-# #write("\n", state[2][1], filename="output_pf5_pt5/forams.state", append=TRUE, separator="")
+# write("\n", tree_init, filename="output/forams.state", append=TRUE, separator="")
+# #write("\n", state[2][1], filename="output/forams.state", append=TRUE, separator="")
 # for (i in range(2, state[2].size())){
-#   write("", state[2][i], filename="output_pf5_pt5/forams.state", append=TRUE)
+#   write("", state[2][i], filename="output/forams.state", append=TRUE)
 # }
 
-#mymcmc.initializeFromCheckpoint(checkpointFile="output_pf5_pt5/forams.state")
-mymcmc.run(generations=50000, checkpointInterval=1000, checkpointFile="output_pf5_pt5/forams_Spinose.state")
+#mymcmc.initializeFromCheckpoint(checkpointFile="output/forams.state")
+mymcmc.run(generations=50000, checkpointInterval=1000, checkpointFile="output/forams_Spinose_seed" + seed_nb + ".state")
 
 # Read in the Tree Trace and Construct the Maximum Clade Credibility (MCC) Tree
-trace = readTreeTrace("output_pf5_pt5/forams_Spinose.trees")
-map_tree = mapTree(trace, file="output_pf5_pt5/forams_Spinose_MAP.tre")
-mcc_tree = mccTree(trace, file="output_pf5_pt5/forams_Spinose_MCC.tre")
+trace = readTreeTrace("output/forams_Spinose_seed" + seed_nb + ".trees")
+map_tree = mapTree(trace, file="output/forams_Spinose_MAP_seed" + seed_nb + ".tre")
+mcc_tree = mccTree(trace, file="output/forams_Spinose_MCC_seed" + seed_nb + ".tre")
 
 # Quit RevBayes #
 q()
