@@ -279,20 +279,20 @@ var.as.circular <- function(x) var.circular(as.circular(x, type="angles", units=
 #                                             function(species_i) median(triton.ss.withinRanges[triton.ss.withinRanges$species==species_i,"pal.lat"]))
 
 # Median paleolatitude in the most abundant region (tropics or northern hemisphere or southern hemisphere)
+median_abundant_region <- function(pal.lat_i){
+  abundant_in_tropics <- sum(abs(pal.lat_i) < 23.4) > max(sum(pal.lat_i < -23.4), sum(pal.lat_i > 23.4))
+  majority_northern <- sum(pal.lat_i > 0) > sum(pal.lat_i < 0)
+  
+  if (abundant_in_tropics){
+    return (median(pal.lat_i))
+  }else if (majority_northern){
+    return (median(pal.lat_i[pal.lat_i > 0]))
+  }else{
+    return (median(pal.lat_i[pal.lat_i < 0]))
+  }
+}
 sampling_heterogeneity$pal.lat = sapply(sampling_heterogeneity$species, 
-                                        function(species_i){
-                                          pal.lat_i <- triton.ss.withinRanges[triton.ss.withinRanges$species==species_i,"pal.lat"]
-                                          abundant_in_tropics <- sum(abs(pal.lat_i) < 23.4) > max(sum(pal.lat_i < -23.4), sum(pal.lat_i > 23.4))
-                                          majority_northern <- sum(pal.lat_i > 0) > sum(pal.lat_i < 0)
-                                          
-                                          if (abundant_in_tropics){
-                                            return (median(pal.lat_i))
-                                          }else if (majority_northern){
-                                            return (median(pal.lat_i[pal.lat_i > 0]))
-                                          }else{
-                                            return (median(pal.lat_i[pal.lat_i < 0]))
-                                          }
-                                        })
+                                        function(species_i)median_abundant_region(triton.ss.withinRanges[triton.ss.withinRanges$species==species_i,"pal.lat"]))
 
 # Median paleolongitude
 sampling_heterogeneity$pal.long = sapply(sampling_heterogeneity$species, 
@@ -340,6 +340,198 @@ sampling_heterogeneity$latitude = sapply(sampling_heterogeneity$species,
 # Median longitude
 sampling_heterogeneity$longitude = sapply(sampling_heterogeneity$species, 
                                         function(species_i) median.as.circular(triton.ss.withinRanges[triton.ss.withinRanges$species==species_i,"longitude"]))
+```
+
+```{r fig.width=10, fig.asp=0.8}
+geo_predictors_increasing_sampling <- lapply(names(sort(table(triton.ss.withinRanges$species))), function(SP){
+    triton.ss.SP <- triton.ss.withinRanges[triton.ss.withinRanges$species == SP,]
+    #triton.ss.SP <- triton.ss.SP[!duplicated(triton.ss.SP$holeID), ]
+    X <- 1:nrow(triton.ss.SP)
+    triton.ss.SP <- triton.ss.SP[order(triton.ss.SP$age_runif),]
+    return (Reduce(rbind, lapply(X, function(x)c(pal_lat_median  = median_abundant_region(triton.ss.SP$pal.lat[1:x]),
+                                      pal_lat_var     = var(abs(triton.ss.SP$pal.lat[1:x])),
+                                      pal_long_median = median.as.circular(triton.ss.SP$pal.long[1:x])[[1]],
+                                      pal_long_var    = var.as.circular(triton.ss.SP$pal.long[1:x])
+                                      ))))
+})
+```
+
+```{r fig.width=10, fig.asp=0.8}
+par(mfrow=c(2,2))
+for (geo_predictors_increasing_sampling_i in tail(geo_predictors_increasing_sampling)){
+  plot(geo_predictors_increasing_sampling_i[,"pal_lat_median"], xlab = "Cumulative number of samples (chronological)", ylab = "Median latitude in abundant region", main = paste0("Median lat. convergence (", SP, ")"), ylim = c(-90,90))
+  plot(geo_predictors_increasing_sampling_i[,"pal_lat_var"], xlab = "Cumulative number of samples (chronological)", ylab = "Variance in absolute latitude", main = paste0("Lat. variance convergence (", SP, ")"), ylim = c(0,1000))
+  plot(geo_predictors_increasing_sampling_i[,"pal_long_median"], xlab = "Cumulative number of samples (chronological)", ylab = "Circular median longitude", main = paste0("Median long. convergence (", SP, ")"), ylim = c(-180,180))
+  plot(geo_predictors_increasing_sampling_i[,"pal_long_var"], xlab = "Cumulative number of samples (chronological)", ylab = "Circular variance in longitude", main = paste0("Long. variance convergence (", SP, ")"), ylim = c(0,1))
+}
+```
+
+```{r warning=FALSE, fig.width=12}
+plot_overlaid_trajectories <- function(traj_list, var, ylab = var, ylim = NULL,
+                                       main = NULL,
+                                       line_col = adjustcolor("black", 0.15),
+                                       med_col  = "firebrick",
+                                       band_col = adjustcolor("firebrick", 0.18),
+                                       center_to_final = FALSE,   # <— NEW
+                                       zero_line = TRUE) {        # <— NEW
+  # Keep only entries with the column present
+  traj_list <- lapply(traj_list, function(x) as.data.frame(x, check.names = FALSE))
+  has_var <- vapply(traj_list, function(x) var %in% names(x), logical(1))
+  if (!all(has_var)) {
+    warning("Dropping ", sum(!has_var), " species without column '", var, "'.")
+    traj_list <- traj_list[has_var]
+  }
+  if (!length(traj_list)) stop("No species left with column '", var, "'")
+
+  # Optional centering to the final value per species
+  if (center_to_final) {
+    traj_list <- lapply(traj_list, function(df) {
+      y <- df[[var]]
+      y0 <- if (all(is.na(y))) NA_real_ else tail(y[!is.na(y)], 1)
+      if (is.finite(y0)) df[[var]] <- y - y0
+      df
+    })
+    if (is.null(ylim)) ylab <- paste0("Δ ", ylab)
+  }
+
+  # Basic limits
+  lens <- vapply(traj_list, nrow, integer(1))
+  maxL <- max(lens)
+  xlim <- c(1, maxL)
+  if (is.null(ylim)) {
+    ylim <- range(unlist(lapply(traj_list, function(x) x[[var]])), na.rm = TRUE)
+  }
+
+  plot(NA, xlim = xlim, ylim = ylim,
+       xlab = "Cumulative number of samples (chronological)",
+       ylab = ylab, main = main)
+  grid(col = adjustcolor("grey70", 0.6))
+  if (center_to_final && zero_line) abline(h = 0, lty = 3, col = adjustcolor("grey20", 0.8))
+
+  # Draw each species
+  for (i in seq_along(traj_list)) {
+    y <- traj_list[[i]][[var]]
+    lines(seq_along(y), y, col = line_col, lwd = 1)
+  }
+
+  # Pointwise median/IQR where ≥1 species contributes
+  k_counts <- integer(maxL)
+  qs <- matrix(NA_real_, nrow = 3, ncol = maxL,
+               dimnames = list(c("lo","med","hi"), NULL))
+  for (k in 1:maxL) {
+    vals <- vapply(traj_list, function(x) if (nrow(x) >= k) x[[var]][k] else NA_real_, numeric(1))
+    vals <- vals[!is.na(vals)]
+    k_counts[k] <- length(vals)
+    if (k_counts[k] > 0) {
+      qs[, k] <- c(quantile(vals, 0.25), median(vals), quantile(vals, 0.75))
+    }
+  }
+  usable <- which(k_counts > 0L)
+  if (length(usable) >= 2L) {
+    polygon(c(usable, rev(usable)),
+            c(qs["lo", usable], rev(qs["hi", usable])),
+            col = band_col, border = NA)
+    lines(usable, qs["med", usable], col = med_col, lwd = 2)
+  } else if (length(usable) == 1L) {
+    points(usable, qs["med", usable], pch = 19, col = med_col)
+  }
+}
+
+## 2×2 panel
+par(mfrow = c(2, 2), mar = c(4, 4, 2.5, 1))
+
+plot_overlaid_trajectories(geo_predictors_increasing_sampling,
+                           var = "pal_lat_median",
+                           ylab = "Median paleolatitude (°)",
+                           ylim = c(-90, 90),
+                           main = "Median latitude")
+
+# lat_var_range <- range(unlist(lapply(geo_predictors_increasing_sampling, function(x) if(is.vector(x)){x["pal_lat_var"]}else{x[, "pal_lat_var"]})), na.rm = TRUE)
+plot_overlaid_trajectories(geo_predictors_increasing_sampling,
+                           var = "pal_lat_var",
+                           ylab = "Variance of |latitude| (°²)",
+                           ylim = c(0,1000),
+                           main = "Latitude variance")
+
+plot_overlaid_trajectories(geo_predictors_increasing_sampling,
+                           var = "pal_long_median",
+                           ylab = "Circular median longitude (°)",
+                           ylim = c(-180, 180),
+                           main = "Median longitude")
+
+plot_overlaid_trajectories(geo_predictors_increasing_sampling,
+                           var = "pal_long_var",
+                           ylab = "Circular variance (longitude)",
+                           ylim = c(0, 1),
+                           main = "Longitude variance")
+```
+
+```{r warning=FALSE, fig.width=12}
+par(mfrow = c(2, 2), mar = c(4, 4, 2.5, 1))
+
+plot_overlaid_trajectories(geo_predictors_increasing_sampling,
+  var = "pal_lat_median",
+  ylab = "Median paleolatitude",
+  ylim = NULL,
+  main = "Median latitude (centered to final)",
+  center_to_final = TRUE)
+
+plot_overlaid_trajectories(geo_predictors_increasing_sampling,
+  var = "pal_lat_var",
+  ylab = "Variance of |latitude|",
+  ylim = NULL,
+  main = "Latitude variance (centered to final)",
+  center_to_final = TRUE)
+
+plot_overlaid_trajectories(geo_predictors_increasing_sampling,
+  var = "pal_long_median",
+  ylab = "Circular median longitude",
+  ylim = NULL,
+  main = "Median longitude (centered to final)",
+  center_to_final = TRUE)
+
+plot_overlaid_trajectories(geo_predictors_increasing_sampling,
+  var = "pal_long_var",
+  ylab = "Circular variance (longitude)",
+  ylim = NULL,
+  main = "Longitude variance (centered to final)",
+  center_to_final = TRUE)
+
+invisible(dev.print(pdf, "Images/Annex_geo_predictors_increasing_sampling.pdf"))
+```
+
+```{r fig.width=15, fig.asp=0.2, message=FALSE}
+## Deduplicate by holeID and add decade
+holes <- triton.ss.withinRanges %>%
+  distinct(holeID, .keep_all = TRUE) %>%
+  mutate(decade = 10 * floor(year / 10)) %>%
+  filter(!is.na(decade)) %>%
+  mutate(decade = factor(decade, levels = sort(unique(decade))))
+
+## Latitude by decade
+p <- ggplot(holes, aes(x = decade, y = latitude, group = decade)) +
+  geom_violin(trim = FALSE, bounds = c(-90,90), bw=10, scale = "count", na.rm = TRUE) +
+  ggtitle("Latitudinal distribution of holes over time") +
+  labs(x = "Decade", y = "Hole sampling latitude (°)") +
+  lims(y=c(-90,90)) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+## Longitude by decade
+q <- ggplot(holes, aes(x = decade, y = longitude, group = decade)) +
+  geom_violin(trim = FALSE, bounds = c(-180,180), bw=20, scale = "count", na.rm = TRUE) +
+  lims(y=c(-180,180)) +
+  ggtitle("Longitudinal distribution of holes over time") +
+  labs(x = "Decade", y = "Hole sampling longitude (°)") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+ggsave("Images/Annex_Hole_latitudinal_distribution_per_decade.pdf", p, width = 15, height = 3)
+ggsave("Images/Annex_Hole_longitudinal_distribution_per_decade.pdf", q, width = 15, height = 3)
+ggsave("Images/Hole_latitudinal_distribution_per_decade.png", p, width = 15, height = 3)
+ggsave("Images/Hole_longitudinal_distribution_per_decade.png", q, width = 15, height = 3)
+p
+q
 ```
 
 ```{r}
@@ -573,6 +765,10 @@ sampling_heterogeneity$age.calc = sapply(sampling_heterogeneity$species,
 # Type of sample
 sampling_heterogeneity$sample.type = sapply(sampling_heterogeneity$species, 
                                         function(species_i) as.factor(get_mode(triton.ss.withinRanges[triton.ss.withinRanges$species==species_i,"sample.type"])))
+
+# Type of sample
+sampling_heterogeneity$db.source = sapply(sampling_heterogeneity$species, 
+                                        function(species_i) as.factor(get_mode(triton.ss.withinRanges[triton.ss.withinRanges$species==species_i,"db.source"])))
 ```
 
 ```{r, fig.asp=0.4, fig.width=12, warning=FALSE}
@@ -742,6 +938,10 @@ ggsave("Images/Annex_Correlations_categorical_variables.pdf", p, width = 4, heig
 p
 ```
 
+```{r}
+write.csv(sampling_heterogeneity, "../../3-Data_processed/Triton_occurrences/sampling_heterogeneity.csv")
+```
+
 ### Generalized Linear and Additive Models (with Gamma distribution)
 
 ```{r fig.width=12, fig.height=5}
@@ -791,9 +991,9 @@ sampling_heterogeneity_GAM <- gam(sampling_rate ~ s(pal.lat, pal.long, bs = "sos
 summary(sampling_heterogeneity_GAM)
 
 par(mfrow = c(2,5), mar = c(4, 3, 2, 0) + 0.1, mgp = c(2.2, 0.7, 0))
-for (i in 1:5) plot(sampling_heterogeneity_GAM, pages=0, residuals=TRUE, select=i, se=2, ylim=c(-3,1.5), theta=0, phi=90, ylab="")  ## show partial residuals
+for (i in 1:5) plot(sampling_heterogeneity_GAM, pages=0, residuals=TRUE, select=i, se=2, ylim=c(-3,1.5), theta=0, phi=90, n2=100, ylab="")  ## show partial residuals
 # vis.gam(sampling_heterogeneity_GAM, view=c("age", "sample.depth"), n.grid = 15, lwd=0.5, ylab="\n\nsample depth")
-for (i in 1:5) plot(sampling_heterogeneity_GAM, pages=0, seWithMean=TRUE, select=i, se=2, shade=T, theta=180, phi=90, ylab="")
+for (i in 1:5) plot(sampling_heterogeneity_GAM, pages=0, seWithMean=TRUE, select=i, se=2, shade=T, theta=180, n2=100, phi=90, ylab="")
 # vis.gam(sampling_heterogeneity_GAM, view=c("sample.depth", "age"), n.grid = 15, lwd=0.5, ylab="\n\nage")
 ```
 
@@ -804,10 +1004,10 @@ layout(matrix(c(1, 2, 3, 4, 5,
               nrow = 2, byrow = TRUE))
 
 par(mar = c(0.5, 0.5, 0.5, 0.5), mgp = c(2.2, 0.7, 0))
-plot(sampling_heterogeneity_GAM, pages=0, residuals=TRUE, seWithMean=TRUE, select=1, theta=0, phi=90, ylab="", lwd=0.3)
+plot(sampling_heterogeneity_GAM, pages=0, residuals=TRUE, seWithMean=TRUE, select=1, theta=0, phi=90, ylab="", n2=200, lwd=0.3)
 
 par(mar = c(3.5, 3.3, 1, 0), mgp = c(2, 0.5, 0))
-plot(sampling_heterogeneity_GAM, pages=0, residuals=TRUE, shade=T, select=2, se=2, cex.lab=1.8, 
+plot(sampling_heterogeneity_GAM, pages=0, residuals=TRUE, shade=T, select=2, se=2, cex.lab=1.8,
      ylim=c(-3,1.5), theta=0, phi=90, xlab="Relative abundance", ylab="Partial effect of the predictor")
 
 par(mar = c(3.5, 2, 1, 0.5), mgp = c(2, 0.5, 0))
@@ -826,7 +1026,7 @@ plot(sampling_heterogeneity_GAM, pages=0, residuals=TRUE, shade=T, select=5, se=
 # vis.gam(sampling_heterogeneity_GAM, view=c("age", "sample.depth"), n.grid = 7,
 #         ylab="\nDepth", xlab="Age", zlab="Partial effect", cex.lab=1.2)
 # 
-plot(sampling_heterogeneity_GAM, pages=0, residuals=TRUE, select=1, theta=180, phi=90, ylab="", lwd=0.3)
+plot(sampling_heterogeneity_GAM, pages=0, residuals=TRUE, select=1, theta=180, phi=90, ylab="", n2=200, lwd=0.3)
 # vis.gam(sampling_heterogeneity_GAM, view=c("sample.depth", "age"), n.grid = 7, 
 #         ylab="\nAge", xlab="Depth", zlab="Partial effect", cex.lab=1.2)
 dev.off()
