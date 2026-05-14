@@ -1,6 +1,27 @@
 # Overview
 This project focuses on studying the drivers of heterogeneity in fossilization rates in planktonic foraminifera as well as the diversification dynamics of this group. Key goals include understanding cryptic speciation and leveraging both fossil and molecular data to reconstruct evolutionary patterns. The models used include Protracted Birth-Death (PBD), Occurrence Birth-Death Diffusion (OBDD), and GeoSSE.
 
+The repository covers analyses for two articles, plus a third collaborative project on geographic diversification.
+
+## Article 1 — Drivers of Fossil Sampling Heterogeneity
+**Andréoletti et al., *Paleobiology* — https://doi.org/10.1017/pab.2026.10094**
+
+Investigates heterogeneity in fossilization rates across planktonic foraminifera using occurrence data from the Triton database. Code archived at https://doi.org/10.17605/OSF.IO/BDU6E.
+
+Relevant directories: `2-Data_processing/1-Process_Triton_occurrences/`
+
+## Article 2 — Diversification Dynamics of Planktonic Foraminifera
+**In preparation**
+
+Combines Bayesian phylogenetic inference (OBDP model), fossil occurrence data, and functional traits to study cryptic speciation and drivers of diversification rates across the three morphological groups (Spinose, Non-spinose, Microperforate).
+
+Relevant directories: `4-Phylogenetic_reconstruction/`, `5-Analyses/1-ProSSE/`, `5-Analyses/4-OBDD/`, `5-Analyses/5-FMuHiSSE/`
+
+## Article 3 — Geographic Diversification
+Collaborative project (not lead). Analyses not yet public.
+
+---
+
 Some files are too large for this repository, including the Triton database (which can be found at https://doi.org/10.6084/m9.figshare.c.5242154.v4), and others that can be regenerated with `2-Data_processing` scripts.
 
 # Directory Structure and Description
