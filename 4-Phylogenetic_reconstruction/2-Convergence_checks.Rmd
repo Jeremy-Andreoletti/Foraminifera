@@ -12,7 +12,7 @@ library(convenience)
 ### Spinose
 
 ```{r}
-output_S <- checkConvergence(list_files = list.files("/Volumes/data/Forams/4-Phylogenetic_reconstruction/output/", pattern = "forams_Spinose.*.trees", full.names = T), control = makeControl(burnin = 0.7))
+output_S <- checkConvergence(list_files = list.files("~/bioclust/Forams/4-Phylogenetic_reconstruction/output/", pattern = "forams_Spinose.*.trees", full.names = T), control = makeControl(burnin = 0.1))
 output_S
 ```
 
@@ -24,7 +24,7 @@ plotEssSplits(output_S, breaks=10)
 ### Non-Spinose
 
 ```{r}
-output_NS <- checkConvergence(list_files = list.files("/Volumes/data/Forams/4-Phylogenetic_reconstruction/output", pattern = "forams_NonSpinose.*.trees", full.names = T), control = makeControl(burnin = 0.1))
+output_NS <- checkConvergence(list_files = list.files("~/bioclust/Forams/4-Phylogenetic_reconstruction/output", pattern = "forams_NonSpinose.*.trees", full.names = T), control = makeControl(burnin = 0.1))
 output_NS
 ```
 
@@ -36,7 +36,7 @@ plotEssSplits(output_NS, breaks = 20, )
 ### Microperforate
 
 ```{r}
-output_M <- checkConvergence(list_files = list.files("/Volumes/data/Forams/4-Phylogenetic_reconstruction/output/", pattern = "forams_Microperforate.*.trees", full.names = T), control = makeControl(burnin = 0.05))
+output_M <- checkConvergence(list_files = list.files("~/bioclust/Forams/4-Phylogenetic_reconstruction/output/", pattern = "forams_Microperforate.*.trees", full.names = T), control = makeControl(burnin = 0.05))
 output_M
 ```
 
@@ -45,149 +45,150 @@ plotEssSplits(output_M, breaks=20)
 #plotEssSplits(output_M, per_run = T, breaks=20)
 ```
 
-# Conservative trimming
+# High-confidence alignment
 ## OBD dating
 ### Spinose
 
 ```{r}
-output_S <- checkConvergence(list_files = list.files("/Volumes/data/Forams/4-Phylogenetic_reconstruction/output_pf95_pt95/", pattern = "forams_Spinose.*.trees", full.names = T), control = makeControl(burnin = 0.7))
-output_S
+output_95_S <- checkConvergence(list_files = list.files("~/bioclust/Forams/4-Phylogenetic_reconstruction/output_pf95_pt95/", pattern = "forams_Spinose.*.trees", full.names = T), control = makeControl(burnin = 0.1))
+output_95_S
 ```
 
 ```{r fig.width=12, fig.asp=0.4}
-plotEssSplits(output_S, breaks=10)
-#plotEssSplits(output_S, per_run = T, breaks = 10)
+plotEssSplits(output_95_S, breaks=10)
+#plotEssSplits(output_95_S, per_run = T, breaks = 10)
 ```
 
 ### Non-Spinose
 
 ```{r}
-output_NS <- checkConvergence(list_files = list.files("/Volumes/data/Forams/4-Phylogenetic_reconstruction/output_pf95_pt95/", pattern = "forams_NonSpinose.*.trees", full.names = T), control = makeControl(burnin = 0.1))
-output_NS
+output_95_NS <- checkConvergence(list_files = list.files("~/bioclust/Forams/4-Phylogenetic_reconstruction/output_pf95_pt95/", pattern = "forams_NonSpinose.*.trees", full.names = T), control = makeControl(burnin = 0.1))
+output_95_NS
 ```
 
 ```{r fig.width=12, fig.asp=0.4}
-plotEssSplits(output_NS)
-#plotEssSplits(output_NS, per_run = T, breaks = 20)
+plotEssSplits(output_95_NS)
+#plotEssSplits(output_95_NS, per_run = T, breaks = 20)
 ```
 
 ### Microperforate
 
 ```{r}
-output_M <- checkConvergence(list_files = list.files("/Volumes/data/Forams/4-Phylogenetic_reconstruction/output_pf95_pt95/", pattern = "forams_Microperforate.*.trees", full.names = T), control = makeControl(burnin = 0.05))
-output_M
+output_95_M <- checkConvergence(list_files = list.files("~/bioclust/Forams/4-Phylogenetic_reconstruction/output_pf95_pt95/", pattern = "forams_Microperforate.*.trees", full.names = T), control = makeControl(burnin = 0.05))
+output_95_M
 ```
 
 ```{r fig.width=12, fig.asp=0.4}
-plotEssSplits(output_M, breaks=20)
-#plotEssSplits(output_M, per_run = T, breaks=20)
+plotEssSplits(output_95_M, breaks=20)
+#plotEssSplits(output_95_M, per_run = T, breaks=20)
 ```
 
 ## OBD + Node dating
 ### Spinose
 
 ```{r}
-output_S <- checkConvergence(list_files = list.files("/Volumes/data/Forams/4-Phylogenetic_reconstruction/output_pf95_pt95_nodeDating/", pattern = "forams_Spinose.*.trees", full.names = T), control = makeControl(burnin = 0.1))
-output_S
+output_95_nodeDating_S <- checkConvergence(list_files = list.files("~/bioclust/Forams/4-Phylogenetic_reconstruction/output_pf95_pt95_nodeDating/", pattern = "forams_Spinose.*.trees", full.names = T), control = makeControl(burnin = 0.1))
+output_95_nodeDating_S
 ```
 
 ```{r fig.width=12, fig.asp=0.4}
-plotEssSplits(output_S, breaks=10)
-#plotEssSplits(output_S, per_run = T, breaks = 10)
+plotEssSplits(output_95_nodeDating_S, breaks=30)
+plotEssSplits(output_95_nodeDating_S, per_run = T, breaks = 10)
 ```
 
 ### Non-Spinose
 
 ```{r}
-output_NS <- checkConvergence(list_files = list.files("/Volumes/data/Forams/4-Phylogenetic_reconstruction/output_pf95_pt95_nodeDating/", pattern = "forams_NonSpinose.*.trees", full.names = T), control = makeControl(burnin = 0.1))
-output_NS
+output_95_nodeDating_NS <- checkConvergence(list_files = list.files("~/bioclust/Forams/4-Phylogenetic_reconstruction/output_pf95_pt95_nodeDating/", pattern = "forams_NonSpinose.*.trees", full.names = T), control = makeControl(burnin = 0.1))
+output_95_nodeDating_NS
 ```
 
-```{r fig.width=12, fig.asp=0.4}
-plotEssSplits(output_NS)
-#plotEssSplits(output_NS, per_run = T, breaks = 20)
+```{r fig.width=12, fig.asp=0.4, warning=FALSE}
+plotEssSplits(output_95_nodeDating_NS)
+plotEssSplits(output_95_nodeDating_NS, per_run = T, breaks = 20)
 ```
 
 ### Microperforate
 
 ```{r}
-output_M <- checkConvergence(list_files = list.files("/Volumes/data/Forams/4-Phylogenetic_reconstruction/output_pf95_pt95_nodeDating/", pattern = "forams_Microperforate.*.trees", full.names = T), control = makeControl(burnin = 0.05))
-output_M
+output_95_nodeDating_M <- checkConvergence(list_files = list.files("~/bioclust/Forams/4-Phylogenetic_reconstruction/output_pf95_pt95_nodeDating/", pattern = "forams_Microperforate.*.trees", full.names = T), control = makeControl(burnin = 0.05))
+output_95_nodeDating_M
 ```
 
 ```{r fig.width=12, fig.asp=0.4}
-plotEssSplits(output_M, breaks=20)
-#plotEssSplits(output_M, per_run = T, breaks=20)
+plotEssSplits(output_95_nodeDating_M, breaks=20)
+#plotEssSplits(output_95_nodeDating_M, per_run = T, breaks=20)
 ```
 
-# Liberal trimming
+# Medium-confidence alignment
 ## OBD dating
 ### Spinose
 
 ```{r}
-output_S <- checkConvergence(list_files = list.files("/Volumes/data/Forams/4-Phylogenetic_reconstruction/output_pf5_pt5/", pattern = "forams_Spinose.*.trees", full.names = T), control = makeControl(burnin = 0.7))
-output_S
+output_5_S <- checkConvergence(list_files = list.files("~/bioclust/Forams/4-Phylogenetic_reconstruction/output_pf5_pt5/", pattern = "forams_Spinose.*.trees", full.names = T), control = makeControl(burnin = 0.1))
+output_5_S
 ```
 
 ```{r fig.width=12, fig.asp=0.4}
-plotEssSplits(output_S, breaks=10)
+plotEssSplits(output_5_S, breaks=10)
 ```
 
 ### Non-Spinose
 
 ```{r}
-output_NS <- checkConvergence(list_files = list.files("/Volumes/data/Forams/4-Phylogenetic_reconstruction/output_pf5_pt5/", pattern = "forams_NonSpinose.*.trees", full.names = T), control = makeControl(burnin = 0.1))
-output_NS
+output_5_NS <- checkConvergence(list_files = list.files("~/bioclust/Forams/4-Phylogenetic_reconstruction/output_pf5_pt5/", pattern = "forams_NonSpinose.*.trees", full.names = T), control = makeControl(burnin = 0.1))
+output_5_NS
 ```
 
-```{r fig.width=12, fig.asp=0.4}
-plotEssSplits(output_NS)
-plotEssSplits(output_NS, per_run = T, breaks = 20)
+```{r fig.width=12, fig.asp=0.4, warning=FALSE}
+plotEssSplits(output_5_NS)
+plotEssSplits(output_5_NS, per_run = T, breaks = 20)
 ```
 
 ### Microperforate
 
 ```{r}
-output_M <- checkConvergence(list_files = list.files("/Volumes/data/Forams/4-Phylogenetic_reconstruction/output_pf5_pt5/", pattern = "forams_Microperforate.*.trees", full.names = T), control = makeControl(burnin = 0.05))
-output_M
+output_5_M <- checkConvergence(list_files = list.files("~/bioclust/Forams/4-Phylogenetic_reconstruction/output_pf5_pt5/", pattern = "forams_Microperforate.*.trees", full.names = T), control = makeControl(burnin = 0.05))
+output_5_M
 ```
 
 ```{r fig.width=12, fig.asp=0.4}
-plotEssSplits(output_M, breaks=50)
+plotEssSplits(output_5_M, breaks=50)
 ```
 
 ## OBD + Node dating
 ### Spinose
 
 ```{r}
-output_S <- checkConvergence(list_files = list.files("/Volumes/data/Forams/4-Phylogenetic_reconstruction/output_pf5_pt5_nodeDating/", pattern = "forams_Spinose.*.trees", full.names = T), control = makeControl(burnin = 0.1))
-output_S
+output_5_nodeDating_S <- checkConvergence(list_files = list.files("~/bioclust/Forams/4-Phylogenetic_reconstruction/output_pf5_pt5_nodeDating/", pattern = "forams_Spinose.*.trees", full.names = T), control = makeControl(burnin = 0.1))
+output_5_nodeDating_S
 ```
 
 ```{r fig.width=12, fig.asp=0.4}
-plotEssSplits(output_S, breaks=10)
+plotEssSplits(output_5_nodeDating_S, breaks=30)
+plotEssSplits(output_5_nodeDating_S, per_run = T, breaks = 20)
 ```
 
 ### Non-Spinose
 
 ```{r}
-output_NS <- checkConvergence(list_files = list.files("/Volumes/data/Forams/4-Phylogenetic_reconstruction/output_pf5_pt5_nodeDating/", pattern = "forams_NonSpinose.*.trees", full.names = T), control = makeControl(burnin = 0.1))
-output_NS
+output_5_nodeDating_NS <- checkConvergence(list_files = list.files("~/bioclust/Forams/4-Phylogenetic_reconstruction/output_pf5_pt5_nodeDating/", pattern = "forams_NonSpinose.*.trees", full.names = T), control = makeControl(burnin = 0.1))
+output_5_nodeDating_NS
 ```
 
 ```{r fig.width=12, fig.asp=0.4}
-plotEssSplits(output_NS)
-plotEssSplits(output_NS, per_run = T, breaks = 20)
+plotEssSplits(output_5_nodeDating_NS)
+plotEssSplits(output_5_nodeDating_NS, per_run = T, breaks = 20)
 ```
 
 ### Microperforate
 
 ```{r}
-output_M <- checkConvergence(list_files = list.files("/Volumes/data/Forams/4-Phylogenetic_reconstruction/output_pf5_pt5_nodeDating/", pattern = "forams_Microperforate.*.trees", full.names = T), control = makeControl(burnin = 0.05))
-output_M
+output_5_nodeDating_M <- checkConvergence(list_files = list.files("~/bioclust/Forams/4-Phylogenetic_reconstruction/output_pf5_pt5_nodeDating/", pattern = "forams_Microperforate.*.trees", full.names = T), control = makeControl(burnin = 0.05))
+output_5_nodeDating_M
 ```
 
 ```{r fig.width=12, fig.asp=0.4}
-plotEssSplits(output_M, breaks=50)
+plotEssSplits(output_5_nodeDating_M, breaks=50)
 ```
 
