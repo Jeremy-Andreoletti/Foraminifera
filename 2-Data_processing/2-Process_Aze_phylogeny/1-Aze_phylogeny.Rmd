@@ -132,6 +132,7 @@ head(foram_taxa)
 
 
 ```{r}
+set.seed(1)
 foram_taxa_sample <- sample(grep("T", foram_taxa$taxon, value=T), 5)
 Foram_phylo_sample <- keep.tip(phy = Foram_phylo, tip = foram_taxa_sample)
 plot(Foram_phylo_sample, show.node.label = T)
@@ -268,9 +269,10 @@ For Triton.
 
 ```{r}
 ## Spinose
-#triton.pres$species <- gsub("Globigerinoides ruber", "Globigerinoides ruber-albus", triton.pres$species)
 triton.pres$species <- gsub("Beella megastoma", "Beella digitata", triton.pres$species)
 triton.pres$species <- gsub("Globoturborotalita tenella", "Globigerinoides tenellus", triton.pres$species)
+triton.pres$species <- gsub("Trilobatus subsacculifer", "Trilobatus sacculifer", triton.pres$species)
+triton.pres$species <- gsub("Trilobatus praeimmaturus", "Trilobatus sacculifer", triton.pres$species)
 triton.pres$species <- gsub("Trilobatus immaturus", "Trilobatus sacculifer", triton.pres$species)
 triton.pres$species <- gsub("Trilobatus quadrilobatus", "Trilobatus sacculifer", triton.pres$species)
 triton.pres$species <- gsub("Trilobatus trilobus", "Trilobatus sacculifer", triton.pres$species)
@@ -286,6 +288,7 @@ triton.pres$species <- gsub("Globorotalia oceanica", "Globorotalia crassaformis"
 triton.pres$species <- gsub("Globorotalia excelsa", "Globorotalia truncatulinoides", triton.pres$species)
 triton.pres$species <- gsub("Globorotalia pachytheca", "Globorotalia truncatulinoides", triton.pres$species)
 triton.pres$species <- gsub("Globorotalia bermudezi", "Globorotalia scitula", triton.pres$species)
+triton.pres$species <- gsub("Globorotalia menardii", "Globorotalia cultrata", triton.pres$species)
 triton.pres$species <- gsub("Pulleniatina finalis", "Pulleniatina obliquiloculata", triton.pres$species)
 
 # Microperforate
@@ -302,9 +305,10 @@ For the tree.
 
 ```{r}
 ## Spinose
-#Foram_ancestry_table_alb_newTaxo$`Species in lineage` <- gsub("Globigerinoides ruber", "Globigerinoides ruber-albus", Foram_ancestry_table_alb_newTaxo$`Species in lineage`)
 Foram_ancestry_table_alb_newTaxo$`Species in lineage` <- gsub("Beella megastoma", "Beella digitata", Foram_ancestry_table_alb_newTaxo$`Species in lineage`)
 Foram_ancestry_table_alb_newTaxo$`Species in lineage` <- gsub("Globoturborotalita tenella", "Globigerinoides tenellus", Foram_ancestry_table_alb_newTaxo$`Species in lineage`)
+Foram_ancestry_table_alb_newTaxo$`Species in lineage` <- gsub("Trilobatus subsacculifer", "Trilobatus sacculifer", Foram_ancestry_table_alb_newTaxo$`Species in lineage`)
+Foram_ancestry_table_alb_newTaxo$`Species in lineage` <- gsub("Trilobatus praeimmaturus", "Trilobatus sacculifer", Foram_ancestry_table_alb_newTaxo$`Species in lineage`)
 Foram_ancestry_table_alb_newTaxo$`Species in lineage` <- gsub("Trilobatus immaturus", "Trilobatus sacculifer", Foram_ancestry_table_alb_newTaxo$`Species in lineage`)
 Foram_ancestry_table_alb_newTaxo$`Species in lineage` <- gsub("Trilobatus quadrilobatus", "Trilobatus sacculifer", Foram_ancestry_table_alb_newTaxo$`Species in lineage`)
 Foram_ancestry_table_alb_newTaxo$`Species in lineage` <- gsub("Trilobatus trilobus", "Trilobatus sacculifer", Foram_ancestry_table_alb_newTaxo$`Species in lineage`)
@@ -320,6 +324,7 @@ Foram_ancestry_table_alb_newTaxo$`Species in lineage` <- gsub("Globorotalia ocea
 Foram_ancestry_table_alb_newTaxo$`Species in lineage` <- gsub("Globorotalia excelsa", "Globorotalia truncatulinoides", Foram_ancestry_table_alb_newTaxo$`Species in lineage`)
 Foram_ancestry_table_alb_newTaxo$`Species in lineage` <- gsub("Globorotalia pachytheca", "Globorotalia truncatulinoides", Foram_ancestry_table_alb_newTaxo$`Species in lineage`)
 Foram_ancestry_table_alb_newTaxo$`Species in lineage` <- gsub("Globorotalia bermudezi", "Globorotalia scitula", Foram_ancestry_table_alb_newTaxo$`Species in lineage`)
+Foram_ancestry_table_alb_newTaxo$`Species in lineage` <- gsub("Globorotalia menardii", "Globorotalia cultrata", Foram_ancestry_table_alb_newTaxo$`Species in lineage`)
 Foram_ancestry_table_alb_newTaxo$`Species in lineage` <- gsub("Pulleniatina finalis", "Pulleniatina obliquiloculata", Foram_ancestry_table_alb_newTaxo$`Species in lineage`)
 ```
 
@@ -380,9 +385,10 @@ head(triton.ss)
 ```{r}
 ### Update the taxonomy based on modern species
 ## Spinose
-#triton.ss$species <- gsub("Globigerinoides ruber", "Globigerinoides ruber-albus", triton.ss$species)
 triton.ss$species <- gsub("Beella megastoma", "Beella digitata", triton.ss$species)
 triton.ss$species <- gsub("Globoturborotalita tenella", "Globigerinoides tenellus", triton.ss$species)
+triton.ss$species <- gsub("Trilobatus subsacculifer", "Trilobatus sacculifer", triton.ss$species)
+triton.ss$species <- gsub("Trilobatus praeimmaturus", "Trilobatus sacculifer", triton.ss$species)
 triton.ss$species <- gsub("Trilobatus immaturus", "Trilobatus sacculifer", triton.ss$species)
 triton.ss$species <- gsub("Trilobatus quadrilobatus", "Trilobatus sacculifer", triton.ss$species)
 triton.ss$species <- gsub("Trilobatus trilobus", "Trilobatus sacculifer", triton.ss$species)
@@ -398,6 +404,7 @@ triton.ss$species <- gsub("Globorotalia oceanica", "Globorotalia crassaformis", 
 triton.ss$species <- gsub("Globorotalia excelsa", "Globorotalia truncatulinoides", triton.ss$species)
 triton.ss$species <- gsub("Globorotalia pachytheca", "Globorotalia truncatulinoides", triton.ss$species)
 triton.ss$species <- gsub("Globorotalia bermudezi", "Globorotalia scitula", triton.ss$species)
+triton.ss$species <- gsub("Globorotalia menardii", "Globorotalia cultrata", triton.ss$species)
 triton.ss$species <- gsub("Pulleniatina finalis", "Pulleniatina obliquiloculata", triton.ss$species)
 
 # Microperforate
@@ -413,6 +420,7 @@ triton.ss$species <- gsub("Streptochilus globigerum", "Bolivina variabilis", tri
 ```{r fig.width=12, fig.asp = .8}
 Foram_phylo_fossils <- Foram_phylo_updated
 Foram_ancestry_table_alb_fossils <- Foram_ancestry_table_alb_newTaxo
+Foram_ancestry_table_alb_fossils$Species <- gsub(".*\\-", "", Foram_ancestry_table_alb_fossils$`Species in lineage`)
 #nbF <- 5000
 nbF <- 1000
 nbF_cpt <- 0
@@ -423,8 +431,9 @@ for (i in sample(1:nrow(triton.ss), size=min(nbF*2, nrow(triton.ss)), replace=F)
   
   if (any(cond)) {
     triton_to_Aze_Fi <- Foram_ancestry_table_alb_fossils[sample(1:length(cond), 1, prob = cond),]
+    triton_to_Aze_Fi$Species <- Fi$species
     
-    matched_fossils <- union(matched_fossils, Fi$species)
+    # matched_fossils <- union(matched_fossils, Fi$species)
     Fi$code <- triton_to_Aze_Fi$`Lineage code`
     Fi$label <- paste0("F",i)
     Fi$position <- Fi$age_runif - triton_to_Aze_Fi$`End date`
@@ -440,15 +449,25 @@ for (i in sample(1:nrow(triton.ss), size=min(nbF*2, nrow(triton.ss)), replace=F)
     if (nbF_cpt==nbF) break
   }
 }
+
+code_species_match <- Foram_ancestry_table_alb_fossils$Species
+names(code_species_match) <- Foram_ancestry_table_alb_fossils$`Lineage code`
+
+head(code_species_match)
+Foram_phylo_fossils$node.species <- code_species_match[Foram_phylo_fossils$node.label]
+Foram_phylo_fossils$tip.species <- code_species_match[Foram_phylo_fossils$tip.label]
 ```
 
 ```{r fig.width=20, fig.asp = .8}
 p <- ggtree(Foram_phylo_updated) +  geom_tiplab(size=2.5) + geom_nodelab(size=2) + theme_tree2()
 q <- ggtree(Foram_phylo_fossils) + 
-  geom_tiplab(size=2.5) + theme_tree2() +
-  geom_nodelab(size=2, 
+  geom_tiplab(#aes(label = c(Foram_phylo_fossils$tip.species, Foram_phylo_fossils$node.species)), 
+              size=2.5) +
+  geom_nodelab(#aes(label = c(Foram_phylo_fossils$tip.species, Foram_phylo_fossils$node.species)), 
+               size=2, 
                nudge_y=as.numeric(list("FALSE"=0,"TRUE"=0.5)[as.character(grepl("F",c(Foram_phylo_fossils$node.label)))]), 
-               colour=as.character(list("FALSE"='black',"TRUE"="red")[as.character(grepl("F",c(Foram_phylo_fossils$node.label)))]))
+               colour=as.character(list("FALSE"='black',"TRUE"="red")[as.character(grepl("F",c(Foram_phylo_fossils$node.label)))])) + 
+  theme_tree2()
 revts(p)
 revts(q)
 ```
@@ -541,7 +560,9 @@ tree_height <- max(nodeHeights(Foram_phylo_fossils))
 
 p <- ggtree(Foram_phylo_fossils)
 # For each node, count how many times it appears as a parent and flag non-tip nodes with exactly one child as sampled ancestors
-p$data$sampledAncestor <- !d$isTip & (sapply(d$node, function(x) sum(d$parent == x)) == 1)
+p$data$child_count <- sapply(p$data$node, function(x) sum(p$data$parent == x))
+p$data$sampledAncestor <- !p$data$isTip & (p$data$child_count == 1)
+
 q <- p %<+% tip_data +
   # Non-Spinose only
   geom_hilight(node = node_NSonly, fill =  "cyan3", alpha = 0.3, type="gradient") +
@@ -583,15 +604,6 @@ r <- p %<+% tip_data +
 ggsave("../../3-Data_processed/Morphospecies_phylogenies/Images/Foram_phylo_walltexture.pdf", r, width = 12, height = 14)
 q
 r
-```
-
-```{r}
-# Create a ggtree object and extract its data
-p <- ggtree(Foram_phylo_fossils)
-
-# For each node, count how many times it appears as a parent and flag non-tip nodes with exactly one child as sampled ancestors
-p$data$child_count <- sapply(d$node, function(x) sum(d$parent == x))
-p$data$sampledAncestor <- !d$isTip & (d$child_count == 1)
 ```
 
 ```{r fig.width=10, fig.asp=0.8}
@@ -685,6 +697,13 @@ Phylo_NonSpinoseOnly_sampledAncestors <- extract.clade(Foram_phylo_fossils, node
 Phylo_SpinoseOnly_sampledAncestors <- extract.clade(Foram_phylo_fossils, node = node_SpinoseOnly, root.edge = 1, collapse.singles = F)
 Phylo_MixedSpinose_sampledAncestors <- extract.clade(Foram_phylo_fossils, node = node_MixedSpinose, root.edge = 3, collapse.singles = F)
 
+Phylo_NonSpinoseOnly_sampledAncestors$tip.species <- Phylo_NonSpinoseOnly_sampledAncestors$tip.species[Phylo_NonSpinoseOnly_sampledAncestors$tip.label]
+Phylo_NonSpinoseOnly_sampledAncestors$node.species <- Phylo_NonSpinoseOnly_sampledAncestors$node.species[Phylo_NonSpinoseOnly_sampledAncestors$node.label]
+Phylo_SpinoseOnly_sampledAncestors$tip.species <- Phylo_SpinoseOnly_sampledAncestors$tip.species[Phylo_SpinoseOnly_sampledAncestors$tip.label]
+Phylo_SpinoseOnly_sampledAncestors$node.species <- Phylo_SpinoseOnly_sampledAncestors$node.species[Phylo_SpinoseOnly_sampledAncestors$node.label]
+Phylo_MixedSpinose_sampledAncestors$tip.species <- Phylo_MixedSpinose_sampledAncestors$tip.species[Phylo_MixedSpinose_sampledAncestors$tip.label]
+Phylo_MixedSpinose_sampledAncestors$node.species <- Phylo_MixedSpinose_sampledAncestors$node.species[Phylo_MixedSpinose_sampledAncestors$node.label]
+
 # Add morphological information
 Phylo_NonSpinoseOnly_sampledAncestors_data <-  data.frame(label = Phylo_NonSpinoseOnly_sampledAncestors$tip.label, stringsAsFactors = FALSE) %>% left_join(tip_data, by = "label")
 Phylo_SpinoseOnly_sampledAncestors_data <- data.frame(label = Phylo_SpinoseOnly_sampledAncestors$tip.label, stringsAsFactors = FALSE) %>% left_join(tip_data, by = "label")
@@ -741,9 +760,12 @@ ggsave("../../3-Data_processed/Morphospecies_phylogenies/Images/MixedSpinose_sam
 Save split trees
 
 ```{r}
-write.tree(Phylo_NonSpinoseOnly_sampledAncestors, paste0("../../3-Data_processed/Morphospecies_phylogenies/NonSpinoseOnly_sampledAncestors.tree"))
-write.tree(Phylo_SpinoseOnly_sampledAncestors, paste0("../../3-Data_processed/Morphospecies_phylogenies/SpinoseOnly_sampledAncestors.tree"))
-write.tree(Phylo_MixedSpinose_sampledAncestors, paste0("../../3-Data_processed/Morphospecies_phylogenies/MixedSpinose_sampledAncestors.tree"))
+write.tree(Phylo_NonSpinoseOnly_sampledAncestors, "../../3-Data_processed/Morphospecies_phylogenies/NonSpinoseOnly_sampledAncestors.tree")
+write.tree(Phylo_SpinoseOnly_sampledAncestors, "../../3-Data_processed/Morphospecies_phylogenies/SpinoseOnly_sampledAncestors.tree")
+write.tree(Phylo_MixedSpinose_sampledAncestors, "../../3-Data_processed/Morphospecies_phylogenies/MixedSpinose_sampledAncestors.tree")
+save(Phylo_NonSpinoseOnly_sampledAncestors, file = "../../3-Data_processed/Morphospecies_phylogenies/NonSpinoseOnly_sampledAncestors.RData")
+save(Phylo_SpinoseOnly_sampledAncestors, file = "../../3-Data_processed/Morphospecies_phylogenies/SpinoseOnly_sampledAncestors.RData")
+save(Phylo_MixedSpinose_sampledAncestors, file = "../../3-Data_processed/Morphospecies_phylogenies/MixedSpinose_sampledAncestors.RData")
 ```
 
 # Save individual occurrences

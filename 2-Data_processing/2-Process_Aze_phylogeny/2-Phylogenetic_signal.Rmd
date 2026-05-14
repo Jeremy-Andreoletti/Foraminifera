@@ -3,26 +3,35 @@ title: "R Notebook"
 output: html_notebook
 ---
 
+```{r}
+library(phytools)
+library(dplyr)
+library(tibble)
+library(diversitree)
+library(ggplot2)
+```
+
 # Phylogenetic signal
 ## Discrete traits
 
 ```{r}
 Foram_ancestry_table <- as_tibble(read.csv("../../3-Data_processed/Morphospecies_phylogenies/Foram_ancestry_table_alb_newTaxo.csv"))
+sampling_heterogeneity <- read.csv("../../3-Data_processed/Triton_occurrences/sampling_heterogeneity.csv", row.names=1)
 dat.discrete <- sampling_heterogeneity[sampling_heterogeneity$MacroMicro=="Macroperforate",c("reason", "db.source")]
 dat.discrete <- dat.discrete[which(sapply(rownames(dat.discrete), grepl, x=Foram_ancestry_table[,"Species.in.lineage"])),]  # keep only fossils with matched lineages in the tree
 
 last_tip <- sapply(Foram_ancestry_table$Species.in.lineage, function(x) tail(strsplit(x, split="-")[[1]], 1))
-match_fossil_to_last_tip <- as.character(sapply(rownames(dat.discrete), function(sp_name) grep("T", Foram_ancestry_table[grep(sp_name,last_tip), "Lineage.code"][[1]], value=T)))
-dat.discrete <- dat.discrete[match_fossil_to_last_tip!="character(0)",] ; match_fossil_to_last_tip <- match_fossil_to_last_tip[match_fossil_to_last_tip!="character(0)"]   # remove unmatched fossils
+match_fossil_to_last_tip <- as.character(sapply(rownames(dat.discrete), function(sp_name) first(grep("T", Foram_ancestry_table[grep(sp_name,last_tip), "Lineage.code"][[1]], value=T))))
+dat.discrete <- dat.discrete[!is.na(match_fossil_to_last_tip),] ; match_fossil_to_last_tip <- match_fossil_to_last_tip[!is.na(match_fossil_to_last_tip)]   # remove unmatched fossils
 row.names(dat.discrete) <- match_fossil_to_last_tip
 head(dat.discrete)
 ```
 
 ```{r fig.width=12, fig.asp = .6}
-Foram_phylo <- read.tree("Processed_data/Forams_bifurcating.tree")
-diversitree::trait.plot(tree=keep.tip(phy=Foram_phylo, tip=rownames(dat.discrete)), dat=dat.discrete,
+Foram_phylo <- read.tree("../../3-Data_processed/Morphospecies_phylogenies/Forams_bifurcating.tree")
+trait.plot(tree=keep.tip(phy=Foram_phylo, tip=rownames(dat.discrete)), dat=dat.discrete,
                         cols=list(reason=c("pink", "palevioletred", "red", "red4"), db.source=c("lightblue", "skyblue", "blue", "darkblue")))
-diversitree::trait.plot(tree=force.ultrametric(keep.tip(phy=Foram_phylo, tip=rownames(dat.discrete))), dat=dat.discrete,
+trait.plot(tree=force.ultrametric(keep.tip(phy=Foram_phylo, tip=rownames(dat.discrete))), dat=dat.discrete,
                         cols=list(reason=c("pink", "palevioletred", "red", "red4"), db.source=c("lightblue", "skyblue", "blue", "darkblue")))
 ```
 
@@ -66,13 +75,13 @@ ggplot(triton, aes(x=reason, y=sample.depth)) + geom_violin(varwidth = T)
 ## Continuous traits
 
 ```{r}
-Foram_ancestry_table <- as_tibble(read.csv("Processed_data/Foram_ancestry_table_alb_newTaxo.csv"))
+Foram_ancestry_table <- as_tibble(read.csv("../../3-Data_processed/Morphospecies_phylogenies/Foram_ancestry_table_alb_newTaxo.csv"))
 
-dat.continuous <- sampling_heterogeneity[sampling_heterogeneity$MacroMicro=="Macroperforate",c("pal.lat", "pal.long", "pal.long.var", "year", "age", "sample.depth")]
+dat.continuous <- sampling_heterogeneity[sampling_heterogeneity$MacroMicro=="Macroperforate",c("pal.lat", "pal.long", "pal.long.var", "age", "sample.depth")]
 dat.continuous <- dat.continuous[which(sapply(rownames(dat.continuous), grepl, x=Foram_ancestry_table[,"Species.in.lineage"])),]  # keep only fossils with matched lineages in the tree
 
-match_fossil_to_last_tip <- as.character(sapply(rownames(dat.continuous), function(sp_name) grep("T", Foram_ancestry_table[grep(sp_name,last_tip), "Lineage.code"][[1]], value=T)))
-dat.continuous <- dat.continuous[match_fossil_to_last_tip!="character(0)",] ; match_fossil_to_last_tip <- match_fossil_to_last_tip[match_fossil_to_last_tip!="character(0)"]   # remove unmatched fossils
+match_fossil_to_last_tip <- as.character(sapply(rownames(dat.continuous), function(sp_name) first(grep("T", Foram_ancestry_table[grep(sp_name,last_tip), "Lineage.code"][[1]], value=T))))
+dat.continuous <- dat.continuous[!is.na(match_fossil_to_last_tip),] ; match_fossil_to_last_tip <- match_fossil_to_last_tip[!is.na(match_fossil_to_last_tip)]   # remove unmatched fossils
 row.names(dat.continuous) <- match_fossil_to_last_tip
 dat.continuous <- dat.continuous[!apply(dat.continuous, 1, anyNA),]  # remove rows with NAs
 head(dat.continuous)
