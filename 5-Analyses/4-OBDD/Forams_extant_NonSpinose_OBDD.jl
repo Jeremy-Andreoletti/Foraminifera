@@ -17,15 +17,28 @@ seed_nb = isempty(ARGS) ? 0 : parse(Int64, ARGS[1])
 seed!(seed_nb)
 
 ## Read in data
-treesDLM = readdlm("../../4-Phylogenetic_reconstruction/output/forams_NonSpinose.trees", header=true)
-trees = DataFrame(treesDLM[1], vec(treesDLM[2]))
+# Trees and occurrences
+treesDLM_0 = readdlm("../../4-Phylogenetic_reconstruction/output_pf95_pt95_nodeDating/forams_NonSpinose_seed0.trees", header=true)
+treesDLM_1 = readdlm("../../4-Phylogenetic_reconstruction/output_pf95_pt95_nodeDating/forams_NonSpinose_seed1.trees", header=true)
+treesDLM_2 = readdlm("../../4-Phylogenetic_reconstruction/output_pf95_pt95_nodeDating/forams_NonSpinose_seed2.trees", header=true)
+trees = DataFrame(vcat(treesDLM_0[1], treesDLM_1[1], treesDLM_2[1]), vec(treesDLM_0[2]))
 occurrence_ages = readdlm("../../3-Data_processed/Triton_occurrences/TritonDB_subsampled_STT_39918occurrences_NonSpinose.csv", ';')[:]
 
-# Sample a tree and occurrences
-tree = _parse_newick(String(rand(trees.obd_tree)), accerr, false)
+# Origin times
+logsDLM_0 = readdlm("../../4-Phylogenetic_reconstruction/output_pf95_pt95_nodeDating/forams_NonSpinose_seed0.log", header=true)
+logsDLM_1 = readdlm("../../4-Phylogenetic_reconstruction/output_pf95_pt95_nodeDating/forams_NonSpinose_seed1.log", header=true)
+logsDLM_2 = readdlm("../../4-Phylogenetic_reconstruction/output_pf95_pt95_nodeDating/forams_NonSpinose_seed2.log", header=true)
+logs_df = DataFrame(vcat(logsDLM_0[1], logsDLM_1[1], logsDLM_2[1]), vec(logsDLM_0[2]))
+
+# # Sample a tree and occurrences
+idx = rand(findall(trees.Iteration .>= 5000))
+tree = _parse_newick(String(trees.obd_tree[idx]), accerr, false)
 n_samples = 1000
 ωtimes = occurrence_ages[randperm(length(occurrence_ages))[1:n_samples]]
-plotω(tree, ωtimes)
+    
+# Adjust the stem branch length
+sete!(tree, logs_df.origin_time[idx] - treeheight(tree))
+
 
 ### OBDD inference ###
 
@@ -48,7 +61,6 @@ nthin    = veryShortMCMC ? 1 : (shortMCMC ? niter+1 : niter+1)
 nburn    = veryShortMCMC ? 10 : (shortMCMC ? 1_000 : 50_000)
 nflushθ  = Int64(ceil(niter/20_000))
 nflushΞ  = Int64(ceil(niter/100))
-ofile    = "OBDD_Forams_NonSpinose_$(niter)iter_seed$(seed_nb)" ; isdir("outputs/") || mkdir("outputs/")
 tune_int = 100
 ϵi       = 0.2
 λi       = prod(λa_prior)
@@ -62,12 +74,16 @@ tune_int = 100
 pupdp    = (0.02, 0.02, 0.1, 0.0, 0.01, 0.02, 0.1, 0.2)
 δt       = 1e-3
 survival = true
-mxthf    = Inf
+mxthf    = 0.1
 prints   = 5
 stnλ     = 0.5
 stnμ     = 0.5
 tρ       = Dict("" => 1.0)
 
+ofile    = "OBDD_Forams_NonSpinose_pf95_pt95_nodeDating_$(niter)iter_mxthf$(join(split(string(mxthf), ".")))_seed$(seed_nb)" ; isdir("outputs/") || mkdir("outputs/")
+
+writedlm("outputs/$(ofile)_ωtimes.txt", ωtimes)
+write_newick(tree, "outputs/$(ofile)")
 
 seed!(seed_nb); insane_gbmobd(tree::sTf_label,
                               ωtimes,
@@ -106,44 +122,7 @@ seed!(seed_nb); insane_gbmobd(tree::sTf_label,
                               stnμ     = stnμ,
                               tρ       = tρ)
 
-out_trees = iread("outputs/"*ofile*".txt")
-
-ENV["GKSwstype"] = "nul"
-gr(dpi=400, size=(500,300))
-anim_tree = @animate for tree_i in out_trees
-  plot(tree_i, shownodes=(true, true, true), showda=true, shsizes=[1.0, 1.0, 1.0])
-end
-mp4(anim_tree, "Animations/$(ofile)_anim_tree.mp4", fps=5)
-
-λmax = ceil(maximum(b.(out_trees))[1]*2)
-anim_tree = @animate for tree_i in out_trees
-  plot(tree_i, b, shownodes=(false, false, false), clim=(0,λmax))
-end
-mp4(anim_tree, "Animations/$(ofile)_anim_tree_λ.mp4", fps=5)
-
-plot(out_trees[lastindex(out_trees)], shownodes=(false, false, true), showda=true, shsizes=[1.0, 1.0, 1.0])
-png("Images/$(ofile)_tree.png")
-
-median_tree = iquantile(remove_unsampled.(out_trees), 0.5)
-plot(median_tree, b, shownodes=(false, false, false), clim=(0,1.5))
-png("Images/$(ofile)_tree_λ.png")
-plot(median_tree, d, shownodes=(false, false, false), clim=(0,1.5))
-png("Images/$(ofile)_tree_μ.png")
-plot(median_tree, nd, shownodes=(false, false, false), clim=(-1.5,1.5))
-png("Images/$(ofile)_tree_nd.png")
-
-plot(out_trees, b, δt, ylab="λ(t)")
-png("Images/$(ofile)_λTT.png")
-
-plot(out_trees, d, δt, ylab="μ(t)")
-png("Images/$(ofile)_μTT.png")
-
-plot(out_trees, b, δt, ylab="λ(t) and μ(t)")
-plot!(out_trees, d, δt)
-png("Images/$(ofile)_λTT_μTT.png")
-
-plot(ltt.(out_trees), 0.05) ; plot!(ltt(tree), scale=:identity)
-png("Images/$(ofile)_LTT.png")
-
+include("Forams_plot.jl")
+Forams_plot(ofile, tree, ωtimes)
 
 

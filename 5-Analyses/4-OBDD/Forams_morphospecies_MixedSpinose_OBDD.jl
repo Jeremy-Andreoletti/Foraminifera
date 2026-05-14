@@ -18,29 +18,12 @@ seed!(seed_nb)
 
 ## Read in data
 # Trees and occurrences
-treesDLM_0 = readdlm("../../4-Phylogenetic_reconstruction/output_pf95_pt95_nodeDating/forams_Microperforate_seed0.trees", header=true)
-treesDLM_3 = readdlm("../../4-Phylogenetic_reconstruction/output_pf95_pt95_nodeDating/forams_Microperforate_seed3.trees", header=true)
-treesDLM_5 = readdlm("../../4-Phylogenetic_reconstruction/output_pf95_pt95_nodeDating/forams_Microperforate_seed5.trees", header=true)
-treesDLM_6 = readdlm("../../4-Phylogenetic_reconstruction/output_pf95_pt95_nodeDating/forams_Microperforate_seed6.trees", header=true)
-trees = DataFrame(vcat(treesDLM_0[1], treesDLM_3[1], treesDLM_5[1], treesDLM_6[1]), vec(treesDLM_0[2]))
-occurrence_ages = readdlm("../../3-Data_processed/Triton_occurrences/TritonDB_subsampled_STT_4642occurrences_Microperforate.csv", ';')[:]
-
-# Origin times
-logsDLM_0 = readdlm("../../4-Phylogenetic_reconstruction/output_pf95_pt95_nodeDating/forams_Microperforate_seed0.log", header=true)
-logsDLM_3 = readdlm("../../4-Phylogenetic_reconstruction/output_pf95_pt95_nodeDating/forams_Microperforate_seed3.log", header=true)
-logsDLM_5 = readdlm("../../4-Phylogenetic_reconstruction/output_pf95_pt95_nodeDating/forams_Microperforate_seed5.log", header=true)
-logsDLM_6 = readdlm("../../4-Phylogenetic_reconstruction/output_pf95_pt95_nodeDating/forams_Microperforate_seed6.log", header=true)
-logs_df = DataFrame(vcat(logsDLM_0[1], logsDLM_3[1], logsDLM_5[1], logsDLM_6[1]), vec(logsDLM_0[2]))
+tree = read_newick("../../3-Data_processed/Morphospecies_phylogenies/MixedSpinose_sampledAncestors.tree", true)
+occurrence_ages = readdlm("../../3-Data_processed/Triton_occurrences/TritonDB_subsampled_STT_15195occurrences_MixedSpinose.csv", ';')[:]
 
 # # Sample a tree and occurrences
-idx = rand(findall(trees.Iteration .>= 5000))
-tree = _parse_newick(String(trees.obd_tree[idx]), accerr, false)
-n_samples = 1000
+n_samples = 5000
 ωtimes = occurrence_ages[randperm(length(occurrence_ages))[1:n_samples]]
-
-# Adjust the stem branch length
-sete!(tree, logs_df.origin_time[idx] - treeheight(tree))
-
 
 ### OBDD inference ###
 
@@ -53,8 +36,8 @@ shortMCMC = false
 αμ_prior = (0.0, 0.1)
 σλ_prior = (5.0, 0.5)
 σμ_prior = (5.0, 0.5)
-ψ_prior  = (1.0, 10000.0)
-ω_prior  = (1.0, 0.5)
+ψ_prior  = (1.0, 0.5)
+ω_prior  = (1.0, 0.1)
 # ψω_epoch = Float64[33.9, 28.1, 23.03, 20.44, 7.246, 5.333]
 ψω_epoch = Float64[]
 f_epoch  = Int64[0]
@@ -67,22 +50,22 @@ tune_int = 100
 ϵi       = 0.2
 λi       = prod(λa_prior)
 μi       = prod(μa_prior)
-ψi       = 0.0
+ψi       = ψ_prior[1]/ψ_prior[2]
 ωi       = ω_prior[1]/ω_prior[2]
 αλi      = 0.0
 αμi      = 0.0
-σλi      = 0.1
-σμi      = 0.1
-pupdp    = (0.02, 0.02, 0.1, 0.0, 0.01, 0.02, 0.1, 1.0)
+σλi      = σλ_prior[2]/(σλ_prior[1]-1)
+σμi      = σμ_prior[2]/(σμ_prior[1]-1)
+pupdp    = (0.02, 0.02, 0.1, 0.01, 0.01, 0.02, 0.1, 0.2)
 δt       = 1e-3
 survival = true
-mxthf    = 0.1
+mxthf    = 0.05
 prints   = 5
 stnλ     = 0.5
 stnμ     = 0.5
 tρ       = Dict("" => 1.0)
 
-ofile    = "OBDD_Forams_Microperforate_pf95_pt95_nodeDating_$(niter)iter_mxthf$(join(split(string(mxthf), ".")))_seed$(seed_nb)" ; isdir("outputs/") || mkdir("outputs/")
+ofile    = "OBDD_Forams_MixedSpinose_sampledAncestors_$(niter)iter_seed$(seed_nb)" ; isdir("outputs/") || mkdir("outputs/")
 
 writedlm("outputs/$(ofile)_ωtimes.txt", ωtimes)
 write_newick(tree, "outputs/$(ofile)")
