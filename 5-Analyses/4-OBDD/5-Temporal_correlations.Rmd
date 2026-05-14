@@ -85,6 +85,7 @@ $\implies$ Sea level and temperature are much less correlated
 
 ```{r}
 tree_files <- list.files("outputs", pattern = "\\.tre$", full.names = TRUE)
+list.files("outputs", pattern = "trees", full.names = TRUE)
 
 df_files <- data.frame(rates_path = list.files("outputs", pattern = "_averageRatesThroughTime.csv$", full.names = TRUE))
 df_files$model <- df_files$rates_path %>% basename() %>% str_remove("OBDD_Forams_") %>% str_remove("_5.*")
@@ -92,6 +93,7 @@ df_files$model <- ifelse(grepl("_sampledAncestors", df_files$model),
                          paste0("Fossil_", sub("_sampledAncestors", "", df_files$model)),
                          paste0("Extant_", df_files$model))
 df_files$seed <- df_files$rates_path %>% str_extract("seed[0-9]*")
+df_files$ltt_path <- sub("_averageRatesThroughTime.csv", "_ltt.csv", df_files$rates_path)
 df_files
 ```
 
@@ -230,6 +232,23 @@ for(i in 1:nrow(df_files)){
   # Read the average rates CSV file
   rates_df <- read.csv(file_path)
   
+  # ----- Read diversity (lineages‐through‐time) --------------------------
+  ltt_df    <- read.csv(df_files$ltt_path[i])
+  div_cols  <- grep("^ltt_", names(ltt_df), value = TRUE)
+  
+  ltt_long  <- ltt_df %>%                    
+    pivot_longer(all_of(div_cols),
+                 names_to  = "replicate",
+                 values_to = "diversity") %>%
+    mutate(replicate = str_remove(replicate, "ltt_"))
+  
+  # We'll log‑transform diversity, so avoid zeros
+  ltt_long  <- ltt_long %>% 
+    mutate(logDiversity = log(diversity),
+           original_time = time,
+           time = original_time - 1) # add a lag of 1 My
+
+  
   # --- Reshape the data into long format ---
   birth_data <- rates_df %>% 
     pivot_longer(
@@ -238,7 +257,8 @@ for(i in 1:nrow(df_files)){
       values_to = "rate"
     ) %>%
     select(-starts_with("d_")) %>%
-    mutate(rate_type = "birth",
+    mutate(replicate = str_remove(replicate, "b_"),
+           rate_type = "birth",
            logRate = log(rate))
   
   death_data <- rates_df %>% 
@@ -248,9 +268,10 @@ for(i in 1:nrow(df_files)){
       values_to = "rate"
     ) %>%
     select(-starts_with("b_")) %>%
-    mutate(rate_type = "death",
+    mutate(replicate = str_remove(replicate, "d_"),
+           rate_type = "death",
            logRate = log(rate))
-  
+
   # Combine birth and death data
   long_data <- bind_rows(birth_data, death_data)
   
@@ -261,6 +282,7 @@ for(i in 1:nrow(df_files)){
   long_data <- long_data %>%
     mutate(time = round(time.x, 1)) %>%
     select(-time.x, -time.y)
+  
   # --- Fuzzy join with sea level data (InfTempAverage) ---
   long_data <- fuzzy_left_join(long_data, sealevelAverage, by = "time",
                                match_fun = list(function(x, y) abs(x - y) < 1e-5))
@@ -271,12 +293,16 @@ for(i in 1:nrow(df_files)){
   
   long_data <- long_data[!is.na(long_data$Temp),]
   
+  # --- Fuzzy join with LTT data ---
+  long_data <- long_data %>%
+    left_join(ltt_long, by = c("time", "replicate"))
+  
   # --- Fit joint model for each rate type ---
   for (rt in c("birth", "death")) {
     cat(rt, "\n")
     df_sub <- filter(long_data, rate_type == rt)
     df_sub$replicate <- factor(df_sub$replicate)
-    fit <- gamm(logRate ~ s(time, replicate, bs="fs") + Temp + SeaLevel,
+    fit <- gamm(logRate ~ s(time, replicate, bs="fs") + Temp + SeaLevel + logDiversity,
                 correlation = corCAR1(form = ~ time | replicate),
                 data = df_sub,
                 method = "REML")
@@ -315,12 +341,12 @@ for(i in 1:nrow(df_files)){
   }
 }
 print(correlations)
-save(correlations, file = "GAM_Results_Temperature.Rdata")
+save(correlations, file = "GAM_Results_Drivers.Rdata")
 ```
 
 ## 4. Plot and Summarize Results
 
-```{r, fig.width=12, fig.asp=0.5, message=FALSE}
+```{r, fig.width=12, fig.asp=0.7, message=FALSE}
 # Add new columns for phylogeny type and simplified model names
 correlations <- correlations %>%
   mutate(phylo_type = ifelse(grepl("Extant", model), "Molecular Species Phylogenies", "Morphospecies Phylogenies"),
@@ -342,7 +368,7 @@ correlations$model_simplified <- factor(correlations$model_simplified,
 
 # Plot: Boxplot with error bars and nested facets
 p_corr <- ggplot(correlations, aes(x = rate_type, y = correlation, fill = rate_type)) +
-  geom_boxplot(alpha = 0.5, width = 0.3) +
+  geom_boxplot(alpha = 0.8, width = 0.3, size=0.2) +
   geom_errorbar(aes(ymin = ci_lower, ymax = ci_upper,
                     colour = ifelse(ci_lower * ci_upper < 0, "Non-significant", "Significant")),
                 width = 0.1, alpha = 0.8, position = position_jitter(width = 0.3)) +
@@ -353,11 +379,11 @@ p_corr <- ggplot(correlations, aes(x = rate_type, y = correlation, fill = rate_t
   labs(x = "Rate Type", y = "Correlation (r)", fill = "Rate Type", col = "Correlation test") +
   theme_bw() +
   theme(legend.position = "bottom") +
-  guides(colour = guide_legend(override.aes = list(alpha = 1, lwd = 2)))
+  guides(colour = guide_legend(override.aes = list(alpha = 1, lwd = 0.1)))
 
 # Save and display the plot
-ggsave("Images/Temporal_correlations.pdf", p_corr, width = 8, height = 4)
-print(p_corr + ggtitle("Distribution of Rate-Temperature Correlations with 95% Confidence Intervals"))
+ggsave("Images/Temporal_correlations.pdf", p_corr, width = 8, height = 5)
+print(p_corr + ggtitle("Distribution of Rate-Drivers Correlations with 95% Confidence Intervals"))
 ```
 
 ```{r, fig.width=12, fig.asp=0.4}
@@ -371,6 +397,6 @@ cor_summary <- correlations %>%
             n                = n(), .groups = "keep")
 
 print(cor_summary)
-write.csv(cor_summary, file="GAM_Summary_Temperature.csv", row.names = FALSE)
+write.csv(cor_summary, file="GAM_Summary_Drivers.csv", row.names = FALSE)
 ```
 

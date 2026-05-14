@@ -8,8 +8,6 @@ date: "`r Sys.Date()`"
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-# Overview
-
 This R Markdown script automates PL-MANOVA analyses across multiple models and seed replicates. We assume:
 
 - A functional data file (Excel) containing predictor information per species.
@@ -27,7 +25,7 @@ library(stringr)
 library(ggplot2)
 ```
 
-## 1. Read Data
+# 1. Read Data
 
 Functional data
 
@@ -42,11 +40,12 @@ morphogroup_correspondance <- c("1"="S-flat", "2"="S-globular", "3"="S-globular,
 
 functional_df$eco <- as.factor(ecogroup_correspondance[functional_df$eco])
 functional_df$mph <- as.factor(morphogroup_correspondance[functional_df$mph])
+functional_df$Morphospecies <- functional_df$specName
 
 # Corrections
-functional_df[functional_df$specName == "Globorotaloides hexagonus",]$mph <- morphogroup_correspondance[7] # spinose to non-spinose
-functional_df[functional_df$specName == "Sphaeroidinella dehiscens",]$mph <- morphogroup_correspondance[2] # non-spinose to spinose
-functional_df[functional_df$specName == "Sphaeroidinellopsis kochi",]$mph <- morphogroup_correspondance[2] # non-spinose to spinose
+functional_df[functional_df$Morphospecies == "Globorotaloides hexagonus",]$mph <- morphogroup_correspondance[7] # spinose to non-spinose
+functional_df[functional_df$Morphospecies == "Sphaeroidinella dehiscens",]$mph <- morphogroup_correspondance[2] # non-spinose to spinose
+functional_df[functional_df$Morphospecies == "Sphaeroidinellopsis kochi",]$mph <- morphogroup_correspondance[2] # non-spinose to spinose
 
 # Simplifications
 functional_df$mph_simplified <- gsub(",.*", "", functional_df$mph)
@@ -63,37 +62,58 @@ summary(functional_df)
 ```{r}
 # Updated taxonomy
 ## Spinose
-functional_df$specName <- gsub("Globigerinoides ruber \\(white\\)", "Globigerinoides ruber-albus", functional_df$specName)
-functional_df$specName <- gsub("Globigerinoides ruber \\(pink\\)", "Globigerinoides ruber-ruber", functional_df$specName)
-functional_df$specName[functional_df$specName == "Globigerinoides ruber"] <- "Globigerinoides ruber-albus"
-functional_df$specName <- gsub("Beella megastoma", "Beella digitata", functional_df$specName)
-functional_df$specName <- gsub("Globoturborotalita tenella", "Globigerinoides tenellus", functional_df$specName)
-functional_df$specName <- gsub("Trilobatus immaturus", "Trilobatus sacculifer", functional_df$specName)
-functional_df$specName <- gsub("Trilobatus quadrilobatus", "Trilobatus sacculifer", functional_df$specName)
-functional_df$specName <- gsub("Trilobatus trilobus", "Trilobatus sacculifer", functional_df$specName)
-functional_df$specName <- gsub("Turborotalita cristata", "Turborotalita humilis", functional_df$specName)
+functional_df$Morphospecies <- gsub("Globigerinoides ruber \\(white\\)", "Globigerinoides ruber-albus", functional_df$Morphospecies)
+functional_df$Morphospecies <- gsub("Globigerinoides ruber \\(pink\\)", "Globigerinoides ruber-ruber", functional_df$Morphospecies)
+functional_df$Morphospecies <- gsub("Beella megastoma", "Beella digitata", functional_df$Morphospecies)
+functional_df$Morphospecies <- gsub("Globoturborotalita tenella", "Globigerinoides tenellus", functional_df$Morphospecies)
+functional_df$Morphospecies <- gsub("Trilobatus subsacculifer", "Trilobatus sacculifer", functional_df$Morphospecies)
+functional_df$Morphospecies <- gsub("Trilobatus praeimmaturus", "Trilobatus sacculifer", functional_df$Morphospecies)
+functional_df$Morphospecies <- gsub("Trilobatus immaturus", "Trilobatus sacculifer", functional_df$Morphospecies)
+functional_df$Morphospecies <- gsub("Trilobatus quadrilobatus", "Trilobatus sacculifer", functional_df$Morphospecies)
+functional_df$Morphospecies <- gsub("Trilobatus trilobus", "Trilobatus sacculifer", functional_df$Morphospecies)
+functional_df$Morphospecies <- gsub("Turborotalita cristata", "Turborotalita humilis", functional_df$Morphospecies)
 
 ## Non-spinose
-functional_df$specName <- gsub("Truncorotalia", "Globorotalia", functional_df$specName)
-functional_df$specName <- gsub("Menardella", "Globorotalia", functional_df$specName)
-functional_df$specName <- gsub("Hirsutella", "Globorotalia", functional_df$specName)
-functional_df$specName <- gsub("Globoconella", "Globorotalia", functional_df$specName)
-functional_df$specName <- gsub("Globorotalia theyeri", "Globorotalia eastropacia", functional_df$specName)
-functional_df$specName <- gsub("Globorotalia oceanica", "Globorotalia crassaformis", functional_df$specName)
-functional_df$specName <- gsub("Globorotalia excelsa", "Globorotalia truncatulinoides", functional_df$specName)
-functional_df$specName <- gsub("Globorotalia pachytheca", "Globorotalia truncatulinoides", functional_df$specName)
-functional_df$specName <- gsub("Globorotalia bermudezi", "Globorotalia scitula", functional_df$specName)
-functional_df$specName <- gsub("Globorotalia menardii", "Globorotalia cultrata", functional_df$specName)
-#functional_df$specName <- gsub("Pulleniatina finalis", "Pulleniatina obliquiloculata", functional_df$specName)
+functional_df$Morphospecies <- gsub("Truncorotalia", "Globorotalia", functional_df$Morphospecies)
+functional_df$Morphospecies <- gsub("Menardella", "Globorotalia", functional_df$Morphospecies)
+functional_df$Morphospecies <- gsub("Hirsutella", "Globorotalia", functional_df$Morphospecies)
+functional_df$Morphospecies <- gsub("Globoconella", "Globorotalia", functional_df$Morphospecies)
+functional_df$Morphospecies <- gsub("Globorotalia theyeri", "Globorotalia eastropacia", functional_df$Morphospecies)
+functional_df$Morphospecies <- gsub("Globorotalia oceanica", "Globorotalia crassaformis", functional_df$Morphospecies)
+functional_df$Morphospecies <- gsub("Globorotalia excelsa", "Globorotalia truncatulinoides", functional_df$Morphospecies)
+functional_df$Morphospecies <- gsub("Globorotalia pachytheca", "Globorotalia truncatulinoides", functional_df$Morphospecies)
+functional_df$Morphospecies <- gsub("Globorotalia bermudezi", "Globorotalia scitula", functional_df$Morphospecies)
+functional_df$Morphospecies <- gsub("Globorotalia menardii", "Globorotalia cultrata", functional_df$Morphospecies)
+functional_df$Morphospecies <- gsub("Pulleniatina finalis", "Pulleniatina obliquiloculata", functional_df$Morphospecies)
 
 # Microperforate
-functional_df$specName <- gsub("Tenuitella iota", "Tenuitellita iota", functional_df$specName)
-functional_df$specName <- gsub("Globigerinita parkerae", "Tenuitellita fleisheri", functional_df$specName)
-functional_df$specName <- gsub("Tenuitella parkerae", "Tenuitellita parkerae", functional_df$specName)
+functional_df$Morphospecies <- gsub("Tenuitella iota", "Tenuitellita iota", functional_df$Morphospecies)
+functional_df$Morphospecies <- gsub("Globigerinita parkerae", "Tenuitellita fleisheri", functional_df$Morphospecies)
+functional_df$Morphospecies <- gsub("Tenuitella parkerae", "Tenuitellita parkerae", functional_df$Morphospecies)
 
 # Independent planktonic origin
-functional_df$specName <- gsub("Gallitellia vivans", "Neogallitellia vivans", functional_df$specName)
-functional_df$specName <- gsub("Streptochilus globigerum", "Bolivina variabilis", functional_df$specName)
+functional_df$Morphospecies <- gsub("Gallitellia vivans", "Neogallitellia vivans", functional_df$Morphospecies)
+functional_df$Morphospecies <- gsub("Streptochilus globigerum", "Bolivina variabilis", functional_df$Morphospecies)
+```
+
+```{r}
+# Fill missing ecogroup and morphogroup values when other rows are present for the same morphospecies
+fill_missing_values <- function(values, morphospecies) {
+  # For each morphospecies, compute the unique non‑NA value (if exactly one)
+  candidate_fill <- ave(as.character(values), morphospecies, FUN = function(group_values) {
+    unique_non_na <- unique(group_values[!is.na(group_values)])
+    if (length(unique_non_na) == 1L) unique_non_na else NA_character_
+  })
+  # Replace NAs with that value
+  values[is.na(values)] <- candidate_fill[is.na(values)]
+  values
+}
+
+functional_df$eco <- fill_missing_values(functional_df$eco, functional_df$Morphospecies)
+functional_df$mph <- fill_missing_values(functional_df$mph, functional_df$Morphospecies)
+
+write.csv(functional_df, "Functional_data_newTaxo.csv")
+functional_df
 ```
 
 ```{r}
@@ -106,7 +126,7 @@ get_last_species_name("T100", Foram_ancestry_table_alb_newTaxo)
 ```
 
 
-## 2. Identify Model-Seed Files
+# 2. Identify Model-Seed Files
 
 ```{r}
 tree_files <- list.files("outputs", pattern = "\\.tre$", full.names = TRUE)
@@ -118,15 +138,16 @@ df_files <- df_files[!grepl("Microperforate", df_files$tree_path),]
 df_files
 ```
 
-## 3. Loop Over All Model-Seed Replicates
+# 3. Loop Over All Model-Seed Replicates
 
 ```{r}
-all_results <- list()
-for (i in seq_len(nrow(df_files))) {
-  cat("\n\n=== Processing:", df_files$key[i], "===\n")
+#all_results <- list()
+df_files_molecular <- df_files[grepl("95", df_files$key),]
+for (i in seq_len(nrow(df_files_molecular))) {
+  cat("\n\n=== Processing:", df_files_molecular$key[i], "===\n")
   
-  tree_path <- df_files$tree_path[i]
-  tiprates_path <- df_files$tiprates_path[i]
+  tree_path <- df_files_molecular$tree_path[i]
+  tiprates_path <- df_files_molecular$tiprates_path[i]
   if (!file.exists(tree_path) || !file.exists(tiprates_path)) next
   
   tree_i <- read.tree(tree_path)
@@ -140,11 +161,6 @@ for (i in seq_len(nrow(df_files))) {
   
   # Match species names to combine the datasets
   tip_rates_df$Species <- gsub("\\_", " ", gsub("\\[.*", "", tip_rates_df$tip_label))
-  # if (any(grepl("Ia", tip_rates_df$Species))){
-  #   functional_df$Species <- paste(functional_df$specName, "Ia")
-  # }else{
-  #   functional_df$Species <- functional_df$specName
-  # }
   tree_i$tip.label <- gsub("\\_", " ", tree_i$tip.label)
   
   # Taxonomic update
@@ -152,6 +168,8 @@ for (i in seq_len(nrow(df_files))) {
   tip_rates_df$Species <- gsub("Globorotalia menardii Ia", "Globorotalia cultrata IIa", tip_rates_df$Species)
   tree_i$tip.label <- gsub("Globorotalia menardii", "Globorotalia cultrata", tree_i$tip.label)
   tip_rates_df$Species <- gsub("Globorotalia menardii", "Globorotalia cultrata", tip_rates_df$Species)
+  tree_i$tip.label <- gsub("Trilobatus subsacculifer", "Trilobatus sacculifer", tree_i$tip.label)
+  tip_rates_df$Species <- gsub("Trilobatus subsacculifer", "Trilobatus sacculifer", tip_rates_df$Species)
   
   # # Remove cryptic species
   # cryptic_species <- grep("II|V|b$|c$|d$|e$", tree_i$tip.label, value = T)
@@ -161,7 +179,6 @@ for (i in seq_len(nrow(df_files))) {
   #tip_rates_df$Species[!(tip_rates_df$Species %in% functional_df$Species)]
   
   tip_rates_df$Morphospecies <- gsub(" I.*| V.*", "", tip_rates_df$Species)
-  functional_df$Morphospecies <- functional_df$specName
 
   # combined_df <- merge(tip_rates_df, functional_df, by = "Species")
   combined_df <- merge(tip_rates_df, functional_df, by = "Morphospecies")
@@ -210,7 +227,7 @@ for (i in seq_len(nrow(df_files))) {
     # }
     
     manova_res <- manova.gls(fit_pl, test="Pillai", type="II", nperm=999, nbcores=3L)
-    cat("   === MANOVA Results for", df_files$key[i], "===\n")
+    cat("   === MANOVA Results for", df_files_molecular$key[i], "===\n")
     print(manova_res)
   }else{
     cat("   No data\n")
@@ -218,13 +235,17 @@ for (i in seq_len(nrow(df_files))) {
     manova_res <- NA
   }
   
-  all_results[[df_files$key[i]]] <- list(fit = fit_pl, manova_res = manova_res)
+  all_results[[df_files_molecular$key[i]]] <- list(fit = fit_pl, manova_res = manova_res)
 }
 save(all_results, file = "MANOVA_Results_Functional_groups.Rdata")
 cat("\n\n=== All model-seed replicates processed ===\n")
 ```
 
-## 4. Plot and summarize Results
+# 4. Plot and summarize Results
+
+```{r}
+load("MANOVA_Results_Functional_groups.Rdata")
+```
 
 ```{r, fig.width=12, fig.asp=0.4}
 # Create a summary data frame from all_results
@@ -249,7 +270,7 @@ manova_summary <- do.call(rbind, lapply(names(all_results), function(key) {
 }))
 manova_summary$model <- ifelse(grepl("_sampledAncestors", manova_summary$model),
                          paste0("Fossil_", sub("_sampledAncestors", "", manova_summary$model)),
-                         paste0("Extant_", manova_summary$model))
+                         paste0("Extant_", sub("_pf95_pt95_nodeDating", "", manova_summary$model)))
 
 manova_summary <- manova_summary %>%
   mutate(phylo_type = ifelse(grepl("Extant", model), "Molecular Species Phylogenies", "Morphospecies Phylogenies"),
@@ -342,7 +363,7 @@ for (key in names(all_results)) {
 pred_summary <- do.call(rbind, pred_list)
 pred_summary$model <- ifelse(grepl("_sampledAncestors", pred_summary$model),
                          paste0("Fossil_", sub("_sampledAncestors", "", pred_summary$model)),
-                         paste0("Extant_", pred_summary$model))
+                         paste0("Extant_", sub("_pf95_pt95_nodeDating", "", pred_summary$model)))
 ```
 
 ```{r, fig.width=12, fig.asp=0.8}
@@ -434,7 +455,7 @@ layout(mat = matrix(1:(length(models)*3), ncol = 3, byrow = T))
 for (model in rev(models)) {
   fit_obj <- all_results[[model]]$fit
   model <- gsub("OBDD_Forams_|_50000000.*", "", model)
-  model <- ifelse(grepl("_sampledAncestors", model), paste0("Morphospecies_", sub("_sampledAncestors", "", model)), paste0("Molecular_", model))
+  model <- ifelse(grepl("_sampledAncestors", model), paste0("Morphospecies_", sub("_sampledAncestors", "", model)), paste0("Molecular_", sub("_pf95_pt95_nodeDating", "", model)))
 
   # Skip if the fit object is NA
   if (is.atomic(fit_obj) && length(fit_obj) == 1 && is.na(fit_obj)) next
@@ -476,3 +497,271 @@ for (model in rev(models)) {
 
 invisible(dev.print(pdf, "Images/Functional_groups_on_trees.pdf"))
 ```
+
+```{r fig.width=15, fig.asp=1}
+okabe_ito <- c("#CC79A7", "#999999", "#000000", "#56B4E9", "#E69F00", "#009E73", "#0072B2", "#F0E442", "#D55E00", "#F9AFAE")
+
+# Get models
+models <- grep("seed0", names(all_results)[!sapply(all_results, anyNA)], value = TRUE)
+models <- c(grep("sampled", models, value = TRUE), grep("sampled", models, value = TRUE, invert = T))
+
+# Loop over each seed
+par(mfrow=c(2,3))
+for (model in models) {
+  fit_obj <- all_results[[model]]$fit
+  model <- gsub("OBDD_Forams_|_50000000.*", "", model)
+  model <- ifelse(grepl("_sampledAncestors", model), paste0("Morphospecies_", sub("_sampledAncestors", "", model)), paste0("Molecular_", sub("_pf95_pt95_nodeDating", "", model)))
+
+  # Skip if the fit object is NA
+  if (is.atomic(fit_obj) && length(fit_obj) == 1 && is.na(fit_obj)) next
+  
+  tree <- fit_obj$variables$tree
+  # Match functional data to the tree tip order.
+  tree_data <- functional_df[match(gsub(" I.*| V.*", "", tree$tip.label), functional_df$Morphospecies), ]
+  if (any(is.na(tree_data$Morphospecies))) {
+    warning("Some species in the tree were not found in functional_df for model: ", model)
+  }
+  
+  tree_data <- tree_data %>%
+  mutate(depth = factor(case_when(
+    eco == "Asymbiotic SML" ~ "Surface",
+    eco == "High latitude" ~ "Other",
+    eco == "High productivity" ~ "Other",
+    eco == "Sub-thermocline" ~ "Sub-thermocline",
+    eco == "Symbiotic SML" ~ "Surface",
+    eco == "Thermocline" ~ "Thermocline"
+  ), levels = c("Surface", "Thermocline", "Sub-thermocline", "Other")))
+  
+  # -------------------------------
+  # Plot tree colored by water depths
+  depth_levels <- levels(tree_data$depth)
+  depth_colors <- setNames(c("#009E73", "#56B4E9", "blue4", "black"), depth_levels)
+  tip_colors_depth <- depth_colors[as.character(tree_data$depth)]
+  plot(tree, tip.color = tip_colors_depth, main = model, cex = 0.8)
+  legend("topright", legend = names(depth_colors), fill = depth_colors, cex = 1, title = "Depth", title.cex = 0.8)
+}
+
+invisible(dev.print(pdf, "Images/Depths_on_trees.pdf"))
+```
+
+# 5. Plot depths
+## Molecular phylogenies
+
+```{r warning=FALSE}
+biogeographic_data <- read_xlsx("../../1-Data_raw/Data_Morard/Biogeography/Table S4.xlsx", sheet = "Table S4")
+head(biogeographic_data)
+```
+
+```{r warning=FALSE}
+biogeographic_data$Collection_depth_mean <- gsub(" - ", "-", biogeographic_data$Collection_depth)
+biogeographic_data$Collection_depth_mean <- gsub("m", "", biogeographic_data$Collection_depth_mean)
+biogeographic_data$Collection_depth_mean <- sapply(biogeographic_data$Collection_depth_mean, function(depth_str) round(mean(as.numeric(strsplit(depth_str, split = "-")[[1]]))))
+
+biogeographic_data$Collection_depth_mean[biogeographic_data$Collection_depth_mean > 1000] <- NA           # These sampling depth are unlikely to be the habitat of living specimens
+biogeographic_data$Collection_depth_mean[which(biogeographic_data$Curated_Depth == "03_Seafloor")] <- NA  # Remove specimens sampled on the seafloor
+
+hist(biogeographic_data$Collection_depth_mean, breaks=50)
+```
+
+```{r}
+genetic_samples <- read_xlsx("../../1-Data_raw/Data_Morard/Biogeography/Table S7.xlsx", sheet = "Table S7")
+head(genetic_samples)
+```
+
+```{r}
+# cat("Genetic sample IDs not in biogeographic dataframe\n")
+# sort(unique(genetic_samples$`Original Sample ID`)[!sapply(unique(genetic_samples$`Original Sample ID`), function(sample_ID){sample_ID %in% biogeographic_data$`Original Sample ID`})])
+# 
+# cat("\n\nBiogeographic sample IDs not in genetic dataframe\n")
+# sort(unique(biogeographic_data$`Original Sample ID`)[!sapply(unique(biogeographic_data$`Original Sample ID`), function(sample_ID){sample_ID %in% genetic_samples$`Original Sample ID`})])
+```
+
+```{r}
+genetic_samples$MOTU2_species <- gsub("\\|", " ", genetic_samples$TP_lvl2)
+genetic_samples$MOTU2_species <- gsub("Spinose |Non-spinose |Microperforates |Basal ", "", genetic_samples$MOTU2_species)
+genetic_samples$MOTU2_species <- gsub("I ", "I", genetic_samples$MOTU2_species)
+genetic_samples$MOTU2_species <- gsub("V ", "V", genetic_samples$MOTU2_species)
+unique(genetic_samples$MOTU2_species)
+```
+
+```{r}
+molecular_models <- grep("sampled", models, invert = TRUE, value = TRUE)
+for (model in molecular_models) {
+  cat("\n", model, "\n")
+  fit_obj <- all_results[[model]]$fit
+  model <- gsub("OBDD_Forams_|_50000000.*", "", model)
+  model <- ifelse(grepl("_sampledAncestors", model), paste0("Morphospecies_", sub("_sampledAncestors", "", model)), paste0("Molecular_", sub("_pf95_pt95_nodeDating", "", model)))
+
+  # Skip if the fit object is NA
+  if (is.atomic(fit_obj) && length(fit_obj) == 1 && is.na(fit_obj)) next
+  
+  tree <- fit_obj$variables$tree
+  
+  print(sapply(tree$tip.label, function(tip_sp)tip_sp %in% unique(genetic_samples$MOTU2_species)))
+}
+```
+
+```{r fig.width=16, fig.asp=0.5}
+## Link depth to species via shared "Original Sample ID"
+# Join genetic_samples (species IDs) with biogeographic_data (depths)
+sample_depths <- merge(
+  genetic_samples[, c("Original Sample ID", "MOTU2_species")],
+  biogeographic_data[, c("Original Sample ID", "Collection_depth_mean")],
+  by = "Original Sample ID",
+  all.x = TRUE
+)
+
+## Per‑species continuous depth (mean of sample depths)
+species_depth <- tapply(sample_depths$Collection_depth_mean,
+                        sample_depths$MOTU2_species,
+                        function(x) if (all(is.na(x))) NA_real_ else round(mean(x, na.rm = TRUE)))
+
+## Plot each molecular tree with tip colours = continuous depth
+
+par(mfrow = c(1, length(molecular_models)), mar = c(1,1,1,1))
+for (model in molecular_models) {
+  fit_obj <- all_results[[model]]$fit
+  if (is.atomic(fit_obj) && length(fit_obj) == 1 && is.na(fit_obj)) next
+  tree <- fit_obj$variables$tree
+  plot_name <- gsub("OBDD_Forams_|_50000000.*", "", model)
+
+  tip_depth <- species_depth[tree$tip.label]
+  names(tip_depth) <- tree$tip.label
+
+  # Colour scale
+  rng <- c(0,500)
+  if (!is.finite(diff(rng)) || diff(rng) == 0) rng <- rng + c(-1, 1)  # avoid zero range
+  pal <- colorRampPalette(c("yellowgreen", "#009E73", "#56B4E9", "blue2", "blue4"))
+  ncol <- 100
+  cols <- pal(ncol)
+  idx <- round( (tip_depth - rng[1]) / diff(rng) * (ncol - 1) ) + 1
+  tip_cols <- cols[idx]
+  tip_cols[is.na(tip_cols)] <- "grey80"
+
+  plot.phylo(tree, show.tip.label = FALSE, main = paste0("Molecular_", plot_name), x.lim=37)
+  tiplabels(pch = 21, bg = tip_cols, cex = 1)
+  tiplabels(bg = tip_cols, cex = 1, text = tip_depth, offset = 1.5)
+
+  # Legend
+  legend_vals <- pretty(rng, 5)
+  legend_vals <- legend_vals[legend_vals >= rng[1] & legend_vals <= rng[2]]  # keep within range
+  legend_cols <- cols[round( (legend_vals - rng[1]) / diff(rng) * (ncol - 1) ) + 1]
+  legend("bottomleft", legend = paste0(legend_vals, " m"),
+         pt.bg = legend_cols, pch = 21, title = "Mean depth", bty = "n")
+  if (any(is.na(tip_depth)))
+    legend("bottom", legend = "NA", pt.bg = "grey80", pch = 21, bty = "n")
+}
+invisible(dev.print(pdf, "Images/Depths_on_molecular_trees.pdf"))
+```
+
+## Morphospecies phylogenies
+
+```{r}
+load("../../3-Data_processed/Morphospecies_phylogenies/NonSpinoseOnly_sampledAncestors.Rdata")
+load("../../3-Data_processed/Morphospecies_phylogenies/SpinoseOnly_sampledAncestors.RData")
+load("../../3-Data_processed/Morphospecies_phylogenies/MixedSpinose_sampledAncestors.RData")
+```
+
+```{r fig.width=15, fig.asp=0.6}
+par(mfrow=c(1,3))
+for (tree_name in c("Phylo_NonSpinoseOnly_sampledAncestors",
+                    "Phylo_SpinoseOnly_sampledAncestors",
+                    "Phylo_MixedSpinose_sampledAncestors")) {
+  tree       <- get(tree_name)
+  group_name <- gsub("^Phylo_|_sampledAncestors$", "", tree_name)
+  
+  # Match functional data to the tree tip order.
+  tree_data <- functional_df[match(tree$tip.species, functional_df$Morphospecies), ]
+  if (any(is.na(tree_data$Morphospecies))) {
+    warning("Some species in the tree were not found in functional_df for model: ", group_name)
+  }
+  
+  tree_data <- tree_data %>%
+  mutate(depth = factor(case_when(
+    eco == "Asymbiotic SML" ~ "Surface",
+    eco == "High latitude" ~ "Other",
+    eco == "High productivity" ~ "Other",
+    eco == "Sub-thermocline" ~ "Sub-thermocline",
+    eco == "Symbiotic SML" ~ "Surface",
+    eco == "Thermocline" ~ "Thermocline"
+  ), levels = c("Surface", "Thermocline", "Sub-thermocline", "Other")))
+  
+  # -------------------------------
+  # Plot tree colored by water depths
+  depth_levels <- levels(tree_data$depth)
+  depth_colors <- setNames(c("#009E73", "#56B4E9", "blue4", "black"), depth_levels)
+  tip_colors_depth <- depth_colors[as.character(tree_data$depth)]
+  plot(tree, tip.color = tip_colors_depth, main = group_name, cex = 0.8)
+  legend("topright", legend = names(depth_colors), fill = depth_colors, cex = 1, title = "Depth", title.cex = 0.8)
+}
+
+# invisible(dev.print(pdf, "Images/Depths_on_trees.pdf"))
+```
+
+```{r fig.width=17, fig.asp=0.6}
+# Define depth mapping and colours
+eco2depth <- function(x) {
+  out <- ifelse(x %in% c("Symbiotic SML", "Asymbiotic SML"), "Surface",
+         ifelse(x == "Thermocline", "Thermocline",
+         ifelse(x == "Sub-thermocline", "Sub-thermocline",
+         ifelse(x %in% c("High latitude", "High productivity"), "Other", NA))))
+  factor(out, levels = c("Surface", "Thermocline", "Sub-thermocline", "Other", "Unknown"))
+}
+
+depth_cols <- c(Surface = "#009E73",
+                Thermocline = "#56B4E9",
+                `Sub-thermocline` = "blue4",
+                Other = "white",
+                Unknown = "yellow2")
+
+par(mfrow = c(1, 3))
+
+for (tree_name in c("Phylo_NonSpinoseOnly_sampledAncestors",
+                    "Phylo_SpinoseOnly_sampledAncestors",
+                    "Phylo_MixedSpinose_sampledAncestors")) {
+
+  tree       <- get(tree_name)
+  group_name <- gsub("^Phylo_|_sampledAncestors$", "", tree_name)
+
+  ## Map tips and nodes to eco → depth
+  tip_depth <- eco2depth(functional_df$eco[match(tree$tip.species, functional_df$Morphospecies)])
+  tip_depth[is.na(tip_depth)] <- "Unknown"
+
+  node_depth <- eco2depth(functional_df$eco[match(tree$node.species, functional_df$Morphospecies)])
+  node_depth[is.na(node_depth)] <- "Unknown"
+
+  ## Plot tree
+  plot(tree, show.tip.label = FALSE, main = group_name, cex = 0.8)
+
+  # Add coloured circles for tips
+  tiplabels(pch = 21,
+            bg  = depth_cols[as.character(tip_depth)],
+            cex = 1)
+
+  # Add coloured circles for internal nodes (sampled ancestors)
+  nodelabels(pch = 21,
+             bg  = depth_cols[as.character(node_depth)],
+             cex = 1)
+
+  # Legend
+  legend("topright",
+         legend = names(depth_cols),
+         pt.bg  = depth_cols,
+         pch    = 21,
+         pt.cex = 1.3,
+         bty    = "n",
+         title  = "Depth",
+         title.col = "black")
+  
+  # print(tree_name)
+  # print(unique(tree$tip.species[tip_depth == "Unknown"]))
+  # print(unique(tree$node.species[node_depth == "Unknown"]))
+  # cat("\n\n")
+}
+
+invisible(dev.print(pdf, "Images/Depths_on_fossil_trees.pdf"))
+```
+
+
+
+
