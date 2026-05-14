@@ -44,7 +44,7 @@ p <- ggplot(triton[triton$Speciation<66,], aes(x=(Speciation-age_runif)/(Speciat
   geom_histogram(breaks = c(-20:40)/20) +
   geom_vline(linetype="dashed", aes(xintercept = 0, color="Speciation"), show_guide = FALSE) +
   geom_vline(linetype="dashed", aes(xintercept = 1, color="Extinction"), show_guide = FALSE) +
-  scale_x_continuous(limits=c(-1,2), name = "Expert-curated species lifetime", breaks = c(0,1), labels = c("Speciation", "Extinction / Now")) + 
+  scale_x_continuous(limits=c(-1,2), name = "Expert-curated species lifetime", breaks = c(0,1), labels = c("Speciation", "Ext. / Now")) + 
   ylab("Number of occurrences") +
   guides(fill=guide_legend(title="Age Bin")) +
   scale_color_manual(name = "Species range", values = c(Speciation = "darkblue", Extinction = "darkred")) +
@@ -54,10 +54,10 @@ p <- ggplot(triton[triton$Speciation<66,], aes(x=(Speciation-age_runif)/(Speciat
     panel.grid.major = element_blank(),
     panel.grid.minor = element_blank(),
     legend.position = c(0.12, 0.52),
-    legend.text = element_text(size = 11),
+    legend.text = element_text(size = 12),
     rect = element_rect(fill = "transparent"),
     axis.title = element_text(size = 14),
-    axis.text = element_text(size = 11)
+    axis.text = element_text(size = 12)
   )
 q <- ggplot(triton[triton$Speciation<66 & triton$Extinction>0,], aes(x=(Speciation-age_runif)/(Speciation-Extinction), fill=as.factor(ceiling((Speciation+Extinction)/2/10)*10))) + 
   geom_histogram(breaks = c(-20:40)/20) +
@@ -73,10 +73,10 @@ q <- ggplot(triton[triton$Speciation<66 & triton$Extinction>0,], aes(x=(Speciati
     panel.grid.major = element_blank(),
     panel.grid.minor = element_blank(),
     legend.position = c(0.12, 0.52),
-    legend.text = element_text(size = 11),
+    legend.text = element_text(size = 12),
     rect = element_rect(fill = "transparent"),
     axis.title = element_text(size = 14),
-    axis.text = element_text(size = 11)
+    axis.text = element_text(size = 12)
   )
 
 ggsave("Images/Fig1C_Lifetime_occurrence_distribution.pdf", p + ggtitle("Raw Triton database"), width = 4, height = 3)
@@ -92,7 +92,7 @@ p <- ggplot(triton.ss[triton.ss$Speciation<66,],
   geom_histogram(breaks=c(-20:40)/20) +
   geom_vline(linetype="dashed", aes(xintercept = 0, color="Speciation"), show_guide = FALSE) +
   geom_vline(linetype="dashed", aes(xintercept = 1, color="Extinction"), show_guide = FALSE) +
-  scale_x_continuous(limits=c(-1,2), name = "Expert-curated species lifetime", breaks = c(0,1), labels = c("Speciation", "Extinction / Now")) + 
+  scale_x_continuous(limits=c(-1,2), name = "Expert-curated species lifetime", breaks = c(0,1), labels = c("Speciation", "Ext. / Now")) + 
   ylab("Number of occurrences") +
   guides(fill=guide_legend(title="Age Bin")) +
   scale_color_manual(name = "Species range", values = c(Speciation = "darkblue", Extinction = "darkred")) +
@@ -102,10 +102,10 @@ p <- ggplot(triton.ss[triton.ss$Speciation<66,],
     panel.grid.major = element_blank(),
     panel.grid.minor = element_blank(),
     legend.position = c(0.12, 0.52),
-    legend.text = element_text(size = 11),
+    legend.text = element_text(size = 12),
     rect = element_rect(fill = "transparent"),
     axis.title = element_text(size = 14),
-    axis.text = element_text(size = 11)
+    axis.text = element_text(size = 12)
   )
 
 q <- ggplot(triton.ss[triton.ss$Speciation<66 & triton.ss$Extinction>0,], 
@@ -123,10 +123,10 @@ q <- ggplot(triton.ss[triton.ss$Speciation<66 & triton.ss$Extinction>0,],
     panel.grid.major = element_blank(),
     panel.grid.minor = element_blank(),
     legend.position = c(0.12, 0.52),
-    legend.text = element_text(size = 11),
+    legend.text = element_text(size = 12),
     rect = element_rect(fill = "transparent"),
     axis.title = element_text(size = 14),
-    axis.text = element_text(size = 11)
+    axis.text = element_text(size = 12)
   )
 
 ggsave("Images/Lifetime_occurrence_distribution_subsampled.pdf", p + ggtitle("Subsampled Triton database"), width = 4, height = 3)
@@ -219,6 +219,64 @@ ggplot(triton.ss.withinRanges[triton.ss.withinRanges$Speciation<66 & triton.ss.w
     legend.position = c(0.17, 0.52),
     rect = element_rect(fill = "transparent")
   )
+```
+
+## Spatial distribution
+
+```{r, fig.asp=0.25, fig.width=12}
+library(rnaturalearth)
+library(rnaturalearthdata)
+
+# Keep valid coords
+samples <- triton.ss.withinRanges %>%
+  filter(
+    is.finite(latitude),  is.finite(longitude),
+    is.finite(pal.lat),   is.finite(pal.long)
+  )
+
+# Coastlines only
+coast <- rnaturalearth::ne_coastline(scale = "medium", returnclass = "sf")
+
+# Common theme with compact margins
+theme_map_compact <- theme_minimal(base_size = 12) +
+  theme(
+    panel.spacing = unit(0, "lines"),
+    panel.grid = element_blank(),
+    axis.title = element_text(size = 12),
+    plot.title = element_text(size = 13, hjust = 0.5, margin = margin(b = 2))
+  )
+
+# Present-day coordinates + coastlines
+p_now <- ggplot() +
+  geom_bin2d(data = samples, aes(x = longitude, y = latitude), bins = 45) +
+  geom_sf(data = coast, inherit.aes = FALSE, alpha = 0.5,
+          color = "grey20", linewidth = 0.25, fill = NA) +
+  coord_sf(xlim = c(-180, 180), ylim = c(-90, 90), expand = FALSE) +
+  scale_fill_gradient(low = "grey90", high = "steelblue4",
+                      trans = "log10", name = "Count") +
+  labs(title = "Spatial distribution of samples (present-day coordinates)",
+       x = "Longitude (°)", y = "Latitude (°)") +
+  theme_map_compact
+
+# Paleocoordinates (add faint modern coastline outline for reference)
+p_paleo <- ggplot() +
+  geom_bin2d(data = samples, aes(x = pal.long, y = pal.lat), bins = 45) +
+  geom_sf(data = coast, inherit.aes = FALSE,
+          color = "grey30", linewidth = 0.25,
+          fill = NA, alpha = 0.25) +
+  coord_sf(xlim = c(-180, 180), ylim = c(-90, 90), expand = FALSE, clip = "off") +
+  scale_fill_gradient(low = "grey90", high = "steelblue4",
+                      trans = "log10", name = "Count") +
+  labs(title = "Spatial distribution of samples (paleocoordinates)",
+       x = "Paleolongitude (°)", y = "Paleolatitude (°)") +
+  theme_map_compact
+
+gridExtra::grid.arrange(p_now, p_paleo, nrow = 1)
+
+# Save
+ggsave("Images/Annex_Spatial_distribution_samples.pdf",
+       gridExtra::arrangeGrob(p_now, p_paleo, nrow = 1),
+       width = 12, height = 3)
 ```
 
 ## Controls of fossil sampling rates among species
@@ -359,10 +417,10 @@ geo_predictors_increasing_sampling <- lapply(names(sort(table(triton.ss.withinRa
 ```{r fig.width=10, fig.asp=0.8}
 par(mfrow=c(2,2))
 for (geo_predictors_increasing_sampling_i in tail(geo_predictors_increasing_sampling)){
-  plot(geo_predictors_increasing_sampling_i[,"pal_lat_median"], xlab = "Cumulative number of samples (chronological)", ylab = "Median latitude in abundant region", main = paste0("Median lat. convergence (", SP, ")"), ylim = c(-90,90))
-  plot(geo_predictors_increasing_sampling_i[,"pal_lat_var"], xlab = "Cumulative number of samples (chronological)", ylab = "Variance in absolute latitude", main = paste0("Lat. variance convergence (", SP, ")"), ylim = c(0,1000))
-  plot(geo_predictors_increasing_sampling_i[,"pal_long_median"], xlab = "Cumulative number of samples (chronological)", ylab = "Circular median longitude", main = paste0("Median long. convergence (", SP, ")"), ylim = c(-180,180))
-  plot(geo_predictors_increasing_sampling_i[,"pal_long_var"], xlab = "Cumulative number of samples (chronological)", ylab = "Circular variance in longitude", main = paste0("Long. variance convergence (", SP, ")"), ylim = c(0,1))
+  plot(geo_predictors_increasing_sampling_i[,"pal_lat_median"], xlab = "Cumulative number of samples (chronological)", ylab = "Median latitude in abundant region", main = paste0("Median lat. convergence"), ylim = c(-90,90))
+  plot(geo_predictors_increasing_sampling_i[,"pal_lat_var"], xlab = "Cumulative number of samples (chronological)", ylab = "Variance in absolute latitude", main = paste0("Lat. variance convergence"), ylim = c(0,1000))
+  plot(geo_predictors_increasing_sampling_i[,"pal_long_median"], xlab = "Cumulative number of samples (chronological)", ylab = "Circular median longitude", main = paste0("Median long. convergence"), ylim = c(-180,180))
+  plot(geo_predictors_increasing_sampling_i[,"pal_long_var"], xlab = "Cumulative number of samples (chronological)", ylab = "Circular variance in longitude", main = paste0("Long. variance convergence"), ylim = c(0,1))
 }
 ```
 
@@ -732,6 +790,7 @@ spheres3d(-sin(phi)*cos(theta), sin(phi)*sin(theta), cos(phi), col="red", radius
 ```
 
 ```{r fig.width=12, warning=FALSE}
+#devtools::install_github("caijun/ggcorrplot2")
 p <- ggcorrplot2::ggcorrplot.mixed(cor(sampling_heterogeneity[4:11], use="complete.obs"), p.mat=ggcorrplot::cor_pmat(sampling_heterogeneity[4:11]), lower="number", upper="ellipse", sig.lvl=0.01)
 ggsave("Images/Annex_Correlations_continuous_variables.pdf", p, width = 9, height = 9)
 p
@@ -1004,7 +1063,7 @@ layout(matrix(c(1, 2, 3, 4, 5,
               nrow = 2, byrow = TRUE))
 
 par(mar = c(0.5, 0.5, 0.5, 0.5), mgp = c(2.2, 0.7, 0))
-plot(sampling_heterogeneity_GAM, pages=0, residuals=TRUE, seWithMean=TRUE, select=1, theta=0, phi=90, ylab="", n2=200, lwd=0.3)
+plot(sampling_heterogeneity_GAM, pages=0, residuals=TRUE, seWithMean=TRUE, select=1, theta=0, phi=90, ylab="", n2=200, lwd=0.3, hcolors = viridis::viridis(100))
 
 par(mar = c(3.5, 3.3, 1, 0), mgp = c(2, 0.5, 0))
 plot(sampling_heterogeneity_GAM, pages=0, residuals=TRUE, shade=T, select=2, se=2, cex.lab=1.8,
@@ -1026,7 +1085,7 @@ plot(sampling_heterogeneity_GAM, pages=0, residuals=TRUE, shade=T, select=5, se=
 # vis.gam(sampling_heterogeneity_GAM, view=c("age", "sample.depth"), n.grid = 7,
 #         ylab="\nDepth", xlab="Age", zlab="Partial effect", cex.lab=1.2)
 # 
-plot(sampling_heterogeneity_GAM, pages=0, residuals=TRUE, select=1, theta=180, phi=90, ylab="", n2=200, lwd=0.3)
+plot(sampling_heterogeneity_GAM, pages=0, residuals=TRUE, select=1, theta=180, phi=90, ylab="", n2=200, lwd=0.3, hcolors = viridis::viridis(100))
 # vis.gam(sampling_heterogeneity_GAM, view=c("sample.depth", "age"), n.grid = 7, 
 #         ylab="\nAge", xlab="Depth", zlab="Partial effect", cex.lab=1.2)
 dev.off()
