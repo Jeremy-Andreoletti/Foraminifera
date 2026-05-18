@@ -1,0 +1,382 @@
+---
+title: "Untitled"
+output: html_document
+date: "2025-07-18"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(diversitree)
+library(hisse)
+library(ape)
+library(dplyr)
+library(ggplot2)
+```
+
+# Test FMuHiSSE (tutorial)
+
+```{r fig.asp=1}
+pars <- c(.1,  .15,  .2,  # lambda 1, 2, 3
+          .03, .045, .06, # mu 1, 2, 3
+          .05, 0,         # q12, q13
+          .05, .05,       # q21, q23
+          0,   .05)       # q31, q32
+set.seed(2)
+phy <- NULL
+while( is.null( phy ) ){
+    phy <- tree.musse(pars, 30, x0=1, include.extinct=TRUE)
+}
+plot(phy) ; axisPhylo()
+```
+
+
+```{r fig.asp=1}
+k.samples <- data.frame(taxon1="sp20", taxon2="sp14", timefrompresent=8.54554, 
+                        state1=0, state2=1, stringsAsFactors=FALSE)
+
+phy.k <- hisse:::AddKNodes(phy, k.samples)
+fix.type <- hisse:::GetKSampleMRCA(phy.k, k.samples)
+nb.tip <- Ntip(phy.k)
+nb.node <- phy.k$Nnode
+gen <- hisse:::FindGenerations(phy.k)
+
+states <- phy$tip.state
+states <- data.frame(phy$tip.state, phy$tip.state, row.names=names(phy$tip.state))
+states <- states[phy$tip.label,]
+states.trans <- states
+for(i in 1:Ntip(phy)){
+    if(states[i,1] == 1){
+        states.trans[i,1] = 0
+        states.trans[i,2] = 0
+    }
+    if(states[i,1] == 2){
+        states.trans[i,1] = 0
+        states.trans[i,2] = 1
+    }
+    if(states[i,1] == 3){
+        states.trans[i,1] = 1
+        states.trans[i,2] = 0
+    }
+}
+
+data <- data.frame(taxon=names(phy$tip.state), 
+                   states.trans[,1], states.trans[,2], stringsAsFactors=FALSE)
+data
+```
+
+```{r}
+turnover <- c(1,2,3,0, 4,5,6,0)
+extinction.fraction <- c(1,1,1,0, 1,1,1,0)
+trans.rate <- TransMatMakerMuHiSSE(hidden.traits=1)
+trans.rate.mod <- ParDrop(trans.rate, c(4,6,7,8,12,14,15,16))
+
+pp <- MuHiSSE(phy=phy, data, f=c(1,1,1,0), turnover=turnover, eps=extinction.fraction, 
+              trans.rate=trans.rate.mod, k.samples=k.samples, hidden.states=T, includes.fossils=TRUE)
+pp
+```
+
+```{r fig.asp=1}
+margin.test <- MarginReconMuHiSSE(phy=phy, data=data, f=c(1,1,1,0), pars=pp$solution, hidden.states=1, includes.fossils=TRUE, k.samples=k.samples)
+plot.muhisse.states(margin.test, legend.cex=0.7, legend.kernel = "gaussian")
+```
+
+# FMuHiSSE on water depths
+## Plot depths
+
+```{r}
+functional_df <- read.csv("../4-OBDD/Functional_data_newTaxo.csv", row.names = 1)
+load("../../3-Data_processed/Morphospecies_phylogenies/NonSpinoseOnly_sampledAncestors.Rdata")
+load("../../3-Data_processed/Morphospecies_phylogenies/SpinoseOnly_sampledAncestors.RData")
+load("../../3-Data_processed/Morphospecies_phylogenies/MixedSpinose_sampledAncestors.RData")
+```
+
+```{r fig.width=15, fig.asp=0.6}
+par(mfrow=c(1,3))
+for (tree_name in c("Phylo_NonSpinoseOnly_sampledAncestors",
+                    "Phylo_SpinoseOnly_sampledAncestors",
+                    "Phylo_MixedSpinose_sampledAncestors")) {
+  tree       <- get(tree_name)
+  group_name <- gsub("^Phylo_|_sampledAncestors$", "", tree_name)
+  
+  # Match functional data to the tree tip order.
+  tree_data <- functional_df[match(tree$tip.species, functional_df$Morphospecies), ]
+  if (any(is.na(tree_data$Morphospecies))) {
+    warning("Some species in the tree were not found in functional_df for model: ", group_name)
+  }
+  
+  tree_data <- tree_data %>%
+  mutate(depth = factor(case_when(
+    eco == "Asymbiotic SML" ~ "Surface",
+    eco == "High latitude" ~ "Other",
+    eco == "High productivity" ~ "Other",
+    eco == "Sub-thermocline" ~ "Sub-thermocline",
+    eco == "Symbiotic SML" ~ "Surface",
+    eco == "Thermocline" ~ "Thermocline"
+  ), levels = c("Surface", "Thermocline", "Sub-thermocline", "Other")))
+  
+  # -------------------------------
+  # Plot tree colored by water depths
+  depth_levels <- levels(tree_data$depth)
+  depth_colors <- setNames(c("#009E73", "#56B4E9", "blue4", "black"), depth_levels)
+  tip_colors_depth <- depth_colors[as.character(tree_data$depth)]
+  plot(tree, tip.color = tip_colors_depth, main = group_name, cex = 0.8) ; axisPhylo()
+  legend("topright", legend = names(depth_colors), fill = depth_colors, cex = 1, title = "Depth", title.cex = 0.8)
+}
+```
+
+```{r fig.width=17, fig.asp=0.6}
+# Define depth mapping and colours
+eco2depth <- function(x) {
+  out <- ifelse(x %in% c("Symbiotic SML", "Asymbiotic SML"), "Surface",
+         ifelse(x == "Thermocline", "Thermocline",
+         ifelse(x == "Sub-thermocline", "Sub-thermocline",
+         ifelse(x %in% c("High latitude", "High productivity"), "Other", NA))))
+  factor(out, levels = c("Surface", "Thermocline", "Sub-thermocline", "Other", "Unknown"))
+}
+
+depth_cols <- c(Surface = "green3",
+                Thermocline = "skyblue",
+                `Sub-thermocline` = "blue4",
+                Other = "white",
+                Unknown = "yellow2")
+
+par(mfrow = c(1, 3))
+
+for (tree_name in c("Phylo_NonSpinoseOnly_sampledAncestors",
+                    "Phylo_SpinoseOnly_sampledAncestors",
+                    "Phylo_MixedSpinose_sampledAncestors")) {
+
+  tree       <- get(tree_name)
+  group_name <- gsub("^Phylo_|_sampledAncestors$", "", tree_name)
+
+  ## Map tips and nodes to eco → depth
+  tip_depth <- eco2depth(functional_df$eco[match(tree$tip.species, functional_df$Morphospecies)])
+  tip_depth[is.na(tip_depth)] <- "Unknown"
+
+  node_depth <- eco2depth(functional_df$eco[match(tree$node.species, functional_df$Morphospecies)])
+  node_depth[is.na(node_depth)] <- "Unknown"
+
+  ## Plot tree
+  plot(tree, show.tip.label = T, main = group_name, cex = 0.8)
+
+  # Add coloured circles for tips
+  tiplabels(pch = 21,
+            bg  = depth_cols[as.character(tip_depth)],
+            cex = 1)
+
+  # Add coloured circles for internal nodes (sampled ancestors)
+  nodelabels(pch = 21,
+             bg  = depth_cols[as.character(node_depth)],
+             cex = 1)
+
+  # Legend
+  legend("topright",
+         legend = names(depth_cols),
+         pt.bg  = depth_cols,
+         pch    = 21,
+         pt.cex = 1.3,
+         bty    = "n",
+         title  = "Depth",
+         title.col = "black")
+  
+  # print(tree_name)
+  # print(unique(tree$tip.species[tip_depth == "Unknown"]))
+  # print(unique(tree$node.species[node_depth == "Unknown"]))
+  # cat("\n\n")
+}
+```
+
+## FMuHiSSE analysis
+
+```{r}
+## Map ecogroups → observed depth states {1,2,3}
+eco_to_obs <- function(x) {
+  ifelse(x %in% c("Symbiotic SML", "Asymbiotic SML"), 1L,     # Surface
+  ifelse(x == "Thermocline",                          2L,     # Thermocline
+  ifelse(x == "Sub-thermocline",                      3L,     # Sub-thermocline
+         NA_integer_)))
+}
+
+## Encode 3 states into two binary columns
+## 1 -> (0,1), 2 -> (0,0), 3 -> (1,0)
+## Note: explicit row-wise assignment because `M[idx, ] <- c(a, b)` recycles
+## column-major in R and scrambles state assignments when length(idx) > 1.
+encode_3_to_2 <- function(s) {
+  M <- matrix(NA_integer_, nrow = length(s), ncol = 2)
+  i <- !is.na(s) & s == 1; M[i, 1] <- 0L; M[i, 2] <- 1L
+  i <- !is.na(s) & s == 2; M[i, 1] <- 0L; M[i, 2] <- 0L
+  i <- !is.na(s) & s == 3; M[i, 1] <- 1L; M[i, 2] <- 0L
+  M
+}
+```
+
+```{r}
+## --- Extract k.samples from sampled-ancestor nodes and remove them from the tree ---
+extract_k_and_collapse <- function(tree, functional_df) {
+  # Remove tips with unknown state
+  keep <- !is.na(eco_to_obs(functional_df$eco[match(tree$tip.species, functional_df$Morphospecies)]))
+  tree <- drop.tip(tree, tree$tip.label[!keep], collapse.singles = F)
+  tree$tip.species <- tree$tip.species[tree$tip.label]
+  tree$node.species <- tree$node.species[tree$node.label]
+  
+  tree_labels <- c(tree$tip.label, tree$node.label)
+  
+  k_nodes <- grep("F", tree$node.label, value = T)
+  k_descendants <- sapply(k_nodes, function(k_node){
+    k_children <- phangorn::Children(tree, k_node)
+    while(any(grepl("F|N", tree_labels[k_children]))){
+      if (length(k_children) == 1){
+        k_children <- phangorn::Children(tree, k_children)
+      }else if (grepl("F|N", tree_labels[k_children])[1]){
+        k_children[1] <- phangorn::Children(tree, k_children[1])[[1]]
+      }else{
+        k_children[2] <- phangorn::Children(tree, k_children[2])[[1]]
+      }
+    }
+    if (length(k_children) == 1){
+      c(tree_labels[k_children], tree_labels[k_children])
+    }else{
+      tree_labels[k_children]
+    }
+  })
+  
+  k_samples <- data.frame(k_nodes, t(k_descendants))
+  names(k_samples) <- c("node_label", "taxon1", "taxon2")
+  
+  # Get k-node ages
+  all_ages <- paleotree::dateNodes(tree = tree)
+  names(all_ages) <- tree_labels
+  k_samples$timefrompresent <- all_ages[k_samples$node_label]
+  
+  # Get depth states
+  k_samples$species <- tree$node.species[k_samples$node_label]
+  k_samples$eco_state <- eco_to_obs(functional_df$eco[match(k_samples$species, functional_df$Morphospecies)])
+  k_samples$state1 <- encode_3_to_2(k_samples$eco_state)[,1]
+  k_samples$state2 <- encode_3_to_2(k_samples$eco_state)[,2]
+  
+  # Remove k-samples with unknown state
+  k_samples <- k_samples[!is.na(k_samples$state1),]
+
+  # Remove sampled-ancestor nodes (merge their two incident edges)
+  phy_clean <- ape::collapse.singles(tree)
+
+  list(phy = phy_clean, k.samples = k_samples)
+}
+
+Phylo_NonSpinoseOnly_sampledAncestors.k <- extract_k_and_collapse(Phylo_NonSpinoseOnly_sampledAncestors, functional_df)
+Phylo_SpinoseOnly_sampledAncestors.k <- extract_k_and_collapse(Phylo_SpinoseOnly_sampledAncestors, functional_df)
+Phylo_MixedSpinose_sampledAncestors.k <- extract_k_and_collapse(Phylo_MixedSpinose_sampledAncestors, functional_df)
+```
+
+```{r}
+## Build MuHiSSE data for a given tree
+run_muhisse_depth <- function(tree, k.samples, functional_df) {
+
+  # Tip states (numeric 0,1,2)
+  obs <- eco_to_obs(functional_df$eco[match(tree$tip.species, functional_df$Morphospecies)])
+
+  # Data frame for hisse
+  X <- encode_3_to_2(obs)
+  dat <- data.frame(taxon = tree$tip.label,
+                    stateA = X[,1],
+                    stateB = X[,2],
+                    stringsAsFactors = FALSE,
+                    row.names = tree$tip.label)
+
+  # Transition matrix with one hidden trait
+  # trans <- TransMatMakerMuHiSSE(hidden.traits = 1)              # 3 observed × 2 hidden = 6 states
+  trans <- TransMatMakerMuHiSSE(hidden.traits = 1, make.null = T)              # 3 observed × 2 hidden = 6 states
+  trans.mod <- ParDrop(trans, c(4,6,7,8,12,14,15,16))
+
+  # Optionally collapse impossible transitions here with ParDrop()
+
+  # Parameter index vectors
+  n.full   <- nrow(trans.mod)
+  turnover <- c(1,2,3,0, 4,5,6,0)              # free turnover per state
+  # turnover <- c(1,2,3,0, 1,2,3,0)              # shared across hidden states
+  # turnover <- c(1,1,1,0, 1,1,1,0)              # shared
+  extinction.fraction <- c(1,2,3,0, 4,5,6,0)   # free extinction fraction per state
+  # extinction.fraction <- c(1,2,3,0, 1,2,3,0)   # shared across hidden states
+  # extinction.fraction <- c(1,1,1,0, 1,1,1,0)   # shared
+
+  fit <- MuHiSSE(phy = tree,
+                 data = dat,
+                 f = c(1,1,1,0),
+                 turnover = turnover, turnover.upper = 10,
+                 eps = extinction.fraction, eps.upper = 2,
+                 trans.rate = trans.mod,
+                 k.samples = k.samples[c("taxon1", "taxon2", "timefrompresent", "state1", "state2")],
+                 hidden.states = TRUE,
+                 includes.fossils = TRUE, 
+                 root.p = c(0.5, 0, 0, 0, 0.5, 0, 0, 0), # The root state is Thermocline for all clades
+                 ode.eps = 1e-8)
+  
+  fit$tree <- tree
+  fit$dat <- dat
+  fit$k.samples <- k.samples[c("taxon1", "taxon2", "timefrompresent", "state1", "state2")]
+  fit
+}
+
+clade_inputs <- list(
+  Mixed      = Phylo_MixedSpinose_sampledAncestors.k,
+  NonSpinose = Phylo_NonSpinoseOnly_sampledAncestors.k,
+  Spinose    = Phylo_SpinoseOnly_sampledAncestors.k
+)
+
+fits <- list()
+for (clade in names(clade_inputs)) {
+  fit_file <- sprintf("FMuHiSSE_fit_%s.RData", clade)
+  if (file.exists(fit_file)) {
+    message("Loading existing fit for ", clade, " from ", fit_file)
+    fit_obj <- get(load(fit_file))
+  } else {
+    message("Fitting ", clade, "...")
+    t0 <- Sys.time()
+    fit_obj <- run_muhisse_depth(clade_inputs[[clade]]$phy, clade_inputs[[clade]]$k.samples, functional_df)
+    message("  done in ", format(Sys.time() - t0, digits = 3))
+    assign(paste0("fit_", clade), fit_obj)
+    save(list = paste0("fit_", clade), file = fit_file)
+  }
+  fits[[clade]] <- fit_obj
+}
+```
+
+```{r fig.width=15}
+par(mfrow=c(2,length(fits)))
+for (fit in fits){
+  barplot(fit$solution[fit$solution != 0], log="y",las=2)
+  # debugonce(MarginReconMuHiSSE)
+  # debugonce(DownPassMuHisse)
+  recon <- MarginReconMuHiSSE(phy = fit$tree,
+                              data = fit$dat,
+                              f = c(1,1,1,0),
+                              pars = fit$solution,
+                              hidden.states = T,
+                              root.p = c(0.5, 0, 0, 0, 0.5, 0, 0, 0),
+                              includes.fossils = TRUE,
+                              k.samples = fit$k.samples)
+  plot.muhisse.states(recon)
+}
+```
+
+```{r fig.width=15, fig.asp=0.3}
+extinction_fractions <- fits$Mixed$solution[grep("eps", names(fits$Mixed$solution[fits$Mixed$solution != 0]), value = T)]
+turnovers <- fits$Mixed$solution[grep("turnover", names(fits$Mixed$solution[fits$Mixed$solution != 0]), value = T)]
+
+par(mfrow = c(1,2))
+barplot(turnovers/(extinction_fractions + turnovers), names.arg = gsub("eps", "", names(extinction_fractions)), main="Speciation rates")
+barplot(extinction_fractions*turnovers/(extinction_fractions + turnovers), names.arg = gsub("eps", "", names(extinction_fractions)), main="Extinction rates")
+```
+
+```{r fig.width=15, fig.asp=0.3}
+extinction_fractions <- fit$solution[grep("eps", names(fit$solution[fit$solution != 0]), value = T)]
+turnovers <- fit$solution[grep("turnover", names(fit$solution[fit$solution != 0]), value = T)]
+
+par(mfrow = c(1,2))
+barplot(turnovers/(extinction_fractions + turnovers), names.arg = gsub("eps", "", names(extinction_fractions)), main="Speciation rates")
+barplot(extinction_fractions*turnovers/(extinction_fractions + turnovers), names.arg = gsub("eps", "", names(extinction_fractions)), main="Extinction rates")
+```
+
