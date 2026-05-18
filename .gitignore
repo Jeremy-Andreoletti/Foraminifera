@@ -36,3 +36,7 @@
 5-Analyses/4-OBDD/.Rhistory
 6-Articles/
 .DS_Store # Ignore macOS system files
+
+# Rmd rendering artifacts
+5-Analyses/5-FMuHiSSE/render_test_files/
+5-Analyses/5-FMuHiSSE/render_test.html
