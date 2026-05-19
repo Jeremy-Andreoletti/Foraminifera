@@ -1,5 +1,5 @@
 # Overview
-This project focuses on studying the drivers of heterogeneity in fossilization rates in planktonic foraminifera as well as the diversification dynamics of this group. Key goals include understanding cryptic speciation and leveraging both fossil and molecular data to reconstruct evolutionary patterns. The models used include Protracted Birth-Death (PBD), Occurrence Birth-Death Diffusion (OBDD), and GeoSSE.
+This project focuses on studying the drivers of heterogeneity in fossilization rates in planktonic foraminifera as well as the diversification dynamics of this group. Key goals include understanding cryptic speciation and leveraging both fossil and molecular data to reconstruct evolutionary patterns. The models used include Protracted Birth-Death (PBD), Occurrence Birth-Death Diffusion (OBDD), MuHiSSE, and GeoSSE.
 
 The repository covers analyses for two articles, plus a third collaborative project on geographic diversification.
 
