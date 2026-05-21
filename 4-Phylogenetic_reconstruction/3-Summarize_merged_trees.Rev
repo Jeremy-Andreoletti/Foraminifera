@@ -1,0 +1,71 @@
+# pf5_pt5
+
+trace0 = readTreeTrace("output_pf5_pt5/forams_Microperforate_seed0.trees")
+trace1 = readTreeTrace("output_pf5_pt5/forams_Microperforate_seed1.trees")
+trace2 = readTreeTrace("output_pf5_pt5/forams_Microperforate_seed2.trees")
+mcc_tree = mccTree([trace0,trace1,trace2], file="output_pf5_pt5/forams_Microperforate_MCC_seeds012.tre", positiveBranchLengths = true)
+
+trace0 = readTreeTrace("output_pf5_pt5/forams_NonSpinose_seed0.trees")
+trace1 = readTreeTrace("output_pf5_pt5/forams_NonSpinose_seed1.trees")
+trace2 = readTreeTrace("output_pf5_pt5/forams_NonSpinose_seed2.trees")
+mcc_tree = mccTree([trace0,trace1,trace2], file="output_pf5_pt5/forams_NonSpinose_MCC_seeds012.tre", positiveBranchLengths = true)
+
+trace0 = readTreeTrace("output_pf5_pt5/forams_Spinose_seed0.trees")
+trace1 = readTreeTrace("output_pf5_pt5/forams_Spinose_seed1.trees")
+trace2 = readTreeTrace("output_pf5_pt5/forams_Spinose_seed2.trees")
+mcc_tree = mccTree([trace0,trace1,trace2], file="output_pf5_pt5/forams_Spinose_MCC_seeds012.tre", positiveBranchLengths = true)
+
+
+# pf95_pt95
+
+trace0 = readTreeTrace("output_pf95_pt95/forams_Microperforate_seed0.trees")
+trace1 = readTreeTrace("output_pf95_pt95/forams_Microperforate_seed1.trees")
+trace2 = readTreeTrace("output_pf95_pt95/forams_Microperforate_seed2.trees")
+mcc_tree = mccTree([trace0,trace1,trace2], file="output_pf95_pt95/forams_Microperforate_MCC_seeds012.tre", positiveBranchLengths = true)
+
+trace0 = readTreeTrace("output_pf95_pt95/forams_NonSpinose_seed0.trees")
+trace1 = readTreeTrace("output_pf95_pt95/forams_NonSpinose_seed1.trees")
+trace2 = readTreeTrace("output_pf95_pt95/forams_NonSpinose_seed2.trees")
+mcc_tree = mccTree([trace0,trace1,trace2], file="output_pf95_pt95/forams_NonSpinose_MCC_seeds012.tre", positiveBranchLengths = true)
+
+trace0 = readTreeTrace("output_pf95_pt95/forams_Spinose_seed0.trees")
+trace1 = readTreeTrace("output_pf95_pt95/forams_Spinose_seed1.trees")
+trace2 = readTreeTrace("output_pf95_pt95/forams_Spinose_seed2.trees")
+mcc_tree = mccTree([trace0,trace1,trace2], file="output_pf95_pt95/forams_Spinose_MCC_seeds012.tre", positiveBranchLengths = true)
+
+
+# pf5_pt5_nodeDating
+
+trace0 = readTreeTrace("output_pf5_pt5_nodeDating/forams_Microperforate_seed0.trees")
+trace3 = readTreeTrace("output_pf5_pt5_nodeDating/forams_Microperforate_seed3.trees")
+trace5 = readTreeTrace("output_pf5_pt5_nodeDating/forams_Microperforate_seed5.trees")
+mcc_tree = mccTree([trace0,trace3,trace5], file="output_pf5_pt5_nodeDating/forams_Microperforate_MCC_seeds035.tre", positiveBranchLengths = true)
+
+trace0 = readTreeTrace("output_pf5_pt5_nodeDating/forams_NonSpinose_seed0.trees")
+trace1 = readTreeTrace("output_pf5_pt5_nodeDating/forams_NonSpinose_seed1.trees")
+trace2 = readTreeTrace("output_pf5_pt5_nodeDating/forams_NonSpinose_seed2.trees")
+mcc_tree = mccTree([trace0,trace1,trace2], file="output_pf5_pt5_nodeDating/forams_NonSpinose_MCC_seeds012.tre", positiveBranchLengths = true)
+
+trace0 = readTreeTrace("output_pf5_pt5_nodeDating/forams_Spinose_seed0.trees")
+trace1 = readTreeTrace("output_pf5_pt5_nodeDating/forams_Spinose_seed1.trees")
+trace2 = readTreeTrace("output_pf5_pt5_nodeDating/forams_Spinose_seed2.trees")
+mcc_tree = mccTree([trace0,trace1,trace2], file="output_pf5_pt5_nodeDating/forams_Spinose_MCC_seeds012.tre", positiveBranchLengths = true)
+
+
+# pf95_pt95_nodeDating
+
+trace0 = readTreeTrace("output_pf95_pt95_nodeDating/forams_Microperforate_seed0.trees")
+trace3 = readTreeTrace("output_pf95_pt95_nodeDating/forams_Microperforate_seed3.trees")
+trace5 = readTreeTrace("output_pf95_pt95_nodeDating/forams_Microperforate_seed5.trees")
+mcc_tree = mccTree([trace0,trace3,trace5], file="output_pf95_pt95_nodeDating/forams_Microperforate_MCC_seeds035.tre", positiveBranchLengths = true)
+
+trace0 = readTreeTrace("output_pf95_pt95_nodeDating/forams_NonSpinose_seed0.trees")
+trace1 = readTreeTrace("output_pf95_pt95_nodeDating/forams_NonSpinose_seed1.trees")
+trace2 = readTreeTrace("output_pf95_pt95_nodeDating/forams_NonSpinose_seed2.trees")
+mcc_tree = mccTree([trace0,trace1,trace2], file="output_pf95_pt95_nodeDating/forams_NonSpinose_MCC_seeds012.tre", positiveBranchLengths = true)
+
+trace0 = readTreeTrace("output_pf95_pt95_nodeDating/forams_Spinose_seed0.trees")
+trace1 = readTreeTrace("output_pf95_pt95_nodeDating/forams_Spinose_seed1.trees")
+trace2 = readTreeTrace("output_pf95_pt95_nodeDating/forams_Spinose_seed2.trees")
+trace012 = readTreeTrace(["output_pf95_pt95_nodeDating/forams_Spinose_seed0.trees", "output_pf95_pt95_nodeDating/forams_Spinose_seed1.trees", "output_pf95_pt95_nodeDating/forams_Spinose_seed2.trees"])
+mcc_tree = mccTree([trace0,trace1,trace2], file="output_pf95_pt95_nodeDating/forams_Spinose_MCC_seeds012.tre", positiveBranchLengths = true)
