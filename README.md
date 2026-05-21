@@ -1,9 +1,11 @@
 # Overview
+
 This project focuses on studying the drivers of heterogeneity in fossilization rates in planktonic foraminifera as well as the diversification dynamics of this group. Key goals include understanding cryptic speciation and leveraging both fossil and molecular data to reconstruct evolutionary patterns. The models used include Protracted Birth-Death (PBD), Occurrence Birth-Death Diffusion (OBDD), MuHiSSE, and GeoSSE.
 
 The repository covers analyses for two articles, plus a third collaborative project on geographic diversification.
 
 ## Article 1 — Drivers of Fossil Sampling Heterogeneity
+
 **Andréoletti et al., *Paleobiology* — https://doi.org/10.1017/pab.2026.10094**
 
 Investigates heterogeneity in fossilization rates across planktonic foraminifera using occurrence data from the Triton database. Code archived at https://doi.org/10.17605/OSF.IO/BDU6E.
@@ -11,6 +13,7 @@ Investigates heterogeneity in fossilization rates across planktonic foraminifera
 Relevant directories: `2-Data_processing/1-Process_Triton_occurrences/`
 
 ## Article 2 — Diversification Dynamics of Planktonic Foraminifera
+
 **In preparation**
 
 Combines Bayesian phylogenetic inference (OBDP model), fossil occurrence data, and functional traits to study cryptic speciation and drivers of diversification rates across the three morphological groups (Spinose, Non-spinose, Microperforate).
@@ -18,6 +21,7 @@ Combines Bayesian phylogenetic inference (OBDP model), fossil occurrence data, a
 Relevant directories: `4-Phylogenetic_reconstruction/`, `5-Analyses/1-ProSSE/`, `5-Analyses/4-OBDD/`, `5-Analyses/5-FMuHiSSE/`
 
 ## Article 3 — Geographic Diversification
+
 Collaborative project (not lead). Analyses not yet public.
 
 ---
@@ -25,7 +29,9 @@ Collaborative project (not lead). Analyses not yet public.
 Some files are too large for this repository, including the Triton database (which can be found at https://doi.org/10.6084/m9.figshare.c.5242154.v4), and others that can be regenerated with `2-Data_processing` scripts.
 
 # Directory Structure and Description
+
 ## 1-Data_raw
+
 Contains the raw datasets, including:
 
 - `Aze_phylogeny`: Morphospecies phylogenetic dataset from Aze et al.
@@ -35,6 +41,7 @@ Contains the raw datasets, including:
 - `TritonDB`: Occurrence records from the Triton database.
 
 ## 2-Data_processing
+
 Scripts and intermediate files for processing raw data into a format suitable for downstream analyses:
 
 - `1-Process_Triton_occurrences`: Scripts to clean, preprocess and subsample TritonDB occurrences for phylogenetic and biogeographic analyses.
@@ -43,6 +50,7 @@ Scripts and intermediate files for processing raw data into a format suitable fo
 - `4-Assign_biogeography`: Assign biogeographical regions to species based on their occurrence records.
 
 ## 3-Data_processed
+
 Processed datasets ready for analysis:
 
 - `Biogeography`: Final biogeographical data with assigned regions.
@@ -52,9 +60,11 @@ Processed datasets ready for analysis:
 - `Triton_occurrences`: Cleaned and preprocessed occurrences from TritonDB.
 
 ## 4-Phylogenetic_reconstruction
+
 Final outputs from phylogenetic reconstruction, including maximum clade credibility (MCC) trees and other dated phylogenies.
 
 ## 5-Analyses
+
 Scripts and outputs for running different diversification models:
 
 - `1-ProSSE`: Analysis using the Protracted State-Dependent Speciation and Extinction (ProSSE) model to study cryptic diversity.
@@ -63,17 +73,20 @@ Scripts and outputs for running different diversification models:
 - `4-OBDD`: Occurrence Birth-Death Diffusion (OBDD) model outputs using fossil occurrences and modern molecular data.
 
 # Replication Steps
+
 1. Run Data Processing Scripts: Execute scripts in 2-Data_processing to clean and process the raw data. These scripts prepare occurrence data, perform sequence alignment with SSU-align, and assign biogeographical regions.
 2. Build Phylogenies: Use Rev scripts in 4-Phylogenetic_reconstruction to perform phylogenetic inference.
 3. Diversification Analysis: Run the diversification models (ProSSE, GeoSSE, ESSE, and OBDD) using the scripts in 5-Analyses. Adjust model parameters as needed based on the data processed and phylogenetic tree generated.
 
 # Softwares
+
 - R (with packages: diversitree, hisse, ape, phytools, dplyr, ggplot2, ggtree, paleoPhylo, divDyn, readxl, etc.)
 - SSU-align for sequence alignment
 - RevBayes for phylogenetic inference using OBDP
 - Julia for running Tapestree.jl
 
 # Contact Information
+
 For any questions or issues replicating this pipeline, please reach out to:
 
 Jérémy Andréoletti: jeremy.andreoletti@gmail.com
