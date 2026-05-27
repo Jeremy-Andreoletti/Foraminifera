@@ -192,3 +192,42 @@ output_5_nodeDating_M
 plotEssSplits(output_5_nodeDating_M, breaks=50)
 ```
 
+
+# Summary: ESS quantiles across variants and clades
+
+The default `checkConvergence` printout shows only the lowest split ESS per run. The summary below reports the 10th-percentile, median and 90th-percentile ESS across splits per (variant × clade × run), which is more informative for assessing convergence.
+
+```{r}
+ess_summary <- function(out) {
+  ess <- out$tree_parameters$ess
+  do.call(rbind, lapply(seq_len(ncol(ess)), function(r) {
+    v <- as.numeric(ess[, r]); v <- v[is.finite(v)]
+    data.frame(run = r, n_splits = length(v),
+               p10 = round(quantile(v, 0.1), 1),
+               median = round(median(v), 1),
+               p90 = round(quantile(v, 0.9), 1))
+  }))
+}
+
+outs <- list(
+  `output / Spinose`                      = output_S,
+  `output / NonSpinose`                   = output_NS,
+  `output / Microperforate`               = output_M,
+  `pf5_pt5 / Spinose`                     = output_5_S,
+  `pf5_pt5 / NonSpinose`                  = output_5_NS,
+  `pf5_pt5 / Microperforate`              = output_5_M,
+  `pf95_pt95 / Spinose`                   = output_95_S,
+  `pf95_pt95 / NonSpinose`                = output_95_NS,
+  `pf95_pt95 / Microperforate`            = output_95_M,
+  `pf95_pt95_nodeDating / Spinose`        = output_95_nodeDating_S,
+  `pf95_pt95_nodeDating / NonSpinose`     = output_95_nodeDating_NS,
+  `pf95_pt95_nodeDating / Microperforate` = output_95_nodeDating_M,
+  `pf5_pt5_nodeDating / Spinose`          = output_5_nodeDating_S,
+  `pf5_pt5_nodeDating / NonSpinose`       = output_5_nodeDating_NS,
+  `pf5_pt5_nodeDating / Microperforate`   = output_5_nodeDating_M
+)
+ess_tab <- do.call(rbind, lapply(names(outs), function(k) cbind(label = k, ess_summary(outs[[k]]))))
+ess_tab
+```
+
+The OBDD pipeline consumes `output_pf95_pt95_nodeDating/`, where convergence is good for Microperforate (median ESS ~18 000) and NonSpinose (median ~2 900) and marginal for Spinose (median ~820, p10 ~340).
